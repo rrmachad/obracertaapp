@@ -20,9 +20,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt"],
       manifest: {
-        name: "Obra Certa - Gestão de Obras MCMV",
+        name: "Obra Certa - Gestão de Obras Descomplicada",
         short_name: "Obra Certa",
-        description: "App de gestão de obras para o programa Minha Casa Minha Vida",
+        description: "App de gestão de obras descomplicada",
         theme_color: "#f97316",
         background_color: "#faf8f5",
         display: "standalone",
