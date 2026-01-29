@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { useDiario } from '@/hooks/useDiario';
 import { useToast } from '@/hooks/use-toast';
 import { ClimaTipo } from '@/types/database';
+import { FotoUpload } from './FotoUpload';
 
 interface DiarioTabProps {
   obraId: string;
@@ -27,6 +28,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const [clima, setClima] = useState<ClimaTipo>('ensolarado');
   const [atividades, setAtividades] = useState('');
   const [observacoes, setObservacoes] = useState('');
+  const [fotos, setFotos] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -47,6 +49,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
         clima,
         atividades_realizadas: atividades.trim(),
         observacoes: observacoes.trim() || undefined,
+        fotos: fotos,
       });
 
       toast({
@@ -57,6 +60,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
       // Limpar form
       setAtividades('');
       setObservacoes('');
+      setFotos([]);
       setClima('ensolarado');
     } catch (error) {
       toast({
@@ -147,6 +151,17 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
             />
           </div>
 
+          {/* Upload de fotos */}
+          <div className="space-y-2">
+            <Label className="text-base font-medium">Fotos da Obra</Label>
+            <FotoUpload
+              fotos={fotos}
+              onFotosChange={setFotos}
+              obraId={obraId}
+              disabled={saving}
+            />
+          </div>
+
           {/* Botão salvar */}
           <Button
             onClick={handleSave}
@@ -209,6 +224,31 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground mb-1">Observações:</p>
                         <p className="whitespace-pre-wrap">{registro.observacoes}</p>
+                      </div>
+                    )}
+                    {registro.fotos && registro.fotos.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                          <ImageIcon className="w-4 h-4" />
+                          Fotos ({registro.fotos.length})
+                        </p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {registro.fotos.map((foto, index) => (
+                            <a
+                              key={index}
+                              href={foto}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="aspect-square rounded-lg overflow-hidden border border-border hover:opacity-90 transition-opacity"
+                            >
+                              <img
+                                src={foto}
+                                alt={`Foto ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </a>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </CardContent>
