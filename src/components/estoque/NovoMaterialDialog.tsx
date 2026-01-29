@@ -21,15 +21,21 @@ interface NovoMaterialDialogProps {
 }
 
 const unidades = [
-  { value: 'un', label: 'Unidades (un)' },
-  { value: 'sc', label: 'Sacos (sc)' },
-  { value: 'kg', label: 'Quilos (kg)' },
-  { value: 'm³', label: 'Metro cúbico (m³)' },
-  { value: 'm²', label: 'Metro quadrado (m²)' },
-  { value: 'm', label: 'Metro linear (m)' },
-  { value: 'lt', label: 'Litros (lt)' },
-  { value: 'pc', label: 'Peças (pc)' },
+  { value: 'un', label: 'Unidades (un)', inteiro: true },
+  { value: 'sc', label: 'Sacos (sc)', inteiro: true },
+  { value: 'kg', label: 'Quilos (kg)', inteiro: false },
+  { value: 'm³', label: 'Metro cúbico (m³)', inteiro: false },
+  { value: 'm²', label: 'Metro quadrado (m²)', inteiro: false },
+  { value: 'm', label: 'Metro linear (m)', inteiro: false },
+  { value: 'lt', label: 'Litros (lt)', inteiro: false },
+  { value: 'pc', label: 'Peças (pc)', inteiro: true },
 ];
+
+// Função helper para verificar se unidade usa números inteiros
+export const isUnidadeInteira = (unidade: string): boolean => {
+  const found = unidades.find(u => u.value === unidade);
+  return found?.inteiro ?? false;
+};
 
 export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialDialogProps) {
   const [nome, setNome] = useState('');
@@ -55,13 +61,15 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
 
     setLoading(true);
 
+    const usarInteiro = isUnidadeInteira(unidade);
+
     try {
       await createMaterial.mutateAsync({
         obra_id: obraId,
         nome: nome.trim(),
         unidade,
-        qtd_atual: parseFloat(qtdAtual) || 0,
-        qtd_minima: parseFloat(qtdMinima) || 0,
+        qtd_atual: usarInteiro ? Math.round(parseFloat(qtdAtual) || 0) : parseFloat(qtdAtual) || 0,
+        qtd_minima: usarInteiro ? Math.round(parseFloat(qtdMinima) || 0) : parseFloat(qtdMinima) || 0,
       });
 
       toast({
@@ -138,7 +146,7 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
               <Input
                 id="qtdAtual"
                 type="number"
-                step="0.01"
+                step={isUnidadeInteira(unidade) ? "1" : "0.01"}
                 min="0"
                 value={qtdAtual}
                 onChange={(e) => setQtdAtual(e.target.value)}
@@ -153,7 +161,7 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
               <Input
                 id="qtdMinima"
                 type="number"
-                step="0.01"
+                step={isUnidadeInteira(unidade) ? "1" : "0.01"}
                 min="0"
                 value={qtdMinima}
                 onChange={(e) => setQtdMinima(e.target.value)}

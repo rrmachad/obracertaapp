@@ -5,8 +5,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useMateriais } from '@/hooks/useMateriais';
 import { useToast } from '@/hooks/use-toast';
-import { NovoMaterialDialog } from './NovoMaterialDialog';
+import { NovoMaterialDialog, isUnidadeInteira } from './NovoMaterialDialog';
 import { Material } from '@/types/database';
+
+// Formata quantidade conforme unidade (inteiro ou decimal)
+const formatarQuantidade = (qtd: number, unidade: string): string => {
+  if (isUnidadeInteira(unidade)) {
+    return Math.round(qtd).toString();
+  }
+  return qtd.toFixed(2);
+};
 
 interface EstoqueTabProps {
   obraId: string;
@@ -17,12 +25,15 @@ export function EstoqueTab({ obraId }: EstoqueTabProps) {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleAjuste = async (id: string, delta: number) => {
+  const handleAjuste = async (material: Material, delta: number) => {
+    // Usa incremento de 1 para unidades inteiras, 0.5 para decimais
+    const incremento = isUnidadeInteira(material.unidade) ? delta : delta * 0.5;
+    
     try {
-      await ajustarQuantidade.mutateAsync({ id, delta });
+      await ajustarQuantidade.mutateAsync({ id: material.id, delta: incremento });
       toast({
         title: delta > 0 ? 'Quantidade aumentada' : 'Quantidade diminuída',
-        description: `${Math.abs(delta)} unidade(s)`,
+        description: `${Math.abs(incremento)} ${material.unidade}`,
       });
     } catch (error) {
       toast({
@@ -102,7 +113,7 @@ export function EstoqueTab({ obraId }: EstoqueTabProps) {
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Mínimo: {material.qtd_minima} {material.unidade}
+                        Mínimo: {formatarQuantidade(material.qtd_minima, material.unidade)} {material.unidade}
                       </p>
                     </div>
 
@@ -112,7 +123,7 @@ export function EstoqueTab({ obraId }: EstoqueTabProps) {
                         variant="outline"
                         size="icon"
                         className="w-12 h-12 rounded-lg"
-                        onClick={() => handleAjuste(material.id, -1)}
+                        onClick={() => handleAjuste(material, -1)}
                         disabled={material.qtd_atual <= 0}
                       >
                         <Minus className="w-5 h-5" />
@@ -121,7 +132,7 @@ export function EstoqueTab({ obraId }: EstoqueTabProps) {
                       {/* Quantidade atual */}
                       <div className="w-20 text-center">
                         <div className={`text-2xl font-bold ${isLow ? 'text-destructive' : ''}`}>
-                          {material.qtd_atual}
+                          {formatarQuantidade(material.qtd_atual, material.unidade)}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {material.unidade}
@@ -133,7 +144,7 @@ export function EstoqueTab({ obraId }: EstoqueTabProps) {
                         variant="outline"
                         size="icon"
                         className="w-12 h-12 rounded-lg"
-                        onClick={() => handleAjuste(material.id, 1)}
+                        onClick={() => handleAjuste(material, 1)}
                       >
                         <Plus className="w-5 h-5" />
                       </Button>
