@@ -30,7 +30,7 @@ export function Dashboard() {
               </div>
               <div>
                 <h1 className="font-bold text-lg">Obra Certa</h1>
-                <p className="text-xs text-secondary-foreground/70">Gestão de Obras MCMV</p>
+                <p className="text-xs text-secondary-foreground/70">Gestão de Obras Descomplicada</p>
               </div>
             </div>
             <Button
