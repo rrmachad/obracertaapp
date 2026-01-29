@@ -84,7 +84,7 @@ export function AuthPage() {
             <HardHat className="w-10 h-10 text-primary-foreground" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">Obra Fácil</CardTitle>
+            <CardTitle className="text-2xl font-bold">Obra Certa</CardTitle>
             <CardDescription className="text-base">
               {isLogin ? 'Entre na sua conta' : 'Crie sua conta grátis'}
             </CardDescription>
