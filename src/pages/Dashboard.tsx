@@ -29,7 +29,7 @@ export function Dashboard() {
                 <HardHat className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="font-bold text-lg">Obra Fácil</h1>
+                <h1 className="font-bold text-lg">Obra Certa</h1>
                 <p className="text-xs text-secondary-foreground/70">Gestão de Obras MCMV</p>
               </div>
             </div>
