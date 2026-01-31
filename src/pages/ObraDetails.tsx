@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -9,12 +10,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useObra, useObras } from '@/hooks/useObras';
 import { useToast } from '@/hooks/use-toast';
 import { CronogramaTab } from '@/components/cronograma/CronogramaTab';
 import { EstoqueTab } from '@/components/estoque/EstoqueTab';
 import { DiarioTab } from '@/components/diario/DiarioTab';
+import { EditarObraDialog } from '@/components/obras/EditarObraDialog';
 import { ObraStatus } from '@/types/database';
 
 const statusConfig: Record<ObraStatus, { label: string; className: string }> = {
@@ -30,6 +33,7 @@ export function ObraDetails() {
   const { toast } = useToast();
   const { data: obra, isLoading, refetch } = useObra(id!);
   const { deleteObra, updateObra } = useObras();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!obra) return;
@@ -127,6 +131,11 @@ export function ObraDetails() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                <Pencil className="w-4 h-4 mr-2" />
+                Editar Obra
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleStatusChange('planejamento')}>
                 Marcar como Planejamento
               </DropdownMenuItem>
@@ -139,6 +148,7 @@ export function ObraDetails() {
               <DropdownMenuItem onClick={() => handleStatusChange('concluida')}>
                 Marcar como Concluída
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={handleDelete}
                 className="text-destructive focus:text-destructive"
@@ -200,6 +210,16 @@ export function ObraDetails() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Dialog de edição */}
+      {obra && (
+        <EditarObraDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          obra={obra}
+          onSuccess={refetch}
+        />
+      )}
     </div>
   );
 }
