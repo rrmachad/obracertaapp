@@ -1,4 +1,4 @@
-import { Check, Crown, Sparkles, Zap } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, Settings } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface UpgradePlanoDialogProps {
   open: boolean;
@@ -81,8 +82,10 @@ const plans: {
 
 export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogProps) {
   const { plan: currentPlan, planName } = useSubscription();
+  const { session } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState<SubscriptionPlan | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   const handleSelectPlan = async (selectedPlan: SubscriptionPlan) => {
     if (selectedPlan === currentPlan) return;
@@ -119,6 +122,32 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
     }
   };
 
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal', {
+        headers: session?.access_token ? {
+          Authorization: `Bearer ${session.access_token}`,
+        } : undefined,
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Portal error:', error);
+      toast({
+        title: 'Erro ao abrir portal',
+        description: 'Tente novamente em alguns instantes.',
+        variant: 'destructive',
+      });
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -127,8 +156,19 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
             <Sparkles className="w-5 h-5 text-primary" />
             Escolha seu Plano
           </DialogTitle>
-          <DialogDescription>
-            Plano atual: <strong>{planName}</strong>
+          <DialogDescription className="flex items-center justify-between">
+            <span>Plano atual: <strong>{planName}</strong></span>
+            {currentPlan !== 'free' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManageSubscription}
+                disabled={portalLoading}
+              >
+                <Settings className="w-4 h-4 mr-1" />
+                {portalLoading ? 'Abrindo...' : 'Gerenciar Assinatura'}
+              </Button>
+            )}
           </DialogDescription>
         </DialogHeader>
 

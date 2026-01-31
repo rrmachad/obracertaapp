@@ -1,20 +1,23 @@
 import { useState } from 'react';
-import { HardHat, Plus, LogOut, Search, Crown } from 'lucide-react';
+import { HardHat, Plus, LogOut, Search, Crown, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ObraCard } from '@/components/obras/ObraCard';
 import { NovaObraDialog } from '@/components/obras/NovaObraDialog';
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
+import { EntrarComPinDialog } from '@/components/admin/EntrarComPinDialog';
 import { useObras } from '@/hooks/useObras';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
+
 export function Dashboard() {
   const { obras, isLoading } = useObras();
   const { signOut, user } = useAuth();
   const { planName, plan } = useSubscription();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredObras = obras.filter(obra =>
@@ -48,6 +51,15 @@ export function Dashboard() {
                 <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground">
                   {planName}
                 </Badge>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setPinDialogOpen(true)}
+                className="text-secondary-foreground hover:bg-secondary-foreground/10"
+                title="Entrar com PIN"
+              >
+                <Key className="w-5 h-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -118,6 +130,7 @@ export function Dashboard() {
 
       <NovaObraDialog open={dialogOpen} onOpenChange={setDialogOpen} />
       <UpgradePlanoDialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen} />
+      <EntrarComPinDialog open={pinDialogOpen} onOpenChange={setPinDialogOpen} />
     </div>
   );
 }
