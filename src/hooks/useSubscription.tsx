@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useEffect } from 'react';
 
 export type SubscriptionPlan = 'free' | 'start' | 'gold' | 'premium';
 
@@ -31,9 +32,10 @@ const planNames: Record<SubscriptionPlan, string> = {
 };
 
 export function useSubscription() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const queryClient = useQueryClient();
 
+  // Buscar subscription do banco de dados
   const subscriptionQuery = useQuery({
     queryKey: ['subscription', user?.id],
     queryFn: async () => {
@@ -50,6 +52,50 @@ export function useSubscription() {
     },
     enabled: !!user?.id,
   });
+
+  // Verificar subscription no Stripe e sincronizar
+  const syncSubscription = useMutation({
+    mutationFn: async () => {
+      if (!session?.access_token) throw new Error('Not authenticated');
+      
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] });
+    },
+  });
+
+  // Sincronizar subscription ao carregar e periodicamente
+  useEffect(() => {
+    if (session?.access_token) {
+      // Sync on load
+      syncSubscription.mutate();
+      
+      // Sync every 5 minutes
+      const interval = setInterval(() => {
+        syncSubscription.mutate();
+      }, 5 * 60 * 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [session?.access_token]);
+
+  // Check for upgrade success in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('upgrade') === 'success') {
+      // Remove query params and sync
+      window.history.replaceState({}, '', window.location.pathname);
+      syncSubscription.mutate();
+    }
+  }, []);
 
   const updatePlan = useMutation({
     mutationFn: async ({ plan, stripeCustomerId, stripeSubscriptionId }: { 
@@ -83,7 +129,7 @@ export function useSubscription() {
   });
 
   const subscription = subscriptionQuery.data;
-  const plan = subscription?.plan || 'free';
+  const plan = (subscription?.plan || 'free') as SubscriptionPlan;
   const maxUsers = planLimits[plan];
   const planName = planNames[plan];
 
@@ -94,6 +140,7 @@ export function useSubscription() {
     maxUsers,
     isLoading: subscriptionQuery.isLoading,
     updatePlan,
+    syncSubscription,
     planLimits,
     planNames,
   };
