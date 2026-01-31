@@ -50,6 +50,11 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Garante que o usuário receba o bundle novo rapidamente (evita ficar preso em uma versão antiga do app).
+        // Isso é especialmente importante quando há correções de lógica (como datas) e o app está instalado como PWA.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
