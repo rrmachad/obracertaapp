@@ -111,7 +111,7 @@ export function ObraDetails() {
             variant="outline"
             size="icon"
             onClick={() => navigate('/')}
-            className="bg-card/95 backdrop-blur border-border shadow-md hover:bg-card"
+            className="bg-background/95 backdrop-blur border-border shadow-lg ring-1 ring-border/60 hover:bg-background"
           >
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </Button>
@@ -121,7 +121,7 @@ export function ObraDetails() {
               <Button
                 variant="outline"
                 size="icon"
-                className="bg-card/95 backdrop-blur border-border shadow-md hover:bg-card"
+                className="bg-background/95 backdrop-blur border-border shadow-lg ring-1 ring-border/60 hover:bg-background"
               >
                 <MoreVertical className="w-5 h-5 text-foreground" />
               </Button>
