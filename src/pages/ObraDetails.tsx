@@ -108,22 +108,22 @@ export function ObraDetails() {
         {/* Botões sobre a foto */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
           <Button
-            variant="outline"
+            variant="default"
             size="icon"
             onClick={() => navigate('/')}
-            className="bg-background/95 backdrop-blur border-border shadow-lg ring-1 ring-border/60 hover:bg-background"
+            className="bg-primary shadow-lg hover:bg-primary/90"
           >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
+            <ArrowLeft className="w-5 h-5 text-primary-foreground" />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
+                variant="default"
                 size="icon"
-                className="bg-background/95 backdrop-blur border-border shadow-lg ring-1 ring-border/60 hover:bg-background"
+                className="bg-primary shadow-lg hover:bg-primary/90"
               >
-                <MoreVertical className="w-5 h-5 text-foreground" />
+                <MoreVertical className="w-5 h-5 text-primary-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
