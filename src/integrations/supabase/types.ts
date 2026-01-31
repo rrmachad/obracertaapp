@@ -151,6 +151,47 @@ export type Database = {
           },
         ]
       }
+      diario_log_alteracoes: {
+        Row: {
+          campo_alterado: string
+          created_at: string
+          diario_id: string
+          id: string
+          motivo: string | null
+          user_id: string
+          valor_anterior: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          campo_alterado: string
+          created_at?: string
+          diario_id: string
+          id?: string
+          motivo?: string | null
+          user_id: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          campo_alterado?: string
+          created_at?: string
+          diario_id?: string
+          id?: string
+          motivo?: string | null
+          user_id?: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diario_log_alteracoes_diario_id_fkey"
+            columns: ["diario_id"]
+            isOneToOne: false
+            referencedRelation: "diario_log"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fases: {
         Row: {
           created_at: string
@@ -220,6 +261,76 @@ export type Database = {
             foreignKeyName: "materiais_obra_id_fkey"
             columns: ["obra_id"]
             isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      movimentacao_estoque: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          material_id: string
+          observacao: string | null
+          quantidade: number
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          id?: string
+          material_id: string
+          observacao?: string | null
+          quantidade: number
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          material_id?: string
+          observacao?: string | null
+          quantidade?: number
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimentacao_estoque_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      obra_pin: {
+        Row: {
+          created_at: string
+          id: string
+          obra_id: string
+          pin_hash: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          obra_id: string
+          pin_hash: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          obra_id?: string
+          pin_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "obra_pin_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: true
             referencedRelation: "obras"
             referencedColumns: ["id"]
           },

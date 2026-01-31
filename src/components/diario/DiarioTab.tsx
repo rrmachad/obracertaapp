@@ -1,14 +1,24 @@
-import { useState } from 'react';
-import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { format, subDays } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Badge } from '@/components/ui/badge';
 import { useDiario } from '@/hooks/useDiario';
+import { useCronogramaItens, useFases } from '@/hooks/useCronograma';
+import { useMateriais } from '@/hooks/useMateriais';
+import { useMovimentacaoEstoque } from '@/hooks/useMovimentacaoEstoque';
+import { useObraPin } from '@/hooks/useObraPin';
+import { useDiarioAlteracoes } from '@/hooks/useDiarioAlteracoes';
 import { useToast } from '@/hooks/use-toast';
-import { ClimaTipo } from '@/types/database';
+import { ClimaTipo, DiarioLog } from '@/types/database';
 import { FotoUpload } from './FotoUpload';
+import { PinDialog } from './PinDialog';
+import { EditarDiarioDialog } from './EditarDiarioDialog';
 
 interface DiarioTabProps {
   obraId: string;
@@ -22,7 +32,6 @@ const climaOptions: { value: ClimaTipo; label: string; icon: React.ReactNode }[]
 ];
 
 function parseDateOnlyAsLocal(dateStr: string) {
-  // Evita o bug clássico: `new Date('YYYY-MM-DD')` é tratado como UTC e pode “voltar um dia” no fuso do usuário.
   const safe = dateStr?.split('T')[0] ?? '';
   const [y, m, d] = safe.split('-').map((v) => Number(v));
   if (!y || !m || !d) return new Date(dateStr);
@@ -30,7 +39,13 @@ function parseDateOnlyAsLocal(dateStr: string) {
 }
 
 export function DiarioTab({ obraId }: DiarioTabProps) {
-  const { registros, isLoading, createDiario } = useDiario(obraId);
+  const { registros, isLoading, createDiario, updateDiario } = useDiario(obraId);
+  const { itens: cronogramaItens } = useCronogramaItens(obraId);
+  const { data: fases } = useFases();
+  const { materiais } = useMateriais(obraId);
+  const { movimentacoes, createMovimentacao } = useMovimentacaoEstoque(obraId);
+  const { hasPin, validatePin, createPin, updatePin } = useObraPin(obraId);
+  const { registrarAlteracao } = useDiarioAlteracoes();
   const { toast } = useToast();
 
   const [clima, setClima] = useState<ClimaTipo>('ensolarado');
@@ -38,6 +53,59 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const [observacoes, setObservacoes] = useState('');
   const [fotos, setFotos] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+
+  // Estado para diálogos
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
+  const [pinDialogMode, setPinDialogMode] = useState<'validate' | 'create' | 'change'>('validate');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedRegistro, setSelectedRegistro] = useState<DiarioLog | null>(null);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
+  // Gerar resumo automático das atividades do dia anterior
+  useEffect(() => {
+    if (atividades) return; // Não sobrescrever se já tem conteúdo
+
+    const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+    const today = format(new Date(), 'yyyy-MM-dd');
+
+    // Itens do cronograma concluídos ontem
+    const itensConcluidos = cronogramaItens.filter(
+      item => item.status === 'concluido' && item.data_conclusao === yesterday
+    );
+
+    // Movimentações de estoque de ontem ou hoje
+    const movsRecentes = movimentacoes.filter(
+      m => m.data === yesterday || m.data === today
+    );
+
+    const linhas: string[] = [];
+
+    // Adicionar itens concluídos
+    if (itensConcluidos.length > 0) {
+      linhas.push('📋 ATIVIDADES CONCLUÍDAS:');
+      itensConcluidos.forEach(item => {
+        const fase = fases?.find(f => f.id === item.fase_id);
+        linhas.push(`• ${item.descricao}${fase ? ` (${fase.nome})` : ''}`);
+      });
+    }
+
+    // Adicionar movimentações de estoque
+    if (movsRecentes.length > 0) {
+      if (linhas.length > 0) linhas.push('');
+      linhas.push('📦 MOVIMENTAÇÃO DE MATERIAIS:');
+      movsRecentes.forEach(mov => {
+        const material = materiais.find(m => m.id === mov.material_id);
+        if (material) {
+          const emoji = mov.tipo === 'entrada' ? '➕' : '➖';
+          linhas.push(`${emoji} ${material.nome}: ${mov.quantidade} ${material.unidade} (${mov.tipo})`);
+        }
+      });
+    }
+
+    if (linhas.length > 0) {
+      setAtividades(linhas.join('\n'));
+    }
+  }, [cronogramaItens, movimentacoes, materiais, fases]);
 
   const handleSave = async () => {
     if (!atividades.trim()) {
@@ -65,7 +133,6 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
         description: `Diário de ${new Date().toLocaleDateString('pt-BR')} registrado.`,
       });
 
-      // Limpar form
       setAtividades('');
       setObservacoes('');
       setFotos([]);
@@ -79,6 +146,100 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleEditClick = (registro: DiarioLog) => {
+    setSelectedRegistro(registro);
+    
+    if (!hasPin) {
+      // Se não tem PIN configurado, pedir para criar
+      setPinDialogMode('create');
+      setPendingAction(() => () => {
+        setEditDialogOpen(true);
+      });
+      setPinDialogOpen(true);
+    } else {
+      // Validar PIN antes de editar
+      setPinDialogMode('validate');
+      setPendingAction(() => () => {
+        setEditDialogOpen(true);
+      });
+      setPinDialogOpen(true);
+    }
+  };
+
+  const handlePinValidated = () => {
+    if (pendingAction) {
+      pendingAction();
+      setPendingAction(null);
+    }
+  };
+
+  const handleCreateOrUpdatePin = async (pin: string) => {
+    if (hasPin) {
+      await updatePin.mutateAsync(pin);
+    } else {
+      await createPin.mutateAsync(pin);
+    }
+    toast({
+      title: 'PIN configurado!',
+      description: 'PIN de segurança salvo com sucesso.',
+    });
+    // Executar ação pendente após criar PIN
+    if (pendingAction) {
+      pendingAction();
+      setPendingAction(null);
+    }
+  };
+
+  const handleSaveEdit = async (
+    updates: {
+      data?: string;
+      clima?: ClimaTipo;
+      atividades_realizadas?: string;
+      observacoes?: string;
+    },
+    motivo?: string
+  ) => {
+    if (!selectedRegistro) return;
+
+    try {
+      // Registrar alterações no log
+      for (const [campo, valorNovo] of Object.entries(updates)) {
+        const valorAnterior = selectedRegistro[campo as keyof DiarioLog]?.toString();
+        await registrarAlteracao.mutateAsync({
+          diario_id: selectedRegistro.id,
+          campo_alterado: campo,
+          valor_anterior: valorAnterior,
+          valor_novo: valorNovo?.toString(),
+          motivo,
+        });
+      }
+
+      // Atualizar o registro
+      await updateDiario.mutateAsync({
+        id: selectedRegistro.id,
+        ...updates,
+      });
+
+      toast({
+        title: 'Registro atualizado',
+        description: 'As alterações foram salvas e registradas no log.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível salvar as alterações.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const handleConfigurePin = () => {
+    setPinDialogMode(hasPin ? 'change' : 'create');
+    setPendingAction(null);
+    setPinDialogOpen(true);
   };
 
   const getClimaIcon = (climaValue: ClimaTipo) => {
@@ -101,6 +262,20 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
 
   return (
     <div className="space-y-6">
+      {/* Cabeçalho com config de PIN */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Badge variant={hasPin ? 'default' : 'secondary'} className="gap-1">
+            <Settings className="w-3 h-3" />
+            {hasPin ? 'PIN Ativo' : 'Sem PIN'}
+          </Badge>
+        </div>
+        <Button variant="ghost" size="sm" onClick={handleConfigurePin}>
+          <Settings className="w-4 h-4 mr-1" />
+          {hasPin ? 'Alterar PIN' : 'Configurar PIN'}
+        </Button>
+      </div>
+
       {/* Formulário do dia */}
       <Card className="border-2 border-primary/20">
         <CardHeader className="pb-3">
@@ -131,11 +306,19 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
             </div>
           </div>
 
-          {/* Atividades */}
+          {/* Atividades - com pré-preenchimento */}
           <div className="space-y-2">
-            <Label htmlFor="atividades" className="text-base font-medium">
-              O que foi feito hoje?
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="atividades" className="text-base font-medium">
+                O que foi feito hoje?
+              </Label>
+              {atividades && (
+                <Badge variant="outline" className="gap-1 text-xs">
+                  <ArrowUpDown className="w-3 h-3" />
+                  Pré-preenchido
+                </Badge>
+              )}
+            </div>
             <Textarea
               id="atividades"
               placeholder="Descreva as atividades realizadas..."
@@ -143,6 +326,9 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
               onChange={(e) => setAtividades(e.target.value)}
               className="min-h-28 text-base"
             />
+            <p className="text-xs text-muted-foreground">
+              💡 Atividades do cronograma e movimentações de estoque são preenchidas automaticamente.
+            </p>
           </div>
 
           {/* Observações */}
@@ -194,7 +380,10 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
       {/* Histórico */}
       {registros.length > 0 && (
         <div className="space-y-3">
-          <h3 className="font-semibold text-lg">Histórico</h3>
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <History className="w-5 h-5" />
+            Histórico
+          </h3>
           {registros.map((registro) => (
             <Collapsible key={registro.id}>
               <Card>
@@ -218,7 +407,20 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
                           </p>
                         </div>
                       </div>
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditClick(registro);
+                          }}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      </div>
                     </div>
                   </CardHeader>
                 </CollapsibleTrigger>
@@ -265,6 +467,27 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
             </Collapsible>
           ))}
         </div>
+      )}
+
+      {/* PIN Dialog */}
+      <PinDialog
+        open={pinDialogOpen}
+        onOpenChange={setPinDialogOpen}
+        onValidPin={handlePinValidated}
+        validatePin={validatePin}
+        mode={pinDialogMode}
+        onCreatePin={handleCreateOrUpdatePin}
+      />
+
+      {/* Edit Dialog */}
+      {selectedRegistro && (
+        <EditarDiarioDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          registro={selectedRegistro}
+          onSave={handleSaveEdit}
+          requiresMotivo={true}
+        />
       )}
     </div>
   );

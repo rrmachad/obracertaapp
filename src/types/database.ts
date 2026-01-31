@@ -79,3 +79,32 @@ export interface ConsumoDiario {
   qtd_consumida: number;
   created_at: string;
 }
+
+export interface MovimentacaoEstoque {
+  id: string;
+  material_id: string;
+  tipo: 'entrada' | 'saida';
+  quantidade: number;
+  observacao?: string;
+  data: string;
+  created_at: string;
+}
+
+export interface ObraPin {
+  id: string;
+  obra_id: string;
+  pin_hash: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DiarioLogAlteracao {
+  id: string;
+  diario_id: string;
+  user_id: string;
+  campo_alterado: string;
+  valor_anterior?: string;
+  valor_novo?: string;
+  motivo?: string;
+  created_at: string;
+}

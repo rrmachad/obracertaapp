@@ -1,0 +1,183 @@
+import { useState } from 'react';
+import { Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+interface PinDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onValidPin: () => void;
+  validatePin: (pin: string) => boolean;
+  mode: 'validate' | 'create' | 'change';
+  onCreatePin?: (pin: string) => Promise<void>;
+}
+
+export function PinDialog({
+  open,
+  onOpenChange,
+  onValidPin,
+  validatePin,
+  mode,
+  onCreatePin,
+}: PinDialogProps) {
+  const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleValidate = () => {
+    if (validatePin(pin)) {
+      setError('');
+      setPin('');
+      onValidPin();
+      onOpenChange(false);
+    } else {
+      setError('PIN incorreto');
+    }
+  };
+
+  const handleCreate = async () => {
+    if (pin.length < 4 || pin.length > 6) {
+      setError('PIN deve ter entre 4 e 6 dígitos');
+      return;
+    }
+    if (!/^\d+$/.test(pin)) {
+      setError('PIN deve conter apenas números');
+      return;
+    }
+    if (pin !== confirmPin) {
+      setError('Os PINs não coincidem');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await onCreatePin?.(pin);
+      setPin('');
+      setConfirmPin('');
+      setError('');
+      onOpenChange(false);
+    } catch {
+      setError('Erro ao criar PIN');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mode === 'validate') {
+      handleValidate();
+    } else {
+      handleCreate();
+    }
+  };
+
+  const isCreateMode = mode === 'create' || mode === 'change';
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {isCreateMode ? (
+              <>
+                <KeyRound className="h-5 w-5 text-primary" />
+                {mode === 'create' ? 'Criar PIN de Segurança' : 'Alterar PIN'}
+              </>
+            ) : (
+              <>
+                <Lock className="h-5 w-5 text-primary" />
+                Autenticação Necessária
+              </>
+            )}
+          </DialogTitle>
+          <DialogDescription>
+            {isCreateMode
+              ? 'Digite um PIN de 4-6 dígitos para proteger edições nos registros do diário.'
+              : 'Digite o PIN de administrador para autorizar esta alteração.'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="pin">{isCreateMode ? 'Novo PIN' : 'PIN'}</Label>
+            <div className="relative">
+              <Input
+                id="pin"
+                type={showPin ? 'text' : 'password'}
+                placeholder="••••••"
+                value={pin}
+                onChange={(e) => {
+                  setPin(e.target.value.replace(/\D/g, '').slice(0, 6));
+                  setError('');
+                }}
+                maxLength={6}
+                className="pr-10 text-center text-xl tracking-widest"
+                autoFocus
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full px-3"
+                onClick={() => setShowPin(!showPin)}
+              >
+                {showPin ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {isCreateMode && (
+            <div className="space-y-2">
+              <Label htmlFor="confirmPin">Confirmar PIN</Label>
+              <Input
+                id="confirmPin"
+                type={showPin ? 'text' : 'password'}
+                placeholder="••••••"
+                value={confirmPin}
+                onChange={(e) => {
+                  setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6));
+                  setError('');
+                }}
+                maxLength={6}
+                className="text-center text-xl tracking-widest"
+              />
+            </div>
+          )}
+
+          {error && (
+            <p className="text-sm text-destructive text-center">{error}</p>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading || !pin}>
+              {loading ? 'Salvando...' : isCreateMode ? 'Salvar PIN' : 'Confirmar'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
