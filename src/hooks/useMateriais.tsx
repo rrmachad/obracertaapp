@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Material } from '@/types/database';
+import { format } from 'date-fns';
 
 export function useMateriais(obraId: string) {
   const queryClient = useQueryClient();
@@ -68,12 +69,13 @@ export function useMateriais(obraId: string) {
   });
 
   const ajustarQuantidade = useMutation({
-    mutationFn: async ({ id, delta }: { id: string; delta: number }) => {
+    mutationFn: async ({ id, delta, observacao }: { id: string; delta: number; observacao?: string }) => {
       const material = materiaisQuery.data?.find(m => m.id === id);
       if (!material) throw new Error('Material não encontrado');
       
       const novaQtd = Math.max(0, material.qtd_atual + delta);
       
+      // Atualizar quantidade
       const { data, error } = await supabase
         .from('materiais')
         .update({ qtd_atual: novaQtd })
@@ -82,10 +84,25 @@ export function useMateriais(obraId: string) {
         .single();
       
       if (error) throw error;
+
+      // Registrar movimentação
+      const { error: movError } = await supabase
+        .from('movimentacao_estoque')
+        .insert({
+          material_id: id,
+          tipo: delta > 0 ? 'entrada' : 'saida',
+          quantidade: Math.abs(delta),
+          observacao,
+          data: format(new Date(), 'yyyy-MM-dd'),
+        });
+      
+      if (movError) console.error('Erro ao registrar movimentação:', movError);
+
       return data as Material;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['materiais', obraId] });
+      queryClient.invalidateQueries({ queryKey: ['movimentacoes', obraId] });
     },
   });
 
