@@ -21,6 +21,14 @@ const climaOptions: { value: ClimaTipo; label: string; icon: React.ReactNode }[]
   { value: 'chuvoso', label: 'Chuvoso', icon: <CloudRain className="w-6 h-6" /> },
 ];
 
+function parseDateOnlyAsLocal(dateStr: string) {
+  // Evita o bug clássico: `new Date('YYYY-MM-DD')` é tratado como UTC e pode “voltar um dia” no fuso do usuário.
+  const safe = dateStr?.split('T')[0] ?? '';
+  const [y, m, d] = safe.split('-').map((v) => Number(v));
+  if (!y || !m || !d) return new Date(dateStr);
+  return new Date(y, m - 1, d);
+}
+
 export function DiarioTab({ obraId }: DiarioTabProps) {
   const { registros, isLoading, createDiario } = useDiario(obraId);
   const { toast } = useToast();
@@ -199,7 +207,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
                         </div>
                         <div>
                           <p className="font-medium">
-                            {new Date(registro.data).toLocaleDateString('pt-BR', {
+                            {parseDateOnlyAsLocal(registro.data).toLocaleDateString('pt-BR', {
                               weekday: 'long',
                               day: 'numeric',
                               month: 'long',
