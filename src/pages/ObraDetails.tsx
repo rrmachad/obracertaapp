@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil } from 'lucide-react';
+import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,8 @@ import { CronogramaTab } from '@/components/cronograma/CronogramaTab';
 import { EstoqueTab } from '@/components/estoque/EstoqueTab';
 import { DiarioTab } from '@/components/diario/DiarioTab';
 import { EditarObraDialog } from '@/components/obras/EditarObraDialog';
+import { GerenciarAcessosDialog } from '@/components/admin/GerenciarAcessosDialog';
+import { useObraAccess } from '@/hooks/useUserInvites';
 import { ObraStatus } from '@/types/database';
 
 const statusConfig: Record<ObraStatus, { label: string; className: string }> = {
@@ -33,8 +35,9 @@ export function ObraDetails() {
   const { toast } = useToast();
   const { data: obra, isLoading, refetch } = useObra(id!);
   const { deleteObra, updateObra } = useObras();
+  const { canManageUsers } = useObraAccess(id!);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-
+  const [acessosDialogOpen, setAcessosDialogOpen] = useState(false);
   const handleDelete = async () => {
     if (!obra) return;
     if (!confirm(`Tem certeza que deseja excluir "${obra.nome}"? Esta ação não pode ser desfeita.`)) return;
@@ -135,6 +138,12 @@ export function ObraDetails() {
                 <Pencil className="w-4 h-4 mr-2" />
                 Editar Obra
               </DropdownMenuItem>
+              {canManageUsers && (
+                <DropdownMenuItem onClick={() => setAcessosDialogOpen(true)}>
+                  <Users className="w-4 h-4 mr-2" />
+                  Gerenciar Acessos
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleStatusChange('planejamento')}>
                 Marcar como Planejamento
@@ -213,12 +222,20 @@ export function ObraDetails() {
 
       {/* Dialog de edição */}
       {obra && (
-        <EditarObraDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          obra={obra}
-          onSuccess={refetch}
-        />
+        <>
+          <EditarObraDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            obra={obra}
+            onSuccess={refetch}
+          />
+          <GerenciarAcessosDialog
+            open={acessosDialogOpen}
+            onOpenChange={setAcessosDialogOpen}
+            obraId={obra.id}
+            obraNome={obra.nome}
+          />
+        </>
       )}
     </div>
   );

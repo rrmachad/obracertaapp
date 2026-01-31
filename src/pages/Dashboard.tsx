@@ -1,16 +1,20 @@
 import { useState } from 'react';
-import { HardHat, Plus, LogOut, Search } from 'lucide-react';
+import { HardHat, Plus, LogOut, Search, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { ObraCard } from '@/components/obras/ObraCard';
 import { NovaObraDialog } from '@/components/obras/NovaObraDialog';
+import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
 import { useObras } from '@/hooks/useObras';
 import { useAuth } from '@/hooks/useAuth';
-
+import { useSubscription } from '@/hooks/useSubscription';
 export function Dashboard() {
   const { obras, isLoading } = useObras();
   const { signOut, user } = useAuth();
+  const { planName, plan } = useSubscription();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredObras = obras.filter(obra =>
@@ -33,14 +37,27 @@ export function Dashboard() {
                 <p className="text-xs text-secondary-foreground/70">Gestão de Obras Descomplicada</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={signOut}
-              className="text-secondary-foreground hover:bg-secondary-foreground/10"
-            >
-              <LogOut className="w-5 h-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setUpgradeDialogOpen(true)}
+                className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5"
+              >
+                <Crown className="w-4 h-4" />
+                <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground">
+                  {planName}
+                </Badge>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={signOut}
+                className="text-secondary-foreground hover:bg-secondary-foreground/10"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -100,6 +117,7 @@ export function Dashboard() {
       </Button>
 
       <NovaObraDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <UpgradePlanoDialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen} />
     </div>
   );
 }
