@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText, Download, Share2, Mail, MessageCircle, Copy } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText, Download, Share2, Mail, MessageCircle, Copy, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -21,6 +21,7 @@ import { useMateriais } from '@/hooks/useMateriais';
 import { useMovimentacaoEstoque } from '@/hooks/useMovimentacaoEstoque';
 import { useObraPin } from '@/hooks/useObraPin';
 import { useDiarioAlteracoes } from '@/hooks/useDiarioAlteracoes';
+import { useUserSettings } from '@/hooks/useUserSettings';
 import { useToast } from '@/hooks/use-toast';
 import { ClimaTipo, DiarioLog, Profissional } from '@/types/database';
 import { FotoUpload } from './FotoUpload';
@@ -29,6 +30,7 @@ import { EditarDiarioDialog } from './EditarDiarioDialog';
 import { ProfissionaisInput } from './ProfissionaisInput';
 import { RelatorioSemanalDialog } from './RelatorioSemanalDialog';
 import { RelatorioMensalDialog } from './RelatorioMensalDialog';
+import { ConfiguracaoEmpresaDialog } from './ConfiguracaoEmpresaDialog';
 import {
   generateDailyReportPDF,
   downloadPDF,
@@ -65,6 +67,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const { movimentacoes, createMovimentacao } = useMovimentacaoEstoque(obraId);
   const { hasPin, validatePin, createPin, updatePin } = useObraPin(obraId);
   const { registrarAlteracao } = useDiarioAlteracoes();
+  const { settings } = useUserSettings();
   const { toast } = useToast();
 
   const [clima, setClima] = useState<ClimaTipo>('ensolarado');
@@ -75,6 +78,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const [saving, setSaving] = useState(false);
   const [relatorioSemanalOpen, setRelatorioSemanalOpen] = useState(false);
   const [relatorioMensalOpen, setRelatorioMensalOpen] = useState(false);
+  const [empresaConfigOpen, setEmpresaConfigOpen] = useState(false);
 
   // Estado para diálogos
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -278,7 +282,11 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
 
   // Export and share functions for daily reports
   const exportarDiarioPDF = async (registro: DiarioLog) => {
-    const doc = await generateDailyReportPDF(registro, 'Obra');
+    const pdfOptions = {
+      logoUrl: settings?.empresa_logo_url,
+      empresaNome: settings?.empresa_nome,
+    };
+    const doc = await generateDailyReportPDF(registro, 'Obra', pdfOptions);
     const filename = `diario-${format(parseDateOnlyAsLocal(registro.data), 'dd-MM-yyyy')}.pdf`;
     downloadPDF(doc, filename);
     toast({
@@ -341,14 +349,20 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   return (
     <div className="space-y-6">
       {/* Cabeçalho com config de PIN e Relatório Semanal */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <Badge variant={hasPin ? 'default' : 'secondary'} className="gap-1">
             <Settings className="w-3 h-3" />
             {hasPin ? 'PIN Ativo' : 'Sem PIN'}
           </Badge>
+          {settings?.empresa_nome && (
+            <Badge variant="outline" className="gap-1">
+              <Building2 className="w-3 h-3" />
+              {settings.empresa_nome}
+            </Badge>
+          )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button 
             variant="outline" 
             size="sm" 
@@ -365,10 +379,24 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
             <Calendar className="w-4 h-4 mr-1" />
             Mensal
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleConfigurePin}>
-            <Settings className="w-4 h-4 mr-1" />
-            {hasPin ? 'Alterar PIN' : 'Configurar PIN'}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Settings className="w-4 h-4 mr-1" />
+                Configurações
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleConfigurePin}>
+                <Settings className="w-4 h-4 mr-2" />
+                {hasPin ? 'Alterar PIN' : 'Configurar PIN'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setEmpresaConfigOpen(true)}>
+                <Building2 className="w-4 h-4 mr-2" />
+                Configurar Empresa
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -659,6 +687,16 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
         onOpenChange={setRelatorioMensalOpen}
         registros={registros}
         obraNome="Obra"
+        pdfOptions={{
+          logoUrl: settings?.empresa_logo_url,
+          empresaNome: settings?.empresa_nome,
+        }}
+      />
+
+      {/* Configuração de Empresa Dialog */}
+      <ConfiguracaoEmpresaDialog
+        open={empresaConfigOpen}
+        onOpenChange={setEmpresaConfigOpen}
       />
     </div>
   );

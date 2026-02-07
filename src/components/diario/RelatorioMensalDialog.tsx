@@ -3,12 +3,13 @@ import { format, startOfMonth, endOfMonth, subMonths, eachDayOfInterval, isSameD
 import { ptBR } from 'date-fns/locale';
 import { 
   FileText, Calendar, Users, Cloud, ChevronLeft, ChevronRight, Copy, Sun, CloudSun, 
-  CloudRain, RotateCcw, ChevronDown, ChevronUp, Image, Download, Share2, Mail, MessageCircle 
+  CloudRain, RotateCcw, ChevronDown, ChevronUp, Image, Download, Share2, Mail, MessageCircle, BarChart3 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -46,13 +47,16 @@ import {
   shareViaWhatsApp,
   shareViaEmail,
   MonthlyReportData,
+  PDFOptions,
 } from '@/lib/relatorioExport';
+import { GraficosComparativos } from './GraficosComparativos';
 
 interface RelatorioMensalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   registros: DiarioLog[];
   obraNome: string;
+  pdfOptions?: PDFOptions;
 }
 
 const climaIcons: Record<ClimaTipo, React.ReactNode> = {
@@ -80,11 +84,13 @@ export function RelatorioMensalDialog({
   open, 
   onOpenChange, 
   registros, 
-  obraNome 
+  obraNome,
+  pdfOptions
 }: RelatorioMensalDialogProps) {
   const [monthOffset, setMonthOffset] = useState(0);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [selectedRegistro, setSelectedRegistro] = useState<DiarioLog | null>(null);
+  const [viewMode, setViewMode] = useState<'resumo' | 'graficos'>('resumo');
   const { toast } = useToast();
 
   // Calcular intervalo do mês
@@ -165,7 +171,7 @@ export function RelatorioMensalDialog({
   // Export PDF
   const exportarPDF = async () => {
     const data = getReportData();
-    const doc = await generateMonthlyReportPDF(data);
+    const doc = await generateMonthlyReportPDF(data, pdfOptions);
     const filename = `relatorio-mensal-${format(mesAtual.base, 'MM-yyyy')}.pdf`;
     downloadPDF(doc, filename);
     toast({
@@ -286,7 +292,21 @@ export function RelatorioMensalDialog({
             </Button>
           </div>
 
-          {/* Estatísticas */}
+          {/* Tabs para Resumo e Gráficos */}
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'resumo' | 'graficos')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="resumo" className="gap-1">
+                <FileText className="w-4 h-4" />
+                Resumo
+              </TabsTrigger>
+              <TabsTrigger value="graficos" className="gap-1">
+                <BarChart3 className="w-4 h-4" />
+                Gráficos
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="resumo" className="space-y-4 mt-4">
+              {/* Estatísticas */}
           <div className="grid grid-cols-3 gap-3">
             <Card>
               <CardContent className="p-4 text-center">
@@ -457,6 +477,12 @@ export function RelatorioMensalDialog({
               )}
             </div>
           </div>
+            </TabsContent>
+
+            <TabsContent value="graficos" className="mt-4">
+              <GraficosComparativos registros={registros} obraNome={obraNome} />
+            </TabsContent>
+          </Tabs>
 
           {/* Botões de ação */}
           <div className="flex gap-2">
