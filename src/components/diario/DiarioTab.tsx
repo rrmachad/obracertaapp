@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -15,10 +15,11 @@ import { useMovimentacaoEstoque } from '@/hooks/useMovimentacaoEstoque';
 import { useObraPin } from '@/hooks/useObraPin';
 import { useDiarioAlteracoes } from '@/hooks/useDiarioAlteracoes';
 import { useToast } from '@/hooks/use-toast';
-import { ClimaTipo, DiarioLog } from '@/types/database';
+import { ClimaTipo, DiarioLog, Profissional } from '@/types/database';
 import { FotoUpload } from './FotoUpload';
 import { PinDialog } from './PinDialog';
 import { EditarDiarioDialog } from './EditarDiarioDialog';
+import { ProfissionaisInput } from './ProfissionaisInput';
 
 interface DiarioTabProps {
   obraId: string;
@@ -52,6 +53,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const [atividades, setAtividades] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [fotos, setFotos] = useState<string[]>([]);
+  const [profissionais, setProfissionais] = useState<Profissional[]>([]);
   const [saving, setSaving] = useState(false);
 
   // Estado para diálogos
@@ -126,6 +128,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
         atividades_realizadas: atividades.trim(),
         observacoes: observacoes.trim() || undefined,
         fotos: fotos,
+        profissionais: profissionais,
       });
 
       toast({
@@ -136,6 +139,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
       setAtividades('');
       setObservacoes('');
       setFotos([]);
+      setProfissionais([]);
       setClima('ensolarado');
     } catch (error) {
       toast({
@@ -345,6 +349,13 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
             />
           </div>
 
+          {/* Profissionais na obra */}
+          <ProfissionaisInput
+            value={profissionais}
+            onChange={setProfissionais}
+            disabled={saving}
+          />
+
           {/* Upload de fotos */}
           <div className="space-y-2">
             <Label className="text-base font-medium">Fotos da Obra</Label>
@@ -430,6 +441,21 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
                       <p className="text-sm font-medium text-muted-foreground mb-1">Atividades:</p>
                       <p className="whitespace-pre-wrap">{registro.atividades_realizadas}</p>
                     </div>
+                    {registro.profissionais && registro.profissionais.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                          <Users className="w-4 h-4" />
+                          Profissionais ({registro.profissionais.reduce((sum, p) => sum + p.quantidade, 0)})
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {registro.profissionais.map((prof, index) => (
+                            <Badge key={index} variant="secondary">
+                              {prof.quantidade} {prof.funcao}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     {registro.observacoes && (
                       <div>
                         <p className="text-sm font-medium text-muted-foreground mb-1">Observações:</p>

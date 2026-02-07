@@ -60,6 +60,11 @@ export interface Material {
   updated_at: string;
 }
 
+export interface Profissional {
+  funcao: string;
+  quantidade: number;
+}
+
 export interface DiarioLog {
   id: string;
   obra_id: string;
@@ -68,6 +73,7 @@ export interface DiarioLog {
   atividades_realizadas: string;
   observacoes?: string;
   fotos: string[];
+  profissionais?: Profissional[];
   created_at: string;
   updated_at: string;
 }
