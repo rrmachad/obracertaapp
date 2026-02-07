@@ -24,6 +24,43 @@ function addWrappedText(
   return y + lines.length * lineHeight;
 }
 
+// Helper function to add logo to PDF
+async function addLogoToPDF(
+  doc: jsPDF,
+  logoUrl: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  maxHeight: number
+): Promise<number> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
+      const width = img.width * ratio;
+      const height = img.height * ratio;
+      
+      try {
+        doc.addImage(img, 'PNG', x, y, width, height);
+        resolve(y + height + 10);
+      } catch {
+        // If image fails to add, just return current y
+        resolve(y);
+      }
+    };
+    img.onerror = () => {
+      resolve(y);
+    };
+    img.src = logoUrl;
+  });
+}
+
+export interface PDFOptions {
+  logoUrl?: string;
+  empresaNome?: string;
+}
+
 interface DailyReportData {
   data: string;
   clima: ClimaTipo;
@@ -32,7 +69,7 @@ interface DailyReportData {
   profissionais?: Profissional[] | null;
 }
 
-interface WeeklyStats {
+interface ReportStats {
   diasTrabalhados: number;
   totalProfissionais: number;
   profissionais: Record<string, number>;
@@ -42,21 +79,44 @@ interface WeeklyStats {
 interface WeeklyReportData {
   obraNome: string;
   periodo: { inicio: Date; fim: Date };
-  estatisticas: WeeklyStats;
+  estatisticas: ReportStats;
+  registros: DiarioLog[];
+}
+
+export interface MonthlyReportData {
+  obraNome: string;
+  mes: Date;
+  estatisticas: ReportStats & { diasNoMes: number };
   registros: DiarioLog[];
 }
 
 // Generate PDF for a single daily report
-export function generateDailyReportPDF(
+export async function generateDailyReportPDF(
   registro: DailyReportData,
-  obraNome: string
-): jsPDF {
+  obraNome: string,
+  options?: PDFOptions
+): Promise<jsPDF> {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
   const maxWidth = pageWidth - margin * 2;
   const lineHeight = 7;
   let y = 20;
+
+  // Add logo if provided
+  if (options?.logoUrl) {
+    y = await addLogoToPDF(doc, options.logoUrl, margin, y, 40, 25);
+  }
+
+  // Company name
+  if (options?.empresaNome) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(128);
+    doc.text(options.empresaNome, pageWidth / 2, y, { align: 'center' });
+    doc.setTextColor(0);
+    y += 8;
+  }
 
   // Header
   doc.setFontSize(18);
@@ -140,7 +200,10 @@ export function generateDailyReportPDF(
 }
 
 // Generate PDF for weekly report
-export function generateWeeklyReportPDF(data: WeeklyReportData): jsPDF {
+export async function generateWeeklyReportPDF(
+  data: WeeklyReportData,
+  options?: PDFOptions
+): Promise<jsPDF> {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -148,6 +211,21 @@ export function generateWeeklyReportPDF(data: WeeklyReportData): jsPDF {
   const maxWidth = pageWidth - margin * 2;
   const lineHeight = 7;
   let y = 20;
+
+  // Add logo if provided
+  if (options?.logoUrl) {
+    y = await addLogoToPDF(doc, options.logoUrl, margin, y, 40, 25);
+  }
+
+  // Company name
+  if (options?.empresaNome) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(128);
+    doc.text(options.empresaNome, pageWidth / 2, y, { align: 'center' });
+    doc.setTextColor(0);
+    y += 8;
+  }
 
   // Header
   doc.setFontSize(18);
@@ -203,6 +281,152 @@ export function generateWeeklyReportPDF(data: WeeklyReportData): jsPDF {
   // Weather summary
   doc.setFont('helvetica', 'bold');
   doc.text('CLIMA DA SEMANA', margin, y);
+  y += lineHeight;
+
+  doc.setFont('helvetica', 'normal');
+  Object.entries(data.estatisticas.clima)
+    .filter(([, count]) => count > 0)
+    .forEach(([clima, count]) => {
+      doc.text(`• ${climaLabels[clima as ClimaTipo]}: ${count} dia(s)`, margin, y);
+      y += lineHeight;
+    });
+  y += lineHeight;
+
+  // Line separator
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 10;
+
+  // Daily activities
+  doc.setFont('helvetica', 'bold');
+  doc.text('ATIVIDADES DIÁRIAS', margin, y);
+  y += lineHeight * 1.5;
+
+  data.registros.forEach((registro) => {
+    // Check if we need a new page
+    if (y > pageHeight - 40) {
+      doc.addPage();
+      y = 20;
+    }
+
+    const dataFormatada = format(
+      new Date(registro.data + 'T12:00:00'),
+      "EEEE, dd/MM",
+      { locale: ptBR }
+    );
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(`${dataFormatada.toUpperCase()} - ${climaLabels[registro.clima]}`, margin, y);
+    y += lineHeight;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    y = addWrappedText(doc, registro.atividades_realizadas, margin, y, maxWidth, 6);
+
+    if (registro.observacoes) {
+      doc.setFont('helvetica', 'italic');
+      y = addWrappedText(doc, `Obs: ${registro.observacoes}`, margin, y, maxWidth, 6);
+    }
+
+    y += lineHeight;
+  });
+
+  // Footer
+  const footerY = doc.internal.pageSize.getHeight() - 15;
+  doc.setFontSize(8);
+  doc.setTextColor(128);
+  doc.text(
+    `Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}`,
+    pageWidth / 2,
+    footerY,
+    { align: 'center' }
+  );
+
+  return doc;
+}
+
+// Generate PDF for monthly report
+export async function generateMonthlyReportPDF(
+  data: MonthlyReportData,
+  options?: PDFOptions
+): Promise<jsPDF> {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  const maxWidth = pageWidth - margin * 2;
+  const lineHeight = 7;
+  let y = 20;
+
+  // Add logo if provided
+  if (options?.logoUrl) {
+    y = await addLogoToPDF(doc, options.logoUrl, margin, y, 40, 25);
+  }
+
+  // Company name
+  if (options?.empresaNome) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(128);
+    doc.text(options.empresaNome, pageWidth / 2, y, { align: 'center' });
+    doc.setTextColor(0);
+    y += 8;
+  }
+
+  // Header
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('RELATÓRIO MENSAL', pageWidth / 2, y, { align: 'center' });
+  y += 10;
+
+  doc.setFontSize(14);
+  doc.text(data.obraNome.toUpperCase(), pageWidth / 2, y, { align: 'center' });
+  y += 10;
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text(
+    format(data.mes, "MMMM 'de' yyyy", { locale: ptBR }).toUpperCase(),
+    pageWidth / 2,
+    y,
+    { align: 'center' }
+  );
+  y += 15;
+
+  // Line separator
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 10;
+
+  // Statistics
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('RESUMO DO MÊS', margin, y);
+  y += lineHeight;
+
+  doc.setFont('helvetica', 'normal');
+  doc.text(`• Dias trabalhados: ${data.estatisticas.diasTrabalhados} de ${data.estatisticas.diasNoMes}`, margin, y);
+  y += lineHeight;
+  doc.text(`• Total de presenças: ${data.estatisticas.totalProfissionais}`, margin, y);
+  y += lineHeight * 1.5;
+
+  // Professionals breakdown
+  if (Object.keys(data.estatisticas.profissionais).length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.text('EFETIVO DO MÊS', margin, y);
+    y += lineHeight;
+
+    doc.setFont('helvetica', 'normal');
+    Object.entries(data.estatisticas.profissionais).forEach(([funcao, qtd]) => {
+      doc.text(`• ${funcao}: ${qtd} presença(s)`, margin, y);
+      y += lineHeight;
+    });
+    y += lineHeight / 2;
+  }
+
+  // Weather summary
+  doc.setFont('helvetica', 'bold');
+  doc.text('CLIMA DO MÊS', margin, y);
   y += lineHeight;
 
   doc.setFont('helvetica', 'normal');
@@ -324,6 +548,56 @@ export function generateWeeklyShareText(data: WeeklyReportData): string {
 
   if (Object.keys(data.estatisticas.profissionais).length > 0) {
     linhas.push(`👷 EFETIVO DA SEMANA:`);
+    Object.entries(data.estatisticas.profissionais).forEach(([funcao, qtd]) => {
+      linhas.push(`• ${funcao}: ${qtd} presença(s)`);
+    });
+    linhas.push('');
+  }
+
+  linhas.push(`🌤️ CLIMA:`);
+  Object.entries(data.estatisticas.clima)
+    .filter(([, count]) => count > 0)
+    .forEach(([clima, count]) => {
+      linhas.push(`• ${climaLabels[clima as ClimaTipo]}: ${count} dia(s)`);
+    });
+  linhas.push('');
+  linhas.push('═'.repeat(30));
+  linhas.push('');
+  linhas.push('📝 ATIVIDADES DIÁRIAS:');
+
+  data.registros.forEach((registro) => {
+    const diaFormatado = format(
+      new Date(registro.data + 'T12:00:00'),
+      "EEEE, dd/MM",
+      { locale: ptBR }
+    );
+    linhas.push('');
+    linhas.push(`📌 ${diaFormatado.toUpperCase()}`);
+    linhas.push(registro.atividades_realizadas);
+    if (registro.observacoes) {
+      linhas.push(`Obs: ${registro.observacoes}`);
+    }
+  });
+
+  return linhas.join('\n');
+}
+
+// Generate shareable text for monthly report
+export function generateMonthlyShareText(data: MonthlyReportData): string {
+  const linhas: string[] = [];
+
+  linhas.push(`📋 RELATÓRIO MENSAL - ${data.obraNome.toUpperCase()}`);
+  linhas.push(`${format(data.mes, "MMMM 'de' yyyy", { locale: ptBR }).toUpperCase()}`);
+  linhas.push('');
+  linhas.push('═'.repeat(30));
+  linhas.push('');
+  linhas.push(`📅 RESUMO:`);
+  linhas.push(`• Dias trabalhados: ${data.estatisticas.diasTrabalhados} de ${data.estatisticas.diasNoMes}`);
+  linhas.push(`• Total de presenças: ${data.estatisticas.totalProfissionais}`);
+  linhas.push('');
+
+  if (Object.keys(data.estatisticas.profissionais).length > 0) {
+    linhas.push(`👷 EFETIVO DO MÊS:`);
     Object.entries(data.estatisticas.profissionais).forEach(([funcao, qtd]) => {
       linhas.push(`• ${funcao}: ${qtd} presença(s)`);
     });
