@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { format, startOfWeek, endOfWeek, subWeeks, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FileText, Calendar, Users, Cloud, ChevronLeft, ChevronRight, Download, Sun, CloudSun, CloudRain } from 'lucide-react';
+import { FileText, Calendar, Users, Cloud, ChevronLeft, ChevronRight, Copy, Sun, CloudSun, CloudRain, RotateCcw, ChevronDown, ChevronUp, X, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { DiarioLog, ClimaTipo } from '@/types/database';
+import { useToast } from '@/hooks/use-toast';
 
 interface RelatorioSemanalDialogProps {
   open: boolean;
@@ -50,6 +64,9 @@ export function RelatorioSemanalDialog({
   obraNome 
 }: RelatorioSemanalDialogProps) {
   const [weekOffset, setWeekOffset] = useState(0);
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
+  const [selectedRegistro, setSelectedRegistro] = useState<DiarioLog | null>(null);
+  const { toast } = useToast();
 
   // Calcular intervalo da semana
   const semanaAtual = useMemo(() => {
@@ -108,6 +125,19 @@ export function RelatorioSemanalDialog({
     };
   }, [registrosSemana]);
 
+  // Toggle expanded day
+  const toggleDay = (diaKey: string) => {
+    setExpandedDays(prev => {
+      const next = new Set(prev);
+      if (next.has(diaKey)) {
+        next.delete(diaKey);
+      } else {
+        next.add(diaKey);
+      }
+      return next;
+    });
+  };
+
   // Gerar texto do relatório para copiar/exportar
   const gerarTextoRelatorio = () => {
     const linhas: string[] = [];
@@ -162,158 +192,330 @@ export function RelatorioSemanalDialog({
     return linhas.join('\n');
   };
 
-  const copiarRelatorio = () => {
+  const copiarRelatorio = async () => {
     const texto = gerarTextoRelatorio();
-    navigator.clipboard.writeText(texto);
+    await navigator.clipboard.writeText(texto);
+    toast({
+      title: "Relatório copiado!",
+      description: "O relatório foi copiado para a área de transferência.",
+    });
+  };
+
+  const voltarParaHoje = () => {
+    setWeekOffset(0);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <FileText className="w-6 h-6 text-primary" />
-            Relatório Semanal
-          </DialogTitle>
-          <DialogDescription>
-            Resumo consolidado das atividades da semana
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <FileText className="w-6 h-6 text-primary" />
+              Relatório Semanal
+            </DialogTitle>
+            <DialogDescription>
+              Resumo consolidado das atividades da semana
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Navegação de semana */}
-        <div className="flex items-center justify-between py-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setWeekOffset(w => w + 1)}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          
-          <div className="text-center">
-            <p className="font-semibold">
-              {format(semanaAtual.inicio, "dd/MM")} - {format(semanaAtual.fim, "dd/MM/yyyy")}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {weekOffset === 0 ? 'Esta semana' : 
-               weekOffset === 1 ? 'Semana passada' : 
-               `${weekOffset} semanas atrás`}
-            </p>
+          {/* Navegação de semana */}
+          <div className="flex items-center justify-between py-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setWeekOffset(w => w + 1)}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <div className="text-center flex flex-col items-center gap-1">
+              <p className="font-semibold">
+                {format(semanaAtual.inicio, "dd/MM")} - {format(semanaAtual.fim, "dd/MM/yyyy")}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {weekOffset === 0 ? 'Esta semana' : 
+                 weekOffset === 1 ? 'Semana passada' : 
+                 `${weekOffset} semanas atrás`}
+              </p>
+              {weekOffset > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={voltarParaHoje}
+                  className="text-xs h-6 px-2 gap-1"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Voltar para hoje
+                </Button>
+              )}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setWeekOffset(w => w - 1)}
+              disabled={weekOffset === 0}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
-          
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setWeekOffset(w => w - 1)}
-            disabled={weekOffset === 0}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
 
-        {/* Estatísticas */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-primary">
-                {estatisticas.diasTrabalhados}
-              </div>
-              <p className="text-sm text-muted-foreground">Dias trabalhados</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-primary">
-                {estatisticas.totalProfissionais}
-              </div>
-              <p className="text-sm text-muted-foreground">Presenças</p>
-            </CardContent>
-          </Card>
-        </div>
+          {/* Estatísticas */}
+          <div className="grid grid-cols-2 gap-3">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-primary">
+                  {estatisticas.diasTrabalhados}
+                </div>
+                <p className="text-sm text-muted-foreground">Dias trabalhados</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-primary">
+                  {estatisticas.totalProfissionais}
+                </div>
+                <p className="text-sm text-muted-foreground">Presenças</p>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Profissionais da semana */}
-        {Object.keys(estatisticas.profissionais).length > 0 && (
+          {/* Profissionais da semana */}
+          {Object.keys(estatisticas.profissionais).length > 0 && (
+            <Card>
+              <CardHeader className="py-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Efetivo da Semana
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(estatisticas.profissionais).map(([funcao, qtd]) => (
+                    <Badge key={funcao} variant="secondary">
+                      {qtd}× {funcao}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Clima da semana */}
           <Card>
             <CardHeader className="py-3">
               <CardTitle className="text-sm flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Efetivo da Semana
+                <Cloud className="w-4 h-4" />
+                Clima da Semana
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="flex flex-wrap gap-2">
-                {Object.entries(estatisticas.profissionais).map(([funcao, qtd]) => (
-                  <Badge key={funcao} variant="secondary">
-                    {qtd}× {funcao}
-                  </Badge>
-                ))}
+                {Object.entries(estatisticas.clima)
+                  .filter(([, count]) => count > 0)
+                  .map(([clima, count]) => (
+                    <Badge key={clima} variant="outline" className="gap-1">
+                      {climaIcons[clima as ClimaTipo]}
+                      {count} dia(s)
+                    </Badge>
+                  ))}
+                {Object.values(estatisticas.clima).every(c => c === 0) && (
+                  <span className="text-sm text-muted-foreground">Sem registros nesta semana</span>
+                )}
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {/* Clima da semana */}
-        <Card>
-          <CardHeader className="py-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Cloud className="w-4 h-4" />
-              Clima da Semana
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(estatisticas.clima)
-                .filter(([, count]) => count > 0)
-                .map(([clima, count]) => (
-                  <Badge key={clima} variant="outline" className="gap-1">
-                    {climaIcons[clima as ClimaTipo]}
-                    {count} dia(s)
-                  </Badge>
-                ))}
+          <Separator />
+
+          {/* Atividades diárias expandíveis */}
+          <div className="space-y-2">
+            <h4 className="font-medium flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Atividades Diárias
+            </h4>
+            <div className="space-y-2">
+              {diasSemana.map(({ dia, registro }) => {
+                const diaKey = dia.toISOString();
+                const isExpanded = expandedDays.has(diaKey);
+                const diaFormatado = format(dia, "EEEE, dd/MM", { locale: ptBR });
+                
+                return (
+                  <Collapsible 
+                    key={diaKey} 
+                    open={isExpanded && !!registro}
+                    onOpenChange={() => registro && toggleDay(diaKey)}
+                  >
+                    <Card className={`transition-colors ${registro ? 'cursor-pointer hover:bg-accent/50' : 'opacity-60'}`}>
+                      <CollapsibleTrigger asChild disabled={!registro}>
+                        <CardContent className="p-3 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center text-xs font-medium ${
+                              registro 
+                                ? 'bg-primary/10 text-primary' 
+                                : 'bg-muted text-muted-foreground'
+                            }`}>
+                              <span>{format(dia, "EEE", { locale: ptBR })}</span>
+                              <span className="text-lg font-bold leading-none">{format(dia, "dd")}</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium capitalize">{diaFormatado}</p>
+                              {registro ? (
+                                <p className="text-xs text-muted-foreground line-clamp-1">
+                                  {registro.atividades_realizadas}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-muted-foreground italic">Sem registro</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {registro && climaIcons[registro.clima]}
+                            {registro && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedRegistro(registro);
+                                }}
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                            )}
+                            {registro && (isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />)}
+                          </div>
+                        </CardContent>
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent>
+                        {registro && (
+                          <div className="px-3 pb-3 pt-0">
+                            <Separator className="mb-3" />
+                            <div className="space-y-2 text-sm">
+                              <div>
+                                <p className="font-medium text-xs text-muted-foreground mb-1">Atividades:</p>
+                                <p className="whitespace-pre-wrap">{registro.atividades_realizadas}</p>
+                              </div>
+                              {registro.observacoes && (
+                                <div>
+                                  <p className="font-medium text-xs text-muted-foreground mb-1">Observações:</p>
+                                  <p>{registro.observacoes}</p>
+                                </div>
+                              )}
+                              {registro.profissionais && registro.profissionais.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {registro.profissionais.map((prof, i) => (
+                                    <Badge key={i} variant="secondary" className="text-xs">
+                                      {prof.quantidade}× {prof.funcao}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              {registro.fotos && registro.fotos.length > 0 && (
+                                <div className="flex items-center gap-1 mt-2">
+                                  <Image className="w-3 h-3 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground">{registro.fotos.length} foto(s)</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </CollapsibleContent>
+                    </Card>
+                  </Collapsible>
+                );
+              })}
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Separator />
+          {/* Botão exportar com feedback */}
+          <Button onClick={copiarRelatorio} className="w-full">
+            <Copy className="w-4 h-4 mr-2" />
+            Copiar Relatório
+          </Button>
+        </DialogContent>
+      </Dialog>
 
-        {/* Dias da semana */}
-        <div className="space-y-2">
-          <h4 className="font-medium flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            Dias da Semana
-          </h4>
-          <div className="grid grid-cols-7 gap-1">
-            {diasSemana.map(({ dia, registro }) => (
-              <div 
-                key={dia.toISOString()}
-                className={`text-center p-2 rounded-lg text-sm ${
-                  registro 
-                    ? 'bg-primary/10 border border-primary/30' 
-                    : 'bg-muted/50 text-muted-foreground'
-                }`}
-              >
-                <div className="font-medium">
-                  {format(dia, "EEE", { locale: ptBR })}
+      {/* Sheet para detalhes completos do dia */}
+      <Sheet open={!!selectedRegistro} onOpenChange={() => setSelectedRegistro(null)}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              {selectedRegistro && climaIcons[selectedRegistro.clima]}
+              {selectedRegistro && format(parseDateOnlyAsLocal(selectedRegistro.data), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            </SheetTitle>
+            <SheetDescription>
+              Registro completo do diário de obra
+            </SheetDescription>
+          </SheetHeader>
+          
+          {selectedRegistro && (
+            <ScrollArea className="h-[calc(100vh-180px)] mt-6">
+              <div className="space-y-6 pr-4">
+                {/* Clima */}
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Clima</h4>
+                  <Badge variant="outline" className="gap-1">
+                    {climaIcons[selectedRegistro.clima]}
+                    {climaLabels[selectedRegistro.clima]}
+                  </Badge>
                 </div>
-                <div className="text-lg font-bold">
-                  {format(dia, "dd")}
+
+                {/* Atividades */}
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Atividades Realizadas</h4>
+                  <p className="text-sm whitespace-pre-wrap">{selectedRegistro.atividades_realizadas}</p>
                 </div>
-                {registro && (
-                  <div className="mt-1">
-                    {climaIcons[registro.clima]}
+
+                {/* Observações */}
+                {selectedRegistro.observacoes && (
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Observações</h4>
+                    <p className="text-sm">{selectedRegistro.observacoes}</p>
+                  </div>
+                )}
+
+                {/* Profissionais */}
+                {selectedRegistro.profissionais && selectedRegistro.profissionais.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Profissionais Presentes</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedRegistro.profissionais.map((prof, i) => (
+                        <Badge key={i} variant="secondary">
+                          {prof.quantidade}× {prof.funcao}
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Total: {selectedRegistro.profissionais.reduce((sum, p) => sum + p.quantidade, 0)} profissional(is)
+                    </p>
+                  </div>
+                )}
+
+                {/* Fotos */}
+                {selectedRegistro.fotos && selectedRegistro.fotos.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Fotos ({selectedRegistro.fotos.length})</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {selectedRegistro.fotos.map((foto, i) => (
+                        <img 
+                          key={i} 
+                          src={foto} 
+                          alt={`Foto ${i + 1}`} 
+                          className="w-full h-24 object-cover rounded-lg border"
+                        />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Botão exportar */}
-        <Button onClick={copiarRelatorio} className="w-full">
-          <Download className="w-4 h-4 mr-2" />
-          Copiar Relatório
-        </Button>
-      </DialogContent>
-    </Dialog>
+            </ScrollArea>
+          )}
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
