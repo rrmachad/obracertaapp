@@ -117,6 +117,7 @@ export type Database = {
           id: string
           obra_id: string
           observacoes: string | null
+          profissionais: Json | null
           updated_at: string
         }
         Insert: {
@@ -128,6 +129,7 @@ export type Database = {
           id?: string
           obra_id: string
           observacoes?: string | null
+          profissionais?: Json | null
           updated_at?: string
         }
         Update: {
@@ -139,6 +141,7 @@ export type Database = {
           id?: string
           obra_id?: string
           observacoes?: string | null
+          profissionais?: Json | null
           updated_at?: string
         }
         Relationships: [

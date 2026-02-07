@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { Package, Loader2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Package, Loader2, Search, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +16,8 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useMateriais } from '@/hooks/useMateriais';
+import { materiaisPorFase, todosMateriais, MaterialSugerido } from './MateriaisSugeridos';
+import { cn } from '@/lib/utils';
 
 interface NovoMaterialDialogProps {
   open: boolean;
@@ -43,9 +48,30 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
   const [qtdAtual, setQtdAtual] = useState('0');
   const [qtdMinima, setQtdMinima] = useState('0');
   const [loading, setLoading] = useState(false);
+  const [comboboxOpen, setComboboxOpen] = useState(false);
+  const [selectedFase, setSelectedFase] = useState<string>('');
 
-  const { createMaterial } = useMateriais(obraId);
+  const { createMaterial, materiais } = useMateriais(obraId);
   const { toast } = useToast();
+
+  // Filtrar materiais por fase selecionada
+  const materiaisFiltrados = useMemo(() => {
+    if (!selectedFase) return todosMateriais;
+    const fase = materiaisPorFase.find(f => f.faseNome === selectedFase);
+    return fase?.materiais ?? todosMateriais;
+  }, [selectedFase]);
+
+  // Materiais já cadastrados (para evitar duplicatas)
+  const materiaisExistentes = useMemo(() => 
+    new Set(materiais.map(m => m.nome.toLowerCase())),
+    [materiais]
+  );
+
+  const handleSelectMaterial = (material: MaterialSugerido) => {
+    setNome(material.nome);
+    setUnidade(material.unidade);
+    setComboboxOpen(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +108,7 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
       setUnidade('un');
       setQtdAtual('0');
       setQtdMinima('0');
+      setSelectedFase('');
       onOpenChange(false);
     } catch (error) {
       toast({
@@ -96,30 +123,123 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Package className="w-6 h-6 text-primary" />
             Novo Material
           </DialogTitle>
           <DialogDescription>
-            Adicione um material ao estoque desta obra.
+            Selecione um material sugerido ou digite um novo.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Filtro por fase */}
+          <div className="space-y-2">
+            <Label className="text-base font-medium">Filtrar por fase</Label>
+            <Select value={selectedFase} onValueChange={setSelectedFase}>
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Todas as fases" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas as fases</SelectItem>
+                {materiaisPorFase.map((fase) => (
+                  <SelectItem key={fase.faseNome} value={fase.faseNome}>
+                    {fase.faseNome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Seletor de material com busca */}
           <div className="space-y-2">
             <Label htmlFor="nome" className="text-base font-medium">
               Nome do material
             </Label>
-            <Input
-              id="nome"
-              type="text"
-              placeholder="Ex: Cimento CP II"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              className="h-12 text-base"
-            />
+            <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={comboboxOpen}
+                  className="w-full h-12 justify-between text-base font-normal"
+                >
+                  {nome || 'Selecione ou digite...'}
+                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[350px] p-0" align="start">
+                <Command>
+                  <CommandInput 
+                    placeholder="Buscar material..." 
+                    value={nome}
+                    onValueChange={setNome}
+                  />
+                  <CommandList>
+                    <CommandEmpty>
+                      <div className="p-2 text-sm text-center">
+                        <p className="text-muted-foreground mb-2">Material não encontrado</p>
+                        {nome.trim() && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setComboboxOpen(false)}
+                          >
+                            Usar "{nome.trim()}"
+                          </Button>
+                        )}
+                      </div>
+                    </CommandEmpty>
+                    {materiaisPorFase
+                      .filter(f => !selectedFase || f.faseNome === selectedFase)
+                      .map((fase) => (
+                        <CommandGroup key={fase.faseNome} heading={fase.faseNome}>
+                          {fase.materiais.map((material) => {
+                            const jaExiste = materiaisExistentes.has(material.nome.toLowerCase());
+                            return (
+                              <CommandItem
+                                key={`${fase.faseNome}-${material.nome}`}
+                                value={`${material.nome} ${material.categoria}`}
+                                onSelect={() => handleSelectMaterial(material)}
+                                disabled={jaExiste}
+                                className={cn(jaExiste && 'opacity-50')}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <div className="flex items-center gap-2">
+                                    <Check
+                                      className={cn(
+                                        "h-4 w-4",
+                                        nome === material.nome ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    <span>{material.nome}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="text-xs">
+                                      {material.unidade}
+                                    </Badge>
+                                    {jaExiste && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        Já adicionado
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <p className="text-xs text-muted-foreground">
+              💡 Materiais comuns já vêm com a unidade correta
+            </p>
           </div>
 
           <div className="space-y-2">
