@@ -49,14 +49,14 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
   const [qtdMinima, setQtdMinima] = useState('0');
   const [loading, setLoading] = useState(false);
   const [comboboxOpen, setComboboxOpen] = useState(false);
-  const [selectedFase, setSelectedFase] = useState<string>('');
+  const [selectedFase, setSelectedFase] = useState<string>('all');
 
   const { createMaterial, materiais } = useMateriais(obraId);
   const { toast } = useToast();
 
   // Filtrar materiais por fase selecionada
   const materiaisFiltrados = useMemo(() => {
-    if (!selectedFase) return todosMateriais;
+    if (selectedFase === 'all') return todosMateriais;
     const fase = materiaisPorFase.find(f => f.faseNome === selectedFase);
     return fase?.materiais ?? todosMateriais;
   }, [selectedFase]);
@@ -108,7 +108,7 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
       setUnidade('un');
       setQtdAtual('0');
       setQtdMinima('0');
-      setSelectedFase('');
+      setSelectedFase('all');
       onOpenChange(false);
     } catch (error) {
       toast({
@@ -143,7 +143,7 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
                 <SelectValue placeholder="Todas as fases" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as fases</SelectItem>
+                <SelectItem value="all">Todas as fases</SelectItem>
                 {materiaisPorFase.map((fase) => (
                   <SelectItem key={fase.faseNome} value={fase.faseNome}>
                     {fase.faseNome}
@@ -194,7 +194,7 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
                       </div>
                     </CommandEmpty>
                     {materiaisPorFase
-                      .filter(f => !selectedFase || f.faseNome === selectedFase)
+                      .filter(f => selectedFase === 'all' || f.faseNome === selectedFase)
                       .map((fase) => (
                         <CommandGroup key={fase.faseNome} heading={fase.faseNome}>
                           {fase.materiais.map((material) => {

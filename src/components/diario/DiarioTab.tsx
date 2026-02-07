@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,7 @@ import { FotoUpload } from './FotoUpload';
 import { PinDialog } from './PinDialog';
 import { EditarDiarioDialog } from './EditarDiarioDialog';
 import { ProfissionaisInput } from './ProfissionaisInput';
+import { RelatorioSemanalDialog } from './RelatorioSemanalDialog';
 
 interface DiarioTabProps {
   obraId: string;
@@ -55,6 +56,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const [fotos, setFotos] = useState<string[]>([]);
   const [profissionais, setProfissionais] = useState<Profissional[]>([]);
   const [saving, setSaving] = useState(false);
+  const [relatorioSemanalOpen, setRelatorioSemanalOpen] = useState(false);
 
   // Estado para diálogos
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -266,18 +268,28 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho com config de PIN */}
-      <div className="flex items-center justify-between">
+      {/* Cabeçalho com config de PIN e Relatório Semanal */}
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Badge variant={hasPin ? 'default' : 'secondary'} className="gap-1">
             <Settings className="w-3 h-3" />
             {hasPin ? 'PIN Ativo' : 'Sem PIN'}
           </Badge>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleConfigurePin}>
-          <Settings className="w-4 h-4 mr-1" />
-          {hasPin ? 'Alterar PIN' : 'Configurar PIN'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setRelatorioSemanalOpen(true)}
+          >
+            <FileText className="w-4 h-4 mr-1" />
+            Semanal
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleConfigurePin}>
+            <Settings className="w-4 h-4 mr-1" />
+            {hasPin ? 'Alterar PIN' : 'Configurar PIN'}
+          </Button>
+        </div>
       </div>
 
       {/* Formulário do dia */}
@@ -515,6 +527,14 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
           requiresMotivo={true}
         />
       )}
+
+      {/* Relatório Semanal Dialog */}
+      <RelatorioSemanalDialog
+        open={relatorioSemanalOpen}
+        onOpenChange={setRelatorioSemanalOpen}
+        registros={registros}
+        obraNome="Obra"
+      />
     </div>
   );
 }

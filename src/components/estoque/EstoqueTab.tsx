@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Package, Plus, Minus, AlertTriangle, Trash2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Package, Plus, Minus, AlertTriangle, Trash2, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMateriais } from '@/hooks/useMateriais';
 import { useToast } from '@/hooks/use-toast';
 import { NovoMaterialDialog, isUnidadeInteira } from './NovoMaterialDialog';
@@ -16,6 +17,44 @@ const formatarQuantidade = (qtd: number, unidade: string): string => {
   return qtd.toFixed(2);
 };
 
+// Categorias disponíveis
+const CATEGORIAS = [
+  { value: 'all', label: 'Todas categorias', icon: '📦' },
+  { value: 'alvenaria', label: 'Alvenaria', icon: '🧱' },
+  { value: 'hidraulica', label: 'Hidráulica', icon: '🚿' },
+  { value: 'eletrica', label: 'Elétrica', icon: '⚡' },
+  { value: 'estrutural', label: 'Estrutural', icon: '🏗️' },
+  { value: 'acabamento', label: 'Acabamento', icon: '🎨' },
+  { value: 'ferramentas', label: 'Ferramentas', icon: '🔧' },
+  { value: 'outros', label: 'Outros', icon: '📋' },
+];
+
+// Detectar categoria com base no nome do material
+const detectarCategoria = (nome: string): string => {
+  const nomeLower = nome.toLowerCase();
+  
+  if (/tijolo|bloco|argamassa|cimento|areia|brita|concreto|cal|reboco/i.test(nomeLower)) {
+    return 'alvenaria';
+  }
+  if (/tubo|pvc|conexão|joelho|tê|luva|registro|caixa d'?água|sifão|vaso|torneira/i.test(nomeLower)) {
+    return 'hidraulica';
+  }
+  if (/fio|cabo|disjuntor|tomada|interruptor|quadro|eletroduto|conduíte/i.test(nomeLower)) {
+    return 'eletrica';
+  }
+  if (/ferro|aço|vergalhão|treliça|viga|pilar|laje|forma/i.test(nomeLower)) {
+    return 'estrutural';
+  }
+  if (/tinta|verniz|massa|lixa|piso|azulejo|rejunte|porcelanato|cerâmica|rodapé/i.test(nomeLower)) {
+    return 'acabamento';
+  }
+  if (/martelo|chave|serra|furadeira|trena|nível|colher|desempenadeira/i.test(nomeLower)) {
+    return 'ferramentas';
+  }
+  
+  return 'outros';
+};
+
 interface EstoqueTabProps {
   obraId: string;
 }
@@ -24,6 +63,41 @@ export function EstoqueTab({ obraId }: EstoqueTabProps) {
   const { materiais, isLoading, ajustarQuantidade, deleteMaterial } = useMateriais(obraId);
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [categoriaFiltro, setCategoriaFiltro] = useState('all');
+
+  // Agrupar materiais por categoria
+  const materiaisAgrupados = useMemo(() => {
+    const grupos: Record<string, Material[]> = {};
+    
+    materiais.forEach(material => {
+      const categoria = material.categoria || detectarCategoria(material.nome);
+      if (!grupos[categoria]) {
+        grupos[categoria] = [];
+      }
+      grupos[categoria].push(material);
+    });
+    
+    return grupos;
+  }, [materiais]);
+
+  // Filtrar por categoria selecionada
+  const materiaisFiltrados = useMemo(() => {
+    if (categoriaFiltro === 'all') return materiais;
+    return materiais.filter(m => {
+      const categoria = m.categoria || detectarCategoria(m.nome);
+      return categoria === categoriaFiltro;
+    });
+  }, [materiais, categoriaFiltro]);
+
+  // Contadores por categoria
+  const contadorCategorias = useMemo(() => {
+    const contagem: Record<string, number> = {};
+    materiais.forEach(material => {
+      const categoria = material.categoria || detectarCategoria(material.nome);
+      contagem[categoria] = (contagem[categoria] || 0) + 1;
+    });
+    return contagem;
+  }, [materiais]);
 
   const handleAjuste = async (material: Material, delta: number) => {
     // Usa incremento de 1 para unidades inteiras, 0.5 para decimais
@@ -62,6 +136,10 @@ export function EstoqueTab({ obraId }: EstoqueTabProps) {
     }
   };
 
+  const getCategoriaInfo = (categoria: string) => {
+    return CATEGORIAS.find(c => c.value === categoria) || CATEGORIAS[CATEGORIAS.length - 1];
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -81,6 +159,53 @@ export function EstoqueTab({ obraId }: EstoqueTabProps) {
         Adicionar Material
       </Button>
 
+      {/* Filtro por categoria */}
+      {materiais.length > 0 && (
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-muted-foreground" />
+          <Select value={categoriaFiltro} onValueChange={setCategoriaFiltro}>
+            <SelectTrigger className="flex-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CATEGORIAS.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  <span className="flex items-center gap-2">
+                    <span>{cat.icon}</span>
+                    <span>{cat.label}</span>
+                    {cat.value !== 'all' && contadorCategorias[cat.value] && (
+                      <Badge variant="secondary" className="ml-auto text-xs">
+                        {contadorCategorias[cat.value]}
+                      </Badge>
+                    )}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Resumo por categoria */}
+      {materiais.length > 0 && categoriaFiltro === 'all' && (
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(contadorCategorias).map(([categoria, count]) => {
+            const info = getCategoriaInfo(categoria);
+            return (
+              <Badge
+                key={categoria}
+                variant="outline"
+                className="cursor-pointer hover:bg-accent"
+                onClick={() => setCategoriaFiltro(categoria)}
+              >
+                <span className="mr-1">{info.icon}</span>
+                {info.label}: {count}
+              </Badge>
+            );
+          })}
+        </div>
+      )}
+
       {/* Lista de materiais */}
       {materiais.length === 0 ? (
         <Card className="border-dashed">
@@ -90,10 +215,26 @@ export function EstoqueTab({ obraId }: EstoqueTabProps) {
             <p className="text-sm">Adicione materiais para controlar seu estoque</p>
           </CardContent>
         </Card>
+      ) : materiaisFiltrados.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+            <Filter className="w-10 h-10 mb-3 opacity-50" />
+            <p className="font-medium">Nenhum material nesta categoria</p>
+            <Button 
+              variant="link" 
+              size="sm"
+              onClick={() => setCategoriaFiltro('all')}
+            >
+              Ver todos
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="space-y-3">
-          {materiais.map((material) => {
+          {materiaisFiltrados.map((material) => {
             const isLow = material.qtd_atual < material.qtd_minima;
+            const categoria = material.categoria || detectarCategoria(material.nome);
+            const categoriaInfo = getCategoriaInfo(categoria);
             
             return (
               <Card 
@@ -104,6 +245,7 @@ export function EstoqueTab({ obraId }: EstoqueTabProps) {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
+                        <span className="text-lg">{categoriaInfo.icon}</span>
                         <h4 className="font-semibold truncate">{material.nome}</h4>
                         {isLow && (
                           <Badge variant="destructive" className="flex items-center gap-1">
