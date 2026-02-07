@@ -1,13 +1,20 @@
 import { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText, Download, Share2, Mail, MessageCircle, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { useDiario } from '@/hooks/useDiario';
 import { useCronogramaItens, useFases } from '@/hooks/useCronograma';
 import { useMateriais } from '@/hooks/useMateriais';
@@ -21,6 +28,15 @@ import { PinDialog } from './PinDialog';
 import { EditarDiarioDialog } from './EditarDiarioDialog';
 import { ProfissionaisInput } from './ProfissionaisInput';
 import { RelatorioSemanalDialog } from './RelatorioSemanalDialog';
+import {
+  generateDailyReportPDF,
+  downloadPDF,
+  generateDailyShareText,
+  shareContent,
+  canShare,
+  shareViaWhatsApp,
+  shareViaEmail,
+} from '@/lib/relatorioExport';
 
 interface DiarioTabProps {
   obraId: string;
@@ -258,6 +274,60 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
     return option?.label;
   };
 
+  // Export and share functions for daily reports
+  const exportarDiarioPDF = (registro: DiarioLog) => {
+    const doc = generateDailyReportPDF(registro, 'Obra');
+    const filename = `diario-${format(parseDateOnlyAsLocal(registro.data), 'dd-MM-yyyy')}.pdf`;
+    downloadPDF(doc, filename);
+    toast({
+      title: "PDF gerado!",
+      description: "O diário foi baixado com sucesso.",
+    });
+  };
+
+  const compartilharDiario = async (registro: DiarioLog) => {
+    const texto = generateDailyShareText(registro, 'Obra');
+    
+    if (canShare()) {
+      const shared = await shareContent(
+        `Diário de Obra - ${format(parseDateOnlyAsLocal(registro.data), 'dd/MM/yyyy')}`,
+        texto
+      );
+      if (shared) {
+        toast({
+          title: "Compartilhado!",
+          description: "Diário compartilhado com sucesso.",
+        });
+      }
+    } else {
+      await navigator.clipboard.writeText(texto);
+      toast({
+        title: "Diário copiado!",
+        description: "Use Ctrl+V para colar e compartilhar.",
+      });
+    }
+  };
+
+  const compartilharDiarioWhatsApp = (registro: DiarioLog) => {
+    const texto = generateDailyShareText(registro, 'Obra');
+    shareViaWhatsApp(texto);
+  };
+
+  const compartilharDiarioEmail = (registro: DiarioLog) => {
+    const texto = generateDailyShareText(registro, 'Obra');
+    const subject = `Diário de Obra - ${format(parseDateOnlyAsLocal(registro.data), 'dd/MM/yyyy')}`;
+    shareViaEmail(subject, texto);
+  };
+
+  const copiarDiario = async (registro: DiarioLog) => {
+    const texto = generateDailyShareText(registro, 'Obra');
+    await navigator.clipboard.writeText(texto);
+    toast({
+      title: "Diário copiado!",
+      description: "O diário foi copiado para a área de transferência.",
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -430,7 +500,44 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        {/* Export/Share dropdown */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Share2 className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => exportarDiarioPDF(registro)}>
+                              <Download className="w-4 h-4 mr-2" />
+                              Exportar PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {canShare() && (
+                              <>
+                                <DropdownMenuItem onClick={() => compartilharDiario(registro)}>
+                                  <Share2 className="w-4 h-4 mr-2" />
+                                  Compartilhar...
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            <DropdownMenuItem onClick={() => compartilharDiarioWhatsApp(registro)}>
+                              <MessageCircle className="w-4 h-4 mr-2" />
+                              WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => compartilharDiarioEmail(registro)}>
+                              <Mail className="w-4 h-4 mr-2" />
+                              Email
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => copiarDiario(registro)}>
+                              <Copy className="w-4 h-4 mr-2" />
+                              Copiar texto
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <Button
                           variant="ghost"
                           size="icon"

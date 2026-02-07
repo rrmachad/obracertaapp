@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { format, startOfWeek, endOfWeek, subWeeks, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FileText, Calendar, Users, Cloud, ChevronLeft, ChevronRight, Copy, Sun, CloudSun, CloudRain, RotateCcw, ChevronDown, ChevronUp, X, Image } from 'lucide-react';
+import { 
+  FileText, Calendar, Users, Cloud, ChevronLeft, ChevronRight, Copy, Sun, CloudSun, 
+  CloudRain, RotateCcw, ChevronDown, ChevronUp, Image, Download, Share2, Mail, MessageCircle 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -26,8 +28,24 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { DiarioLog, ClimaTipo } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
+import {
+  generateWeeklyReportPDF,
+  downloadPDF,
+  generateWeeklyShareText,
+  shareContent,
+  canShare,
+  shareViaWhatsApp,
+  shareViaEmail,
+} from '@/lib/relatorioExport';
 
 interface RelatorioSemanalDialogProps {
   open: boolean;
@@ -138,62 +156,71 @@ export function RelatorioSemanalDialog({
     });
   };
 
-  // Gerar texto do relatório para copiar/exportar
-  const gerarTextoRelatorio = () => {
-    const linhas: string[] = [];
-    
-    linhas.push(`📋 RELATÓRIO SEMANAL - ${obraNome.toUpperCase()}`);
-    linhas.push(`Período: ${format(semanaAtual.inicio, "dd/MM/yyyy")} a ${format(semanaAtual.fim, "dd/MM/yyyy")}`);
-    linhas.push('');
-    linhas.push('═'.repeat(40));
-    linhas.push('');
-    
-    linhas.push(`📅 RESUMO:`);
-    linhas.push(`• Dias trabalhados: ${estatisticas.diasTrabalhados} de 7`);
-    linhas.push(`• Total de profissionais: ${estatisticas.totalProfissionais} presença(s)`);
-    linhas.push('');
-    
-    if (Object.keys(estatisticas.profissionais).length > 0) {
-      linhas.push(`👷 EFETIVO DA SEMANA:`);
-      Object.entries(estatisticas.profissionais).forEach(([funcao, qtd]) => {
-        linhas.push(`• ${funcao}: ${qtd} presença(s)`);
-      });
-      linhas.push('');
-    }
-    
-    linhas.push(`🌤️ CLIMA:`);
-    Object.entries(estatisticas.clima)
-      .filter(([, count]) => count > 0)
-      .forEach(([clima, count]) => {
-        linhas.push(`• ${climaLabels[clima as ClimaTipo]}: ${count} dia(s)`);
-      });
-    linhas.push('');
-    
-    linhas.push('═'.repeat(40));
-    linhas.push('');
-    linhas.push('📝 ATIVIDADES DIÁRIAS:');
-    linhas.push('');
-    
-    diasSemana.forEach(({ dia, registro }) => {
-      const diaFormatado = format(dia, "EEEE, dd/MM", { locale: ptBR });
-      if (registro) {
-        linhas.push(`📌 ${diaFormatado.toUpperCase()}`);
-        linhas.push(registro.atividades_realizadas);
-        if (registro.observacoes) {
-          linhas.push(`Obs: ${registro.observacoes}`);
-        }
-        linhas.push('');
-      } else {
-        linhas.push(`⬜ ${diaFormatado} - Sem registro`);
-        linhas.push('');
-      }
+  // Gerar dados do relatório para export
+  const getReportData = () => ({
+    obraNome,
+    periodo: semanaAtual,
+    estatisticas,
+    registros: registrosSemana,
+  });
+
+  // Export PDF
+  const exportarPDF = () => {
+    const data = getReportData();
+    const doc = generateWeeklyReportPDF(data);
+    const filename = `relatorio-semanal-${format(semanaAtual.inicio, 'dd-MM')}-a-${format(semanaAtual.fim, 'dd-MM-yyyy')}.pdf`;
+    downloadPDF(doc, filename);
+    toast({
+      title: "PDF gerado!",
+      description: "O relatório foi baixado com sucesso.",
     });
-    
-    return linhas.join('\n');
   };
 
+  // Share report
+  const compartilharRelatorio = async () => {
+    const data = getReportData();
+    const texto = generateWeeklyShareText(data);
+    
+    if (canShare()) {
+      const shared = await shareContent(
+        `Relatório Semanal - ${obraNome}`,
+        texto
+      );
+      if (shared) {
+        toast({
+          title: "Compartilhado!",
+          description: "Relatório compartilhado com sucesso.",
+        });
+      }
+    } else {
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(texto);
+      toast({
+        title: "Relatório copiado!",
+        description: "Use Ctrl+V para colar e compartilhar.",
+      });
+    }
+  };
+
+  // Share via WhatsApp
+  const compartilharWhatsApp = () => {
+    const data = getReportData();
+    const texto = generateWeeklyShareText(data);
+    shareViaWhatsApp(texto);
+  };
+
+  // Share via Email
+  const compartilharEmail = () => {
+    const data = getReportData();
+    const texto = generateWeeklyShareText(data);
+    const subject = `Relatório Semanal - ${obraNome} - ${format(semanaAtual.inicio, 'dd/MM')} a ${format(semanaAtual.fim, 'dd/MM/yyyy')}`;
+    shareViaEmail(subject, texto);
+  };
+
+  // Copy report
   const copiarRelatorio = async () => {
-    const texto = gerarTextoRelatorio();
+    const data = getReportData();
+    const texto = generateWeeklyShareText(data);
     await navigator.clipboard.writeText(texto);
     toast({
       title: "Relatório copiado!",
@@ -431,11 +458,46 @@ export function RelatorioSemanalDialog({
             </div>
           </div>
 
-          {/* Botão exportar com feedback */}
-          <Button onClick={copiarRelatorio} className="w-full">
-            <Copy className="w-4 h-4 mr-2" />
-            Copiar Relatório
-          </Button>
+          {/* Botões de ação */}
+          <div className="flex gap-2">
+            <Button onClick={exportarPDF} className="flex-1">
+              <Download className="w-4 h-4 mr-2" />
+              Exportar PDF
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex-1">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Compartilhar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {canShare() && (
+                  <>
+                    <DropdownMenuItem onClick={compartilharRelatorio}>
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Compartilhar...
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem onClick={compartilharWhatsApp}>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  WhatsApp
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={compartilharEmail}>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Email
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={copiarRelatorio}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar texto
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -453,66 +515,60 @@ export function RelatorioSemanalDialog({
           </SheetHeader>
           
           {selectedRegistro && (
-            <ScrollArea className="h-[calc(100vh-180px)] mt-6">
-              <div className="space-y-6 pr-4">
-                {/* Clima */}
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Clima</h4>
-                  <Badge variant="outline" className="gap-1">
-                    {climaIcons[selectedRegistro.clima]}
-                    {climaLabels[selectedRegistro.clima]}
-                  </Badge>
-                </div>
-
-                {/* Atividades */}
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Atividades Realizadas</h4>
-                  <p className="text-sm whitespace-pre-wrap">{selectedRegistro.atividades_realizadas}</p>
-                </div>
-
-                {/* Observações */}
-                {selectedRegistro.observacoes && (
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Observações</h4>
-                    <p className="text-sm">{selectedRegistro.observacoes}</p>
-                  </div>
-                )}
-
-                {/* Profissionais */}
-                {selectedRegistro.profissionais && selectedRegistro.profissionais.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Profissionais Presentes</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedRegistro.profissionais.map((prof, i) => (
-                        <Badge key={i} variant="secondary">
-                          {prof.quantidade}× {prof.funcao}
-                        </Badge>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Total: {selectedRegistro.profissionais.reduce((sum, p) => sum + p.quantidade, 0)} profissional(is)
-                    </p>
-                  </div>
-                )}
-
-                {/* Fotos */}
-                {selectedRegistro.fotos && selectedRegistro.fotos.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Fotos ({selectedRegistro.fotos.length})</h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      {selectedRegistro.fotos.map((foto, i) => (
-                        <img 
-                          key={i} 
-                          src={foto} 
-                          alt={`Foto ${i + 1}`} 
-                          className="w-full h-24 object-cover rounded-lg border"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+            <div className="space-y-6 mt-6">
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">Clima</h4>
+                <Badge variant="outline" className="gap-1">
+                  {climaIcons[selectedRegistro.clima]}
+                  {climaLabels[selectedRegistro.clima]}
+                </Badge>
               </div>
-            </ScrollArea>
+
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">Atividades Realizadas</h4>
+                <p className="whitespace-pre-wrap text-sm">{selectedRegistro.atividades_realizadas}</p>
+              </div>
+
+              {selectedRegistro.profissionais && selectedRegistro.profissionais.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-2">
+                    Profissionais ({selectedRegistro.profissionais.reduce((sum, p) => sum + p.quantidade, 0)})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedRegistro.profissionais.map((prof, index) => (
+                      <Badge key={index} variant="secondary">
+                        {prof.quantidade}× {prof.funcao}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedRegistro.observacoes && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-2">Observações</h4>
+                  <p className="text-sm">{selectedRegistro.observacoes}</p>
+                </div>
+              )}
+
+              {selectedRegistro.fotos && selectedRegistro.fotos.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-2">
+                    Fotos ({selectedRegistro.fotos.length})
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedRegistro.fotos.map((foto, index) => (
+                      <img
+                        key={index}
+                        src={foto}
+                        alt={`Foto ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </SheetContent>
       </Sheet>
