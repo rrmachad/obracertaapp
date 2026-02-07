@@ -28,6 +28,7 @@ import { PinDialog } from './PinDialog';
 import { EditarDiarioDialog } from './EditarDiarioDialog';
 import { ProfissionaisInput } from './ProfissionaisInput';
 import { RelatorioSemanalDialog } from './RelatorioSemanalDialog';
+import { RelatorioMensalDialog } from './RelatorioMensalDialog';
 import {
   generateDailyReportPDF,
   downloadPDF,
@@ -73,6 +74,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const [profissionais, setProfissionais] = useState<Profissional[]>([]);
   const [saving, setSaving] = useState(false);
   const [relatorioSemanalOpen, setRelatorioSemanalOpen] = useState(false);
+  const [relatorioMensalOpen, setRelatorioMensalOpen] = useState(false);
 
   // Estado para diálogos
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -275,8 +277,8 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   };
 
   // Export and share functions for daily reports
-  const exportarDiarioPDF = (registro: DiarioLog) => {
-    const doc = generateDailyReportPDF(registro, 'Obra');
+  const exportarDiarioPDF = async (registro: DiarioLog) => {
+    const doc = await generateDailyReportPDF(registro, 'Obra');
     const filename = `diario-${format(parseDateOnlyAsLocal(registro.data), 'dd-MM-yyyy')}.pdf`;
     downloadPDF(doc, filename);
     toast({
@@ -354,6 +356,14 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
           >
             <FileText className="w-4 h-4 mr-1" />
             Semanal
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setRelatorioMensalOpen(true)}
+          >
+            <Calendar className="w-4 h-4 mr-1" />
+            Mensal
           </Button>
           <Button variant="ghost" size="sm" onClick={handleConfigurePin}>
             <Settings className="w-4 h-4 mr-1" />
@@ -639,6 +649,14 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
       <RelatorioSemanalDialog
         open={relatorioSemanalOpen}
         onOpenChange={setRelatorioSemanalOpen}
+        registros={registros}
+        obraNome="Obra"
+      />
+
+      {/* Relatório Mensal Dialog */}
+      <RelatorioMensalDialog
+        open={relatorioMensalOpen}
+        onOpenChange={setRelatorioMensalOpen}
         registros={registros}
         obraNome="Obra"
       />

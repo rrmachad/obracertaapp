@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { format, startOfWeek, endOfWeek, subWeeks, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths, eachDayOfInterval, isSameDay, getDaysInMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
   FileText, Calendar, Users, Cloud, ChevronLeft, ChevronRight, Copy, Sun, CloudSun, 
@@ -38,16 +38,17 @@ import {
 import { DiarioLog, ClimaTipo } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import {
-  generateWeeklyReportPDF,
+  generateMonthlyReportPDF,
   downloadPDF,
-  generateWeeklyShareText,
+  generateMonthlyShareText,
   shareContent,
   canShare,
   shareViaWhatsApp,
   shareViaEmail,
+  MonthlyReportData,
 } from '@/lib/relatorioExport';
 
-interface RelatorioSemanalDialogProps {
+interface RelatorioMensalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   registros: DiarioLog[];
@@ -75,45 +76,42 @@ function parseDateOnlyAsLocal(dateStr: string) {
   return new Date(y, m - 1, d);
 }
 
-export function RelatorioSemanalDialog({ 
+export function RelatorioMensalDialog({ 
   open, 
   onOpenChange, 
   registros, 
   obraNome 
-}: RelatorioSemanalDialogProps) {
-  const [weekOffset, setWeekOffset] = useState(0);
+}: RelatorioMensalDialogProps) {
+  const [monthOffset, setMonthOffset] = useState(0);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [selectedRegistro, setSelectedRegistro] = useState<DiarioLog | null>(null);
   const { toast } = useToast();
 
-  // Calcular intervalo da semana
-  const semanaAtual = useMemo(() => {
-    const baseDate = subWeeks(new Date(), weekOffset);
-    const inicio = startOfWeek(baseDate, { weekStartsOn: 1 }); // Segunda
-    const fim = endOfWeek(baseDate, { weekStartsOn: 1 }); // Domingo
-    return { inicio, fim };
-  }, [weekOffset]);
+  // Calcular intervalo do mês
+  const mesAtual = useMemo(() => {
+    const baseDate = subMonths(new Date(), monthOffset);
+    const inicio = startOfMonth(baseDate);
+    const fim = endOfMonth(baseDate);
+    return { inicio, fim, base: baseDate };
+  }, [monthOffset]);
 
-  // Filtrar registros da semana
-  const registrosSemana = useMemo(() => {
+  // Filtrar registros do mês
+  const registrosMes = useMemo(() => {
     return registros.filter(r => {
       const dataRegistro = parseDateOnlyAsLocal(r.data);
-      return dataRegistro >= semanaAtual.inicio && dataRegistro <= semanaAtual.fim;
+      return dataRegistro >= mesAtual.inicio && dataRegistro <= mesAtual.fim;
     });
-  }, [registros, semanaAtual]);
+  }, [registros, mesAtual]);
 
-  // Dias da semana com registro
-  const diasSemana = useMemo(() => {
-    const dias = eachDayOfInterval({ start: semanaAtual.inicio, end: semanaAtual.fim });
-    return dias.map(dia => {
-      const registro = registrosSemana.find(r => 
-        isSameDay(parseDateOnlyAsLocal(r.data), dia)
-      );
-      return { dia, registro };
-    });
-  }, [semanaAtual, registrosSemana]);
+  // Dias do mês com registro (apenas dias que têm registro)
+  const diasComRegistro = useMemo(() => {
+    return registrosMes.map(registro => ({
+      dia: parseDateOnlyAsLocal(registro.data),
+      registro,
+    })).sort((a, b) => b.dia.getTime() - a.dia.getTime());
+  }, [registrosMes]);
 
-  // Estatísticas da semana
+  // Estatísticas do mês
   const estatisticas = useMemo(() => {
     const totalProfissionais: Record<string, number> = {};
     let totalDias = 0;
@@ -124,7 +122,7 @@ export function RelatorioSemanalDialog({
       chuvoso: 0,
     };
 
-    registrosSemana.forEach(registro => {
+    registrosMes.forEach(registro => {
       totalDias++;
       climaContagem[registro.clima]++;
       
@@ -136,12 +134,12 @@ export function RelatorioSemanalDialog({
 
     return {
       diasTrabalhados: totalDias,
-      diasSemRegistro: 7 - totalDias,
+      diasNoMes: getDaysInMonth(mesAtual.base),
       profissionais: totalProfissionais,
       clima: climaContagem,
       totalProfissionais: Object.values(totalProfissionais).reduce((a, b) => a + b, 0),
     };
-  }, [registrosSemana]);
+  }, [registrosMes, mesAtual]);
 
   // Toggle expanded day
   const toggleDay = (diaKey: string) => {
@@ -157,18 +155,18 @@ export function RelatorioSemanalDialog({
   };
 
   // Gerar dados do relatório para export
-  const getReportData = () => ({
+  const getReportData = (): MonthlyReportData => ({
     obraNome,
-    periodo: semanaAtual,
+    mes: mesAtual.base,
     estatisticas,
-    registros: registrosSemana,
+    registros: registrosMes,
   });
 
   // Export PDF
   const exportarPDF = async () => {
     const data = getReportData();
-    const doc = await generateWeeklyReportPDF(data);
-    const filename = `relatorio-semanal-${format(semanaAtual.inicio, 'dd-MM')}-a-${format(semanaAtual.fim, 'dd-MM-yyyy')}.pdf`;
+    const doc = await generateMonthlyReportPDF(data);
+    const filename = `relatorio-mensal-${format(mesAtual.base, 'MM-yyyy')}.pdf`;
     downloadPDF(doc, filename);
     toast({
       title: "PDF gerado!",
@@ -179,11 +177,11 @@ export function RelatorioSemanalDialog({
   // Share report
   const compartilharRelatorio = async () => {
     const data = getReportData();
-    const texto = generateWeeklyShareText(data);
+    const texto = generateMonthlyShareText(data);
     
     if (canShare()) {
       const shared = await shareContent(
-        `Relatório Semanal - ${obraNome}`,
+        `Relatório Mensal - ${obraNome}`,
         texto
       );
       if (shared) {
@@ -205,22 +203,22 @@ export function RelatorioSemanalDialog({
   // Share via WhatsApp
   const compartilharWhatsApp = () => {
     const data = getReportData();
-    const texto = generateWeeklyShareText(data);
+    const texto = generateMonthlyShareText(data);
     shareViaWhatsApp(texto);
   };
 
   // Share via Email
   const compartilharEmail = () => {
     const data = getReportData();
-    const texto = generateWeeklyShareText(data);
-    const subject = `Relatório Semanal - ${obraNome} - ${format(semanaAtual.inicio, 'dd/MM')} a ${format(semanaAtual.fim, 'dd/MM/yyyy')}`;
+    const texto = generateMonthlyShareText(data);
+    const subject = `Relatório Mensal - ${obraNome} - ${format(mesAtual.base, "MMMM 'de' yyyy", { locale: ptBR })}`;
     shareViaEmail(subject, texto);
   };
 
   // Copy report
   const copiarRelatorio = async () => {
     const data = getReportData();
-    const texto = generateWeeklyShareText(data);
+    const texto = generateMonthlyShareText(data);
     await navigator.clipboard.writeText(texto);
     toast({
       title: "Relatório copiado!",
@@ -229,7 +227,7 @@ export function RelatorioSemanalDialog({
   };
 
   const voltarParaHoje = () => {
-    setWeekOffset(0);
+    setMonthOffset(0);
   };
 
   return (
@@ -239,33 +237,33 @@ export function RelatorioSemanalDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               <FileText className="w-6 h-6 text-primary" />
-              Relatório Semanal
+              Relatório Mensal
             </DialogTitle>
             <DialogDescription>
-              Resumo consolidado das atividades da semana
+              Resumo consolidado das atividades do mês
             </DialogDescription>
           </DialogHeader>
 
-          {/* Navegação de semana */}
+          {/* Navegação de mês */}
           <div className="flex items-center justify-between py-2">
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setWeekOffset(w => w + 1)}
+              onClick={() => setMonthOffset(m => m + 1)}
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
             
             <div className="text-center flex flex-col items-center gap-1">
-              <p className="font-semibold">
-                {format(semanaAtual.inicio, "dd/MM")} - {format(semanaAtual.fim, "dd/MM/yyyy")}
+              <p className="font-semibold capitalize">
+                {format(mesAtual.base, "MMMM 'de' yyyy", { locale: ptBR })}
               </p>
               <p className="text-sm text-muted-foreground">
-                {weekOffset === 0 ? 'Esta semana' : 
-                 weekOffset === 1 ? 'Semana passada' : 
-                 `${weekOffset} semanas atrás`}
+                {monthOffset === 0 ? 'Este mês' : 
+                 monthOffset === 1 ? 'Mês passado' : 
+                 `${monthOffset} meses atrás`}
               </p>
-              {weekOffset > 0 && (
+              {monthOffset > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -281,40 +279,48 @@ export function RelatorioSemanalDialog({
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setWeekOffset(w => w - 1)}
-              disabled={weekOffset === 0}
+              onClick={() => setMonthOffset(m => m - 1)}
+              disabled={monthOffset === 0}
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
 
           {/* Estatísticas */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-3xl font-bold text-primary">
+                <div className="text-2xl font-bold text-primary">
                   {estatisticas.diasTrabalhados}
                 </div>
-                <p className="text-sm text-muted-foreground">Dias trabalhados</p>
+                <p className="text-xs text-muted-foreground">Dias trabalhados</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-3xl font-bold text-primary">
+                <div className="text-2xl font-bold text-muted-foreground">
+                  {estatisticas.diasNoMes}
+                </div>
+                <p className="text-xs text-muted-foreground">Dias no mês</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-primary">
                   {estatisticas.totalProfissionais}
                 </div>
-                <p className="text-sm text-muted-foreground">Presenças</p>
+                <p className="text-xs text-muted-foreground">Presenças</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Profissionais da semana */}
+          {/* Profissionais do mês */}
           {Object.keys(estatisticas.profissionais).length > 0 && (
             <Card>
               <CardHeader className="py-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Users className="w-4 h-4" />
-                  Efetivo da Semana
+                  Efetivo do Mês
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
@@ -329,12 +335,12 @@ export function RelatorioSemanalDialog({
             </Card>
           )}
 
-          {/* Clima da semana */}
+          {/* Clima do mês */}
           <Card>
             <CardHeader className="py-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Cloud className="w-4 h-4" />
-                Clima da Semana
+                Clima do Mês
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
@@ -348,7 +354,7 @@ export function RelatorioSemanalDialog({
                     </Badge>
                   ))}
                 {Object.values(estatisticas.clima).every(c => c === 0) && (
-                  <span className="text-sm text-muted-foreground">Sem registros nesta semana</span>
+                  <span className="text-sm text-muted-foreground">Sem registros neste mês</span>
                 )}
               </div>
             </CardContent>
@@ -360,46 +366,42 @@ export function RelatorioSemanalDialog({
           <div className="space-y-2">
             <h4 className="font-medium flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              Atividades Diárias
+              Atividades Diárias ({registrosMes.length} registros)
             </h4>
-            <div className="space-y-2">
-              {diasSemana.map(({ dia, registro }) => {
-                const diaKey = dia.toISOString();
-                const isExpanded = expandedDays.has(diaKey);
-                const diaFormatado = format(dia, "EEEE, dd/MM", { locale: ptBR });
-                
-                return (
-                  <Collapsible 
-                    key={diaKey} 
-                    open={isExpanded && !!registro}
-                    onOpenChange={() => registro && toggleDay(diaKey)}
-                  >
-                    <Card className={`transition-colors ${registro ? 'cursor-pointer hover:bg-accent/50' : 'opacity-60'}`}>
-                      <CollapsibleTrigger asChild disabled={!registro}>
-                        <CardContent className="p-3 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center text-xs font-medium ${
-                              registro 
-                                ? 'bg-primary/10 text-primary' 
-                                : 'bg-muted text-muted-foreground'
-                            }`}>
-                              <span>{format(dia, "EEE", { locale: ptBR })}</span>
-                              <span className="text-lg font-bold leading-none">{format(dia, "dd")}</span>
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium capitalize">{diaFormatado}</p>
-                              {registro ? (
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {diasComRegistro.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhum registro neste mês
+                </p>
+              ) : (
+                diasComRegistro.map(({ dia, registro }) => {
+                  const diaKey = dia.toISOString();
+                  const isExpanded = expandedDays.has(diaKey);
+                  const diaFormatado = format(dia, "EEEE, dd/MM", { locale: ptBR });
+                  
+                  return (
+                    <Collapsible 
+                      key={diaKey} 
+                      open={isExpanded}
+                      onOpenChange={() => toggleDay(diaKey)}
+                    >
+                      <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
+                        <CollapsibleTrigger asChild>
+                          <CardContent className="p-3 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg flex flex-col items-center justify-center text-xs font-medium bg-primary/10 text-primary">
+                                <span>{format(dia, "EEE", { locale: ptBR })}</span>
+                                <span className="text-lg font-bold leading-none">{format(dia, "dd")}</span>
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium capitalize">{diaFormatado}</p>
                                 <p className="text-xs text-muted-foreground line-clamp-1">
                                   {registro.atividades_realizadas}
                                 </p>
-                              ) : (
-                                <p className="text-xs text-muted-foreground italic">Sem registro</p>
-                              )}
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {registro && climaIcons[registro.clima]}
-                            {registro && (
+                            <div className="flex items-center gap-2">
+                              {climaIcons[registro.clima]}
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
@@ -411,14 +413,12 @@ export function RelatorioSemanalDialog({
                               >
                                 <ChevronRight className="w-4 h-4" />
                               </Button>
-                            )}
-                            {registro && (isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />)}
-                          </div>
-                        </CardContent>
-                      </CollapsibleTrigger>
-                      
-                      <CollapsibleContent>
-                        {registro && (
+                              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                            </div>
+                          </CardContent>
+                        </CollapsibleTrigger>
+                        
+                        <CollapsibleContent>
                           <div className="px-3 pb-3 pt-0">
                             <Separator className="mb-3" />
                             <div className="space-y-2 text-sm">
@@ -449,12 +449,12 @@ export function RelatorioSemanalDialog({
                               )}
                             </div>
                           </div>
-                        )}
-                      </CollapsibleContent>
-                    </Card>
-                  </Collapsible>
-                );
-              })}
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
+                  );
+                })
+              )}
             </div>
           </div>
 
