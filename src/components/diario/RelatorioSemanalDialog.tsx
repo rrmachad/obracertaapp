@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { format, startOfWeek, endOfWeek, subWeeks, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
-  FileText, Calendar, Users, Cloud, ChevronLeft, ChevronRight, Copy, Sun, CloudSun, 
-  CloudRain, RotateCcw, ChevronDown, ChevronUp, Image, Download, Share2, Mail, MessageCircle 
+  FileText, Calendar, Users, Cloud, ChevronLeft, ChevronRight, Sun, CloudSun, 
+  CloudRain, RotateCcw, ChevronDown, ChevronUp, Image, Download, ChevronRight as ChevronRightIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,30 +28,21 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { DiarioLog, ClimaTipo } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import {
   generateWeeklyReportPDF,
-  downloadPDF,
-  generateWeeklyShareText,
-  shareContent,
-  canShare,
-  shareViaWhatsApp,
-  shareViaEmail,
+  PDFOptions,
 } from '@/lib/relatorioExport';
+import { CompartilharPDFDialog } from './CompartilharPDFDialog';
+import jsPDF from 'jspdf';
 
 interface RelatorioSemanalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   registros: DiarioLog[];
   obraNome: string;
+  pdfOptions?: PDFOptions;
 }
 
 const climaIcons: Record<ClimaTipo, React.ReactNode> = {
@@ -79,11 +70,16 @@ export function RelatorioSemanalDialog({
   open, 
   onOpenChange, 
   registros, 
-  obraNome 
+  obraNome,
+  pdfOptions
 }: RelatorioSemanalDialogProps) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [selectedRegistro, setSelectedRegistro] = useState<DiarioLog | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [generatedPDF, setGeneratedPDF] = useState<jsPDF | null>(null);
+  const [pdfFilename, setPdfFilename] = useState('');
   const { toast } = useToast();
 
   // Calcular intervalo da semana
@@ -164,68 +160,28 @@ export function RelatorioSemanalDialog({
     registros: registrosSemana,
   });
 
-  // Export PDF
+  // Export PDF e abrir diálogo de compartilhamento
   const exportarPDF = async () => {
-    const data = getReportData();
-    const doc = await generateWeeklyReportPDF(data);
-    const filename = `relatorio-semanal-${format(semanaAtual.inicio, 'dd-MM')}-a-${format(semanaAtual.fim, 'dd-MM-yyyy')}.pdf`;
-    downloadPDF(doc, filename);
-    toast({
-      title: "PDF gerado!",
-      description: "O relatório foi baixado com sucesso.",
-    });
-  };
-
-  // Share report
-  const compartilharRelatorio = async () => {
-    const data = getReportData();
-    const texto = generateWeeklyShareText(data);
+    setIsGenerating(true);
     
-    if (canShare()) {
-      const shared = await shareContent(
-        `Relatório Semanal - ${obraNome}`,
-        texto
-      );
-      if (shared) {
-        toast({
-          title: "Compartilhado!",
-          description: "Relatório compartilhado com sucesso.",
-        });
-      }
-    } else {
-      // Fallback: copy to clipboard
-      await navigator.clipboard.writeText(texto);
+    try {
+      const data = getReportData();
+      const doc = await generateWeeklyReportPDF(data, pdfOptions);
+      const filename = `relatorio-semanal-${format(semanaAtual.inicio, 'dd-MM')}-a-${format(semanaAtual.fim, 'dd-MM-yyyy')}.pdf`;
+      
+      setGeneratedPDF(doc);
+      setPdfFilename(filename);
+      setShareDialogOpen(true);
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
       toast({
-        title: "Relatório copiado!",
-        description: "Use Ctrl+V para colar e compartilhar.",
+        title: "Erro ao gerar PDF",
+        description: "Não foi possível gerar o relatório. Tente novamente.",
+        variant: "destructive",
       });
+    } finally {
+      setIsGenerating(false);
     }
-  };
-
-  // Share via WhatsApp
-  const compartilharWhatsApp = () => {
-    const data = getReportData();
-    const texto = generateWeeklyShareText(data);
-    shareViaWhatsApp(texto);
-  };
-
-  // Share via Email
-  const compartilharEmail = () => {
-    const data = getReportData();
-    const texto = generateWeeklyShareText(data);
-    const subject = `Relatório Semanal - ${obraNome} - ${format(semanaAtual.inicio, 'dd/MM')} a ${format(semanaAtual.fim, 'dd/MM/yyyy')}`;
-    shareViaEmail(subject, texto);
-  };
-
-  // Copy report
-  const copiarRelatorio = async () => {
-    const data = getReportData();
-    const texto = generateWeeklyShareText(data);
-    await navigator.clipboard.writeText(texto);
-    toast({
-      title: "Relatório copiado!",
-      description: "O relatório foi copiado para a área de transferência.",
-    });
   };
 
   const voltarParaHoje = () => {
@@ -284,7 +240,7 @@ export function RelatorioSemanalDialog({
               onClick={() => setWeekOffset(w => w - 1)}
               disabled={weekOffset === 0}
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRightIcon className="w-4 h-4" />
             </Button>
           </div>
 
@@ -409,7 +365,7 @@ export function RelatorioSemanalDialog({
                                   setSelectedRegistro(registro);
                                 }}
                               >
-                                <ChevronRight className="w-4 h-4" />
+                                <ChevronRightIcon className="w-4 h-4" />
                               </Button>
                             )}
                             {registro && (isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />)}
@@ -458,48 +414,31 @@ export function RelatorioSemanalDialog({
             </div>
           </div>
 
-          {/* Botões de ação */}
-          <div className="flex gap-2">
-            <Button onClick={exportarPDF} className="flex-1">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar PDF
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex-1">
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Compartilhar
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {canShare() && (
-                  <>
-                    <DropdownMenuItem onClick={compartilharRelatorio}>
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Compartilhar...
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <DropdownMenuItem onClick={compartilharWhatsApp}>
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  WhatsApp
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={compartilharEmail}>
-                  <Mail className="w-4 h-4 mr-2" />
-                  Email
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={copiarRelatorio}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copiar texto
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {/* Botão de ação único */}
+          <Button onClick={exportarPDF} className="w-full" disabled={isGenerating}>
+            {isGenerating ? (
+              <>
+                <span className="animate-spin mr-2">⏳</span>
+                Gerando PDF...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" />
+                Exportar PDF
+              </>
+            )}
+          </Button>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de compartilhamento do PDF */}
+      <CompartilharPDFDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        pdfDoc={generatedPDF}
+        filename={pdfFilename}
+        titulo={`Relatório Semanal - ${obraNome}`}
+      />
 
       {/* Sheet para detalhes completos do dia */}
       <Sheet open={!!selectedRegistro} onOpenChange={() => setSelectedRegistro(null)}>

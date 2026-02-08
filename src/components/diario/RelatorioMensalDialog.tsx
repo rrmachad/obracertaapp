@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { format, startOfMonth, endOfMonth, subMonths, eachDayOfInterval, isSameDay, getDaysInMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths, getDaysInMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
-  FileText, Calendar, Users, Cloud, ChevronLeft, ChevronRight, Copy, Sun, CloudSun, 
-  CloudRain, RotateCcw, ChevronDown, ChevronUp, Image, Download, Share2, Mail, MessageCircle, BarChart3 
+  FileText, Calendar, Users, Cloud, ChevronLeft, ChevronRight, Sun, CloudSun, 
+  CloudRain, RotateCcw, ChevronDown, ChevronUp, Image, Download, BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,27 +29,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { DiarioLog, ClimaTipo } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import {
   generateMonthlyReportPDF,
-  downloadPDF,
-  generateMonthlyShareText,
-  shareContent,
-  canShare,
-  shareViaWhatsApp,
-  shareViaEmail,
   MonthlyReportData,
   PDFOptions,
 } from '@/lib/relatorioExport';
 import { GraficosComparativos } from './GraficosComparativos';
+import { CompartilharPDFDialog } from './CompartilharPDFDialog';
+import jsPDF from 'jspdf';
 
 interface RelatorioMensalDialogProps {
   open: boolean;
@@ -91,6 +80,10 @@ export function RelatorioMensalDialog({
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [selectedRegistro, setSelectedRegistro] = useState<DiarioLog | null>(null);
   const [viewMode, setViewMode] = useState<'resumo' | 'graficos'>('resumo');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [generatedPDF, setGeneratedPDF] = useState<jsPDF | null>(null);
+  const [pdfFilename, setPdfFilename] = useState('');
   const { toast } = useToast();
 
   // Calcular intervalo do mês
@@ -168,68 +161,28 @@ export function RelatorioMensalDialog({
     registros: registrosMes,
   });
 
-  // Export PDF
+  // Export PDF e abrir diálogo de compartilhamento
   const exportarPDF = async () => {
-    const data = getReportData();
-    const doc = await generateMonthlyReportPDF(data, pdfOptions);
-    const filename = `relatorio-mensal-${format(mesAtual.base, 'MM-yyyy')}.pdf`;
-    downloadPDF(doc, filename);
-    toast({
-      title: "PDF gerado!",
-      description: "O relatório foi baixado com sucesso.",
-    });
-  };
-
-  // Share report
-  const compartilharRelatorio = async () => {
-    const data = getReportData();
-    const texto = generateMonthlyShareText(data);
+    setIsGenerating(true);
     
-    if (canShare()) {
-      const shared = await shareContent(
-        `Relatório Mensal - ${obraNome}`,
-        texto
-      );
-      if (shared) {
-        toast({
-          title: "Compartilhado!",
-          description: "Relatório compartilhado com sucesso.",
-        });
-      }
-    } else {
-      // Fallback: copy to clipboard
-      await navigator.clipboard.writeText(texto);
+    try {
+      const data = getReportData();
+      const doc = await generateMonthlyReportPDF(data, pdfOptions);
+      const filename = `relatorio-mensal-${format(mesAtual.base, 'MM-yyyy')}.pdf`;
+      
+      setGeneratedPDF(doc);
+      setPdfFilename(filename);
+      setShareDialogOpen(true);
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
       toast({
-        title: "Relatório copiado!",
-        description: "Use Ctrl+V para colar e compartilhar.",
+        title: "Erro ao gerar PDF",
+        description: "Não foi possível gerar o relatório. Tente novamente.",
+        variant: "destructive",
       });
+    } finally {
+      setIsGenerating(false);
     }
-  };
-
-  // Share via WhatsApp
-  const compartilharWhatsApp = () => {
-    const data = getReportData();
-    const texto = generateMonthlyShareText(data);
-    shareViaWhatsApp(texto);
-  };
-
-  // Share via Email
-  const compartilharEmail = () => {
-    const data = getReportData();
-    const texto = generateMonthlyShareText(data);
-    const subject = `Relatório Mensal - ${obraNome} - ${format(mesAtual.base, "MMMM 'de' yyyy", { locale: ptBR })}`;
-    shareViaEmail(subject, texto);
-  };
-
-  // Copy report
-  const copiarRelatorio = async () => {
-    const data = getReportData();
-    const texto = generateMonthlyShareText(data);
-    await navigator.clipboard.writeText(texto);
-    toast({
-      title: "Relatório copiado!",
-      description: "O relatório foi copiado para a área de transferência.",
-    });
   };
 
   const voltarParaHoje = () => {
@@ -307,176 +260,176 @@ export function RelatorioMensalDialog({
 
             <TabsContent value="resumo" className="space-y-4 mt-4">
               {/* Estatísticas */}
-          <div className="grid grid-cols-3 gap-3">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {estatisticas.diasTrabalhados}
-                </div>
-                <p className="text-xs text-muted-foreground">Dias trabalhados</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-muted-foreground">
-                  {estatisticas.diasNoMes}
-                </div>
-                <p className="text-xs text-muted-foreground">Dias no mês</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {estatisticas.totalProfissionais}
-                </div>
-                <p className="text-xs text-muted-foreground">Presenças</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Profissionais do mês */}
-          {Object.keys(estatisticas.profissionais).length > 0 && (
-            <Card>
-              <CardHeader className="py-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Efetivo do Mês
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(estatisticas.profissionais).map(([funcao, qtd]) => (
-                    <Badge key={funcao} variant="secondary">
-                      {qtd}× {funcao}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Clima do mês */}
-          <Card>
-            <CardHeader className="py-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Cloud className="w-4 h-4" />
-                Clima do Mês
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(estatisticas.clima)
-                  .filter(([, count]) => count > 0)
-                  .map(([clima, count]) => (
-                    <Badge key={clima} variant="outline" className="gap-1">
-                      {climaIcons[clima as ClimaTipo]}
-                      {count} dia(s)
-                    </Badge>
-                  ))}
-                {Object.values(estatisticas.clima).every(c => c === 0) && (
-                  <span className="text-sm text-muted-foreground">Sem registros neste mês</span>
-                )}
+              <div className="grid grid-cols-3 gap-3">
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {estatisticas.diasTrabalhados}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Dias trabalhados</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-muted-foreground">
+                      {estatisticas.diasNoMes}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Dias no mês</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {estatisticas.totalProfissionais}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Presenças</p>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
 
-          <Separator />
-
-          {/* Atividades diárias expandíveis */}
-          <div className="space-y-2">
-            <h4 className="font-medium flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Atividades Diárias ({registrosMes.length} registros)
-            </h4>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {diasComRegistro.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Nenhum registro neste mês
-                </p>
-              ) : (
-                diasComRegistro.map(({ dia, registro }) => {
-                  const diaKey = dia.toISOString();
-                  const isExpanded = expandedDays.has(diaKey);
-                  const diaFormatado = format(dia, "EEEE, dd/MM", { locale: ptBR });
-                  
-                  return (
-                    <Collapsible 
-                      key={diaKey} 
-                      open={isExpanded}
-                      onOpenChange={() => toggleDay(diaKey)}
-                    >
-                      <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
-                        <CollapsibleTrigger asChild>
-                          <CardContent className="p-3 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-lg flex flex-col items-center justify-center text-xs font-medium bg-primary/10 text-primary">
-                                <span>{format(dia, "EEE", { locale: ptBR })}</span>
-                                <span className="text-lg font-bold leading-none">{format(dia, "dd")}</span>
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-medium capitalize">{diaFormatado}</p>
-                                <p className="text-xs text-muted-foreground line-clamp-1">
-                                  {registro.atividades_realizadas}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {climaIcons[registro.clima]}
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedRegistro(registro);
-                                }}
-                              >
-                                <ChevronRight className="w-4 h-4" />
-                              </Button>
-                              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                            </div>
-                          </CardContent>
-                        </CollapsibleTrigger>
-                        
-                        <CollapsibleContent>
-                          <div className="px-3 pb-3 pt-0">
-                            <Separator className="mb-3" />
-                            <div className="space-y-2 text-sm">
-                              <div>
-                                <p className="font-medium text-xs text-muted-foreground mb-1">Atividades:</p>
-                                <p className="whitespace-pre-wrap">{registro.atividades_realizadas}</p>
-                              </div>
-                              {registro.observacoes && (
-                                <div>
-                                  <p className="font-medium text-xs text-muted-foreground mb-1">Observações:</p>
-                                  <p>{registro.observacoes}</p>
-                                </div>
-                              )}
-                              {registro.profissionais && registro.profissionais.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {registro.profissionais.map((prof, i) => (
-                                    <Badge key={i} variant="secondary" className="text-xs">
-                                      {prof.quantidade}× {prof.funcao}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
-                              {registro.fotos && registro.fotos.length > 0 && (
-                                <div className="flex items-center gap-1 mt-2">
-                                  <Image className="w-3 h-3 text-muted-foreground" />
-                                  <span className="text-xs text-muted-foreground">{registro.fotos.length} foto(s)</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </CollapsibleContent>
-                      </Card>
-                    </Collapsible>
-                  );
-                })
+              {/* Profissionais do mês */}
+              {Object.keys(estatisticas.profissionais).length > 0 && (
+                <Card>
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Efetivo do Mês
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(estatisticas.profissionais).map(([funcao, qtd]) => (
+                        <Badge key={funcao} variant="secondary">
+                          {qtd}× {funcao}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
-            </div>
-          </div>
+
+              {/* Clima do mês */}
+              <Card>
+                <CardHeader className="py-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Cloud className="w-4 h-4" />
+                    Clima do Mês
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(estatisticas.clima)
+                      .filter(([, count]) => count > 0)
+                      .map(([clima, count]) => (
+                        <Badge key={clima} variant="outline" className="gap-1">
+                          {climaIcons[clima as ClimaTipo]}
+                          {count} dia(s)
+                        </Badge>
+                      ))}
+                    {Object.values(estatisticas.clima).every(c => c === 0) && (
+                      <span className="text-sm text-muted-foreground">Sem registros neste mês</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              {/* Atividades diárias expandíveis */}
+              <div className="space-y-2">
+                <h4 className="font-medium flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Atividades Diárias ({registrosMes.length} registros)
+                </h4>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {diasComRegistro.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nenhum registro neste mês
+                    </p>
+                  ) : (
+                    diasComRegistro.map(({ dia, registro }) => {
+                      const diaKey = dia.toISOString();
+                      const isExpanded = expandedDays.has(diaKey);
+                      const diaFormatado = format(dia, "EEEE, dd/MM", { locale: ptBR });
+                      
+                      return (
+                        <Collapsible 
+                          key={diaKey} 
+                          open={isExpanded}
+                          onOpenChange={() => toggleDay(diaKey)}
+                        >
+                          <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
+                            <CollapsibleTrigger asChild>
+                              <CardContent className="p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-lg flex flex-col items-center justify-center text-xs font-medium bg-primary/10 text-primary">
+                                    <span>{format(dia, "EEE", { locale: ptBR })}</span>
+                                    <span className="text-lg font-bold leading-none">{format(dia, "dd")}</span>
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium capitalize">{diaFormatado}</p>
+                                    <p className="text-xs text-muted-foreground line-clamp-1">
+                                      {registro.atividades_realizadas}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {climaIcons[registro.clima]}
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedRegistro(registro);
+                                    }}
+                                  >
+                                    <ChevronRight className="w-4 h-4" />
+                                  </Button>
+                                  {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                </div>
+                              </CardContent>
+                            </CollapsibleTrigger>
+                            
+                            <CollapsibleContent>
+                              <div className="px-3 pb-3 pt-0">
+                                <Separator className="mb-3" />
+                                <div className="space-y-2 text-sm">
+                                  <div>
+                                    <p className="font-medium text-xs text-muted-foreground mb-1">Atividades:</p>
+                                    <p className="whitespace-pre-wrap">{registro.atividades_realizadas}</p>
+                                  </div>
+                                  {registro.observacoes && (
+                                    <div>
+                                      <p className="font-medium text-xs text-muted-foreground mb-1">Observações:</p>
+                                      <p>{registro.observacoes}</p>
+                                    </div>
+                                  )}
+                                  {registro.profissionais && registro.profissionais.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                      {registro.profissionais.map((prof, i) => (
+                                        <Badge key={i} variant="secondary" className="text-xs">
+                                          {prof.quantidade}× {prof.funcao}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {registro.fotos && registro.fotos.length > 0 && (
+                                    <div className="flex items-center gap-1 mt-2">
+                                      <Image className="w-3 h-3 text-muted-foreground" />
+                                      <span className="text-xs text-muted-foreground">{registro.fotos.length} foto(s)</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CollapsibleContent>
+                          </Card>
+                        </Collapsible>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="graficos" className="mt-4">
@@ -484,48 +437,31 @@ export function RelatorioMensalDialog({
             </TabsContent>
           </Tabs>
 
-          {/* Botões de ação */}
-          <div className="flex gap-2">
-            <Button onClick={exportarPDF} className="flex-1">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar PDF
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex-1">
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Compartilhar
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {canShare() && (
-                  <>
-                    <DropdownMenuItem onClick={compartilharRelatorio}>
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Compartilhar...
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <DropdownMenuItem onClick={compartilharWhatsApp}>
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  WhatsApp
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={compartilharEmail}>
-                  <Mail className="w-4 h-4 mr-2" />
-                  Email
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={copiarRelatorio}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copiar texto
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {/* Botão de ação único */}
+          <Button onClick={exportarPDF} className="w-full" disabled={isGenerating}>
+            {isGenerating ? (
+              <>
+                <span className="animate-spin mr-2">⏳</span>
+                Gerando PDF...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" />
+                Exportar PDF
+              </>
+            )}
+          </Button>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de compartilhamento do PDF */}
+      <CompartilharPDFDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        pdfDoc={generatedPDF}
+        filename={pdfFilename}
+        titulo={`Relatório Mensal - ${obraNome}`}
+      />
 
       {/* Sheet para detalhes completos do dia */}
       <Sheet open={!!selectedRegistro} onOpenChange={() => setSelectedRegistro(null)}>
