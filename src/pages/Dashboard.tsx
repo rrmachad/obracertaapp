@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { HardHat, Plus, LogOut, Search, Crown, Key } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const { obras, isLoading } = useObras();
   const { signOut, user } = useAuth();
   const { planName, plan } = useSubscription();
@@ -53,6 +55,15 @@ export function Dashboard() {
                 <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground">
                   {planName}
                 </Badge>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/admin')}
+                className="text-secondary-foreground hover:bg-secondary-foreground/10"
+                title="Painel Admin"
+              >
+                <LayoutDashboard className="w-5 h-5" />
               </Button>
               <ThemeToggle />
               <Button
