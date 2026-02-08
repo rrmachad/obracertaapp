@@ -1,4 +1,4 @@
-import { Crown, Users, Building2, CheckCircle2, Lock, AlertTriangle, FileText, Package } from 'lucide-react';
+import { Crown, Users, Building2, CheckCircle2, Unlock, AlertTriangle, FileText, Package, Rocket } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -12,20 +12,20 @@ interface PlanoResumoCardProps {
   onUpgradeClick: () => void;
 }
 
-const planFeatures: Record<SubscriptionPlan, { included: string[]; locked: string[] }> = {
+const planFeatures: Record<SubscriptionPlan, { included: string[]; locked: string[]; lockedTitle: string }> = {
   free: {
     included: [
-      '1 obra',
+      '1 obra ativa',
       '3 diários por obra',
       '5 itens no estoque',
       'Cronograma de fases',
     ],
+    lockedTitle: 'Desbloqueie no Plano Profissional',
     locked: [
-      'Obras ilimitadas',
-      'Diários ilimitados',
-      'Estoque ilimitado',
-      'Compartilhar com equipe',
-      'Relatórios avançados',
+      'Obras e Diários ilimitados',
+      'Controle total de estoque',
+      'Acesso para equipe (Mestres/Sócios)',
+      'Relatórios Gerenciais em PDF',
     ],
   },
   start: {
@@ -36,6 +36,7 @@ const planFeatures: Record<SubscriptionPlan, { included: string[]; locked: strin
       'Cronograma de fases',
       'Compartilhar com 1 usuário',
     ],
+    lockedTitle: 'Desbloqueie no Plano Gold',
     locked: [
       'Obras ilimitadas',
       'Relatórios avançados',
@@ -51,9 +52,10 @@ const planFeatures: Record<SubscriptionPlan, { included: string[]; locked: strin
       'Compartilhar com 2 usuários',
       'Relatórios avançados',
     ],
+    lockedTitle: 'Desbloqueie no Plano Premium',
     locked: [
       'Obras ilimitadas',
-      'Suporte prioritário',
+      'Suporte prioritário 24/7',
     ],
   },
   premium: {
@@ -66,6 +68,7 @@ const planFeatures: Record<SubscriptionPlan, { included: string[]; locked: strin
       'Relatórios avançados',
       'Suporte 24/7',
     ],
+    lockedTitle: '',
     locked: [],
   },
 };
@@ -129,16 +132,16 @@ export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
             <AlertDescription className="ml-2">
               {hasAnyLimit ? (
                 <>
-                  <span className="font-semibold">Você atingiu o limite do plano Free!</span>
+                  <span className="font-semibold">Sua gestão está crescendo!</span>
                   <span className="block text-sm mt-0.5">
-                    Faça upgrade para continuar usando todos os recursos.
+                    Faça o upgrade para remover os limites e gerenciar múltiplas obras.
                   </span>
                 </>
               ) : (
                 <>
-                  <span className="font-semibold">Quase no limite!</span>
+                  <span className="font-semibold">Sua gestão está crescendo!</span>
                   <span className="block text-sm mt-0.5">
-                    Você está se aproximando do limite do plano Free.
+                    Você está se aproximando do limite. Considere fazer upgrade.
                   </span>
                 </>
               )}
@@ -229,11 +232,13 @@ export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
 
         {/* Recursos incluídos */}
         <div>
-          <p className="text-sm font-medium mb-2 text-muted-foreground">Incluído no seu plano:</p>
+          <p className="text-sm font-medium mb-2 text-muted-foreground">
+            Seu pacote atual ({plan === 'free' ? 'Iniciante' : planName})
+          </p>
           <div className="space-y-1.5">
             {features.included.map((feature) => (
               <div key={feature} className="flex items-center gap-2 text-sm">
-                <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
                 <span>{feature}</span>
               </div>
             ))}
@@ -242,12 +247,15 @@ export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
 
         {/* Recursos bloqueados */}
         {features.locked.length > 0 && (
-          <div>
-            <p className="text-sm font-medium mb-2 text-muted-foreground">Disponível em planos superiores:</p>
+          <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
+            <p className="text-sm font-semibold mb-2 text-primary flex items-center gap-2">
+              <Rocket className="w-4 h-4" />
+              {features.lockedTitle}
+            </p>
             <div className="space-y-1.5">
               {features.locked.map((feature) => (
-                <div key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Lock className="w-4 h-4 shrink-0" />
+                <div key={feature} className="flex items-center gap-2 text-sm">
+                  <Unlock className="w-4 h-4 shrink-0 text-primary" />
                   <span>{feature}</span>
                 </div>
               ))}
@@ -260,13 +268,14 @@ export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
           <Button 
             onClick={onUpgradeClick} 
             className={cn(
-              "w-full",
+              "w-full font-semibold",
               showLimitWarning && "animate-pulse"
             )}
-            variant={hasAnyLimit ? "default" : "outline"}
+            variant="default"
+            size="lg"
           >
-            <Crown className="w-4 h-4 mr-2" />
-            {hasAnyLimit ? "Fazer Upgrade Agora" : "Fazer Upgrade"}
+            <Rocket className="w-4 h-4 mr-2" />
+            Quero Obras Ilimitadas
           </Button>
         )}
       </CardContent>
