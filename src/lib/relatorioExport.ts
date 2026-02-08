@@ -507,7 +507,7 @@ export async function generateWeeklyReportPDF(
 
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      doc.text(`📅 ${dataFormatada}`, margin, y);
+      doc.text(dataFormatada, margin, y);
       y += lineHeight;
 
       y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight);
@@ -686,7 +686,7 @@ export async function generateMonthlyReportPDF(
 
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      doc.text(`📅 ${dataFormatada}`, margin, y);
+      doc.text(dataFormatada, margin, y);
       y += lineHeight;
 
       y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight);
