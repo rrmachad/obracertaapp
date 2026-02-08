@@ -10,7 +10,8 @@ import {
   BarChart3,
   Building2,
   Clock,
-  History
+  History,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,7 +24,9 @@ import { ProfileSettings } from '@/components/admin/ProfileSettings';
 import { PlanoResumoCard } from '@/components/admin/PlanoResumoCard';
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
 import { AuditLogList } from '@/components/admin/AuditLogList';
+import { UserManagementTable } from '@/components/admin/UserManagementTable';
 import { useAdminStats } from '@/hooks/useAdminStats';
+import { useAdminUsers } from '@/hooks/useAdminUsers';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 
@@ -32,8 +35,14 @@ export function AdminPanel() {
   const { signOut } = useAuth();
   const { planName } = useSubscription();
   const { stats, obraStats, activityChart, recentActivity, isLoading, refetch } = useAdminStats();
+  const { isAdmin, refetch: refetchUsers } = useAdminUsers();
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+
+  const handleRefresh = () => {
+    refetch();
+    if (isAdmin) refetchUsers();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -73,7 +82,7 @@ export function AdminPanel() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => refetch()}
+                onClick={handleRefresh}
                 className="text-secondary-foreground hover:bg-secondary-foreground/10"
                 title="Atualizar dados"
               >
@@ -95,7 +104,7 @@ export function AdminPanel() {
 
       <main className="container py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-6' : 'grid-cols-5'} lg:w-auto lg:inline-flex`}>
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Visão Geral</span>
@@ -112,6 +121,12 @@ export function AdminPanel() {
               <History className="w-4 h-4" />
               <span className="hidden sm:inline">Auditoria</span>
             </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="users" className="gap-2">
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">Usuários</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Configurações</span>
@@ -156,6 +171,13 @@ export function AdminPanel() {
           <TabsContent value="audit" className="space-y-6">
             <AuditLogList />
           </TabsContent>
+
+          {/* Usuários (apenas para admins) */}
+          {isAdmin && (
+            <TabsContent value="users" className="space-y-6">
+              <UserManagementTable />
+            </TabsContent>
+          )}
 
           {/* Configurações */}
           <TabsContent value="settings" className="space-y-6">
