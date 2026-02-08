@@ -188,12 +188,26 @@ export function useAdminUsers() {
     queryClient.invalidateQueries({ queryKey: ['admin-action-logs'] });
   };
 
+  // Mapeamento de max_users por plano
+  const planMaxUsers: Record<string, number> = {
+    free: 1,
+    start: 2,
+    gold: 3,
+    premium: 5,
+  };
+
   // Atualizar plano do usuário
   const updatePlanMutation = useMutation({
     mutationFn: async ({ userId, plan, previousPlan }: { userId: string; plan: 'free' | 'start' | 'gold' | 'premium'; previousPlan?: string }) => {
+      const maxUsers = planMaxUsers[plan];
+      
       const { error } = await supabase
         .from('subscriptions')
-        .update({ plan, updated_at: new Date().toISOString() })
+        .update({ 
+          plan, 
+          max_users: maxUsers,
+          updated_at: new Date().toISOString() 
+        })
         .eq('user_id', userId);
 
       if (error) throw error;
