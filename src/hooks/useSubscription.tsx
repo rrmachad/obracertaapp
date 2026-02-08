@@ -25,10 +25,10 @@ const planLimits: Record<SubscriptionPlan, number> = {
 };
 
 const planNames: Record<SubscriptionPlan, string> = {
-  free: 'Free',
-  start: 'Start',
-  gold: 'Gold',
-  premium: 'Premium',
+  free: 'Iniciante',
+  start: 'Profissional',
+  gold: 'Construtora',
+  premium: 'Empresarial',
 };
 
 export function useSubscription() {
