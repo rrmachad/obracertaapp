@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Package, Plus, Minus, AlertTriangle, Trash2, Filter } from 'lucide-react';
+import { Package, Plus, AlertTriangle, Trash2, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMateriais } from '@/hooks/useMateriais';
 import { useToast } from '@/hooks/use-toast';
 import { NovoMaterialDialog, isUnidadeInteira } from './NovoMaterialDialog';
+import { AjusteQuantidadePopover } from './AjusteQuantidadePopover';
 import { Material } from '@/types/database';
 
 // Formata quantidade conforme unidade (inteiro ou decimal)
@@ -101,14 +102,11 @@ export function EstoqueTab({ obraId, onUpgradeClick }: EstoqueTabProps) {
   }, [materiais]);
 
   const handleAjuste = async (material: Material, delta: number) => {
-    // Usa incremento de 1 para unidades inteiras, 0.5 para decimais
-    const incremento = isUnidadeInteira(material.unidade) ? delta : delta * 0.5;
-    
     try {
-      await ajustarQuantidade.mutateAsync({ id: material.id, delta: incremento });
+      await ajustarQuantidade.mutateAsync({ id: material.id, delta });
       toast({
-        title: delta > 0 ? 'Quantidade aumentada' : 'Quantidade diminuída',
-        description: `${Math.abs(incremento)} ${material.unidade}`,
+        title: delta > 0 ? 'Entrada registrada' : 'Saída registrada',
+        description: `${Math.abs(delta)} ${material.unidade} de ${material.nome}`,
       });
     } catch (error) {
       toast({
@@ -116,6 +114,7 @@ export function EstoqueTab({ obraId, onUpgradeClick }: EstoqueTabProps) {
         description: 'Tente novamente.',
         variant: 'destructive',
       });
+      throw error; // Re-throw para o popover saber que falhou
     }
   };
 
@@ -261,16 +260,14 @@ export function EstoqueTab({ obraId, onUpgradeClick }: EstoqueTabProps) {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {/* Botão diminuir */}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="w-12 h-12 rounded-lg"
-                        onClick={() => handleAjuste(material, -1)}
+                      {/* Botão diminuir com popover */}
+                      <AjusteQuantidadePopover
+                        tipo="saida"
+                        onAjuste={(delta) => handleAjuste(material, delta)}
                         disabled={material.qtd_atual <= 0}
-                      >
-                        <Minus className="w-5 h-5" />
-                      </Button>
+                        unidade={material.unidade}
+                        qtdAtual={material.qtd_atual}
+                      />
 
                       {/* Quantidade atual */}
                       <div className="w-20 text-center">
@@ -282,15 +279,13 @@ export function EstoqueTab({ obraId, onUpgradeClick }: EstoqueTabProps) {
                         </div>
                       </div>
 
-                      {/* Botão aumentar */}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="w-12 h-12 rounded-lg"
-                        onClick={() => handleAjuste(material, 1)}
-                      >
-                        <Plus className="w-5 h-5" />
-                      </Button>
+                      {/* Botão aumentar com popover */}
+                      <AjusteQuantidadePopover
+                        tipo="entrada"
+                        onAjuste={(delta) => handleAjuste(material, delta)}
+                        unidade={material.unidade}
+                        qtdAtual={material.qtd_atual}
+                      />
 
                       {/* Botão excluir */}
                       <Button
