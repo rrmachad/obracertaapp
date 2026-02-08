@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText, Download, Share2, Mail, MessageCircle, Copy, Building2 } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText, Share2, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -32,15 +32,9 @@ import { RelatorioSemanalDialog } from './RelatorioSemanalDialog';
 import { RelatorioMensalDialog } from './RelatorioMensalDialog';
 import { ConfiguracaoEmpresaDialog } from './ConfiguracaoEmpresaDialog';
 import { SelecionarFotosDialog } from './SelecionarFotosDialog';
-import {
-  generateDailyReportPDF,
-  downloadPDF,
-  generateDailyShareText,
-  shareContent,
-  canShare,
-  shareViaWhatsApp,
-  shareViaEmail,
-} from '@/lib/relatorioExport';
+import { generateDailyReportPDF } from '@/lib/relatorioExport';
+import { CompartilharPDFDialog } from './CompartilharPDFDialog';
+import jsPDF from 'jspdf';
 
 interface DiarioTabProps {
   obraId: string;
@@ -82,6 +76,11 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const [empresaConfigOpen, setEmpresaConfigOpen] = useState(false);
   const [selecionarFotosOpen, setSelecionarFotosOpen] = useState(false);
   const [registroParaExportar, setRegistroParaExportar] = useState<DiarioLog | null>(null);
+  
+  // Estado para compartilhar PDF do diário individual
+  const [compartilharPDFOpen, setCompartilharPDFOpen] = useState(false);
+  const [diarioPDF, setDiarioPDF] = useState<jsPDF | null>(null);
+  const [diarioPDFFilename, setDiarioPDFFilename] = useState('');
 
   // Estado para diálogos
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -306,11 +305,11 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
     };
     const doc = await generateDailyReportPDF(registroComFotos, 'Obra', pdfOptions);
     const filename = `diario-${format(parseDateOnlyAsLocal(registro.data), 'dd-MM-yyyy')}.pdf`;
-    downloadPDF(doc, filename);
-    toast({
-      title: "PDF gerado!",
-      description: "O diário foi baixado com sucesso.",
-    });
+    
+    // Abrir dialog de compartilhamento com as 3 opções
+    setDiarioPDF(doc);
+    setDiarioPDFFilename(filename);
+    setCompartilharPDFOpen(true);
   };
 
   const handleFotosSelecionadas = (fotosSelecionadas: FotoComLegenda[]) => {
@@ -318,49 +317,6 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
       exportarDiarioPDF(registroParaExportar, fotosSelecionadas);
       setRegistroParaExportar(null);
     }
-  };
-
-  const compartilharDiario = async (registro: DiarioLog) => {
-    const texto = generateDailyShareText(registro, 'Obra');
-    
-    if (canShare()) {
-      const shared = await shareContent(
-        `Diário de Obra - ${format(parseDateOnlyAsLocal(registro.data), 'dd/MM/yyyy')}`,
-        texto
-      );
-      if (shared) {
-        toast({
-          title: "Compartilhado!",
-          description: "Diário compartilhado com sucesso.",
-        });
-      }
-    } else {
-      await navigator.clipboard.writeText(texto);
-      toast({
-        title: "Diário copiado!",
-        description: "Use Ctrl+V para colar e compartilhar.",
-      });
-    }
-  };
-
-  const compartilharDiarioWhatsApp = (registro: DiarioLog) => {
-    const texto = generateDailyShareText(registro, 'Obra');
-    shareViaWhatsApp(texto);
-  };
-
-  const compartilharDiarioEmail = (registro: DiarioLog) => {
-    const texto = generateDailyShareText(registro, 'Obra');
-    const subject = `Diário de Obra - ${format(parseDateOnlyAsLocal(registro.data), 'dd/MM/yyyy')}`;
-    shareViaEmail(subject, texto);
-  };
-
-  const copiarDiario = async (registro: DiarioLog) => {
-    const texto = generateDailyShareText(registro, 'Obra');
-    await navigator.clipboard.writeText(texto);
-    toast({
-      title: "Diário copiado!",
-      description: "O diário foi copiado para a área de transferência.",
-    });
   };
 
   if (isLoading) {
@@ -564,43 +520,18 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        {/* Export/Share dropdown */}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Share2 className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => handleExportarPDFClick(registro)}>
-                              <Download className="w-4 h-4 mr-2" />
-                              Exportar PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {canShare() && (
-                              <>
-                                <DropdownMenuItem onClick={() => compartilharDiario(registro)}>
-                                  <Share2 className="w-4 h-4 mr-2" />
-                                  Compartilhar...
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
-                            )}
-                            <DropdownMenuItem onClick={() => compartilharDiarioWhatsApp(registro)}>
-                              <MessageCircle className="w-4 h-4 mr-2" />
-                              WhatsApp
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => compartilharDiarioEmail(registro)}>
-                              <Mail className="w-4 h-4 mr-2" />
-                              Email
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => copiarDiario(registro)}>
-                              <Copy className="w-4 h-4 mr-2" />
-                              Copiar texto
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        {/* Share button - opens PDF dialog directly */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExportarPDFClick(registro);
+                          }}
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -741,6 +672,15 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
           onConfirm={handleFotosSelecionadas}
         />
       )}
+
+      {/* Compartilhar PDF do Diário Individual */}
+      <CompartilharPDFDialog
+        open={compartilharPDFOpen}
+        onOpenChange={setCompartilharPDFOpen}
+        pdfDoc={diarioPDF}
+        filename={diarioPDFFilename}
+        titulo="Diário de Obra"
+      />
     </div>
   );
 }
