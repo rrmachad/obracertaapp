@@ -1,11 +1,11 @@
-import { Crown, Users, Building2, CheckCircle2, Lock, AlertTriangle } from 'lucide-react';
+import { Crown, Users, Building2, CheckCircle2, Lock, AlertTriangle, FileText, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
-import { useObras } from '@/hooks/useObras';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { cn } from '@/lib/utils';
 
 interface PlanoResumoCardProps {
@@ -15,56 +15,56 @@ interface PlanoResumoCardProps {
 const planFeatures: Record<SubscriptionPlan, { included: string[]; locked: string[] }> = {
   free: {
     included: [
-      'Criar obras ilimitadas',
-      'Diário de obra',
-      'Controle de estoque',
+      '1 obra',
+      '3 diários por obra',
+      '5 itens no estoque',
       'Cronograma de fases',
     ],
     locked: [
+      'Obras ilimitadas',
+      'Diários ilimitados',
+      'Estoque ilimitado',
       'Compartilhar com equipe',
       'Relatórios avançados',
-      'Suporte prioritário',
-      'Múltiplos administradores',
     ],
   },
   start: {
     included: [
-      'Criar obras ilimitadas',
-      'Diário de obra',
-      'Controle de estoque',
+      'Até 5 obras',
+      '50 diários por obra',
+      '30 itens no estoque',
       'Cronograma de fases',
       'Compartilhar com 1 usuário',
     ],
     locked: [
+      'Obras ilimitadas',
       'Relatórios avançados',
       'Suporte prioritário',
-      'Múltiplos administradores',
     ],
   },
   gold: {
     included: [
-      'Criar obras ilimitadas',
-      'Diário de obra',
-      'Controle de estoque',
+      'Até 15 obras',
+      '100 diários por obra',
+      '100 itens no estoque',
       'Cronograma de fases',
       'Compartilhar com 2 usuários',
       'Relatórios avançados',
     ],
     locked: [
+      'Obras ilimitadas',
       'Suporte prioritário',
-      'Múltiplos administradores',
     ],
   },
   premium: {
     included: [
-      'Criar obras ilimitadas',
-      'Diário de obra',
-      'Controle de estoque',
+      'Obras ilimitadas',
+      'Diários ilimitados',
+      'Estoque ilimitado',
       'Cronograma de fases',
       'Compartilhar com 4 usuários',
       'Relatórios avançados',
       'Suporte 24/7',
-      'Múltiplos administradores',
     ],
     locked: [],
   },
@@ -79,18 +79,29 @@ const planColors: Record<SubscriptionPlan, string> = {
 
 export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
   const { plan, planName, maxUsers } = useSubscription();
-  const { obras } = useObras();
+  const { limits, usage, getObrasPercentage } = usePlanLimits();
 
-  const obrasCount = obras.length;
-  const usersUsed = 1; // Por enquanto, apenas o usuário atual
+  const usersUsed = usage.usersUsed;
   const usersPercentage = (usersUsed / maxUsers) * 100;
+  const obrasPercentage = getObrasPercentage();
 
   const features = planFeatures[plan];
 
-  // Alerta quando próximo ou no limite
-  const isAtLimit = usersUsed >= maxUsers;
-  const isNearLimit = usersPercentage >= 80 && !isAtLimit;
-  const showLimitWarning = isAtLimit || isNearLimit;
+  // Verificar se está no limite em qualquer recurso
+  const isAtUserLimit = usersUsed >= maxUsers;
+  const isAtObraLimit = limits.maxObras !== -1 && usage.obrasUsed >= limits.maxObras;
+  const isNearUserLimit = usersPercentage >= 80 && !isAtUserLimit;
+  const isNearObraLimit = obrasPercentage >= 80 && !isAtObraLimit;
+  
+  const hasAnyLimit = isAtUserLimit || isAtObraLimit;
+  const hasAnyNearLimit = isNearUserLimit || isNearObraLimit;
+  const showLimitWarning = hasAnyLimit || hasAnyNearLimit;
+
+  // Formatar limite para exibição
+  const formatLimit = (value: number) => {
+    if (value === -1) return '∞';
+    return value.toString();
+  };
 
   return (
     <Card className="mb-4 overflow-hidden">
@@ -108,26 +119,26 @@ export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
       <CardContent className="space-y-4">
         {/* Alerta de limite */}
         {showLimitWarning && plan !== 'premium' && (
-          <Alert variant={isAtLimit ? "destructive" : "default"} className={cn(
+          <Alert variant={hasAnyLimit ? "destructive" : "default"} className={cn(
             "border",
-            isAtLimit 
+            hasAnyLimit 
               ? "bg-destructive/10 border-destructive/30" 
               : "bg-primary/5 border-primary/20"
           )}>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription className="ml-2">
-              {isAtLimit ? (
+              {hasAnyLimit ? (
                 <>
-                  <span className="font-semibold">Você atingiu o limite de acessos!</span>
+                  <span className="font-semibold">Você atingiu o limite do plano Free!</span>
                   <span className="block text-sm mt-0.5">
-                    Faça upgrade para adicionar mais pessoas à sua equipe.
+                    Faça upgrade para continuar usando todos os recursos.
                   </span>
                 </>
               ) : (
                 <>
                   <span className="font-semibold">Quase no limite!</span>
                   <span className="block text-sm mt-0.5">
-                    Você está usando {usersUsed} de {maxUsers} acessos disponíveis.
+                    Você está se aproximando do limite do plano Free.
                   </span>
                 </>
               )}
@@ -135,24 +146,45 @@ export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
           </Alert>
         )}
 
-        {/* Uso de recursos */}
+        {/* Uso de recursos - Grid 2x2 */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-muted/50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <Building2 className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Obras</span>
-            </div>
-            <p className="text-2xl font-bold">{obrasCount}</p>
-            <p className="text-xs text-muted-foreground">Ilimitadas</p>
-          </div>
+          {/* Obras */}
           <div className={cn(
             "rounded-lg p-3 transition-colors",
-            isAtLimit ? "bg-destructive/10" : isNearLimit ? "bg-primary/10" : "bg-muted/50"
+            isAtObraLimit ? "bg-destructive/10" : isNearObraLimit ? "bg-primary/10" : "bg-muted/50"
+          )}>
+            <div className="flex items-center gap-2 mb-1">
+              <Building2 className={cn(
+                "w-4 h-4",
+                isAtObraLimit ? "text-destructive" : isNearObraLimit ? "text-primary" : "text-muted-foreground"
+              )} />
+              <span className="text-sm font-medium">Obras</span>
+            </div>
+            <p className="text-2xl font-bold">
+              {usage.obrasUsed}
+              <span className="text-base font-normal text-muted-foreground">/{formatLimit(limits.maxObras)}</span>
+            </p>
+            {limits.maxObras !== -1 && (
+              <Progress 
+                value={obrasPercentage} 
+                className={cn(
+                  "h-1.5 mt-1",
+                  isAtObraLimit && "[&>div]:bg-destructive",
+                  isNearObraLimit && !isAtObraLimit && "[&>div]:bg-primary"
+                )} 
+              />
+            )}
+          </div>
+
+          {/* Acessos */}
+          <div className={cn(
+            "rounded-lg p-3 transition-colors",
+            isAtUserLimit ? "bg-destructive/10" : isNearUserLimit ? "bg-primary/10" : "bg-muted/50"
           )}>
             <div className="flex items-center gap-2 mb-1">
               <Users className={cn(
                 "w-4 h-4",
-                isAtLimit ? "text-destructive" : isNearLimit ? "text-primary" : "text-muted-foreground"
+                isAtUserLimit ? "text-destructive" : isNearUserLimit ? "text-primary" : "text-muted-foreground"
               )} />
               <span className="text-sm font-medium">Acessos</span>
             </div>
@@ -164,10 +196,34 @@ export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
               value={usersPercentage} 
               className={cn(
                 "h-1.5 mt-1",
-                isAtLimit && "[&>div]:bg-destructive",
-                isNearLimit && !isAtLimit && "[&>div]:bg-primary"
+                isAtUserLimit && "[&>div]:bg-destructive",
+                isNearUserLimit && !isAtUserLimit && "[&>div]:bg-primary"
               )} 
             />
+          </div>
+
+          {/* Diários por obra */}
+          <div className="bg-muted/50 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <FileText className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Diários</span>
+            </div>
+            <p className="text-lg font-bold">
+              {formatLimit(limits.maxDiariosPerObra)}
+              <span className="text-sm font-normal text-muted-foreground">/obra</span>
+            </p>
+          </div>
+
+          {/* Materiais por obra */}
+          <div className="bg-muted/50 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Package className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Estoque</span>
+            </div>
+            <p className="text-lg font-bold">
+              {formatLimit(limits.maxMateriaisPerObra)}
+              <span className="text-sm font-normal text-muted-foreground"> itens/obra</span>
+            </p>
           </div>
         </div>
 
@@ -207,10 +263,10 @@ export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
               "w-full",
               showLimitWarning && "animate-pulse"
             )}
-            variant={isAtLimit ? "default" : "outline"}
+            variant={hasAnyLimit ? "default" : "outline"}
           >
             <Crown className="w-4 h-4 mr-2" />
-            {isAtLimit ? "Fazer Upgrade Agora" : "Fazer Upgrade"}
+            {hasAnyLimit ? "Fazer Upgrade Agora" : "Fazer Upgrade"}
           </Button>
         )}
       </CardContent>

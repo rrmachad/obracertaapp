@@ -134,7 +134,11 @@ export function Dashboard() {
         <Plus className="w-8 h-8" />
       </Button>
 
-      <NovaObraDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <NovaObraDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen} 
+        onUpgradeClick={() => setUpgradeDialogOpen(true)}
+      />
       <UpgradePlanoDialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen} />
       <EntrarComPinDialog open={pinDialogOpen} onOpenChange={setPinDialogOpen} />
     </div>

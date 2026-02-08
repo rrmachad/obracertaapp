@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText, Share2, Building2 } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText, Share2, Building2, Crown, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,7 @@ import { useMovimentacaoEstoque } from '@/hooks/useMovimentacaoEstoque';
 import { useObraPin } from '@/hooks/useObraPin';
 import { useDiarioAlteracoes } from '@/hooks/useDiarioAlteracoes';
 import { useUserSettings } from '@/hooks/useUserSettings';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useToast } from '@/hooks/use-toast';
 import { ClimaTipo, DiarioLog, Profissional, FotoComLegenda } from '@/types/database';
 import { FotoUpload } from './FotoUpload';
@@ -38,6 +40,7 @@ import jsPDF from 'jspdf';
 
 interface DiarioTabProps {
   obraId: string;
+  onUpgradeClick?: () => void;
 }
 
 const climaOptions: { value: ClimaTipo; label: string; icon: React.ReactNode }[] = [
@@ -54,7 +57,7 @@ function parseDateOnlyAsLocal(dateStr: string) {
   return new Date(y, m - 1, d);
 }
 
-export function DiarioTab({ obraId }: DiarioTabProps) {
+export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
   const { registros, isLoading, createDiario, updateDiario } = useDiario(obraId);
   const { itens: cronogramaItens } = useCronogramaItens(obraId);
   const { data: fases } = useFases();
@@ -63,7 +66,11 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const { hasPin, validatePin, createPin, updatePin } = useObraPin(obraId);
   const { registrarAlteracao } = useDiarioAlteracoes();
   const { settings } = useUserSettings();
+  const { canCreateDiario, getDiarioCount, limits } = usePlanLimits();
   const { toast } = useToast();
+
+  const canCreate = canCreateDiario(obraId);
+  const diarioCount = getDiarioCount(obraId);
 
   const [clima, setClima] = useState<ClimaTipo>('ensolarado');
   const [atividades, setAtividades] = useState('');
@@ -399,6 +406,29 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Alerta de limite atingido */}
+          {!canCreate && (
+            <Alert variant="destructive" className="bg-destructive/10 border-destructive/30">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="ml-2">
+                <span className="font-semibold">Limite do plano Free atingido!</span>
+                <span className="block text-sm mt-0.5">
+                  Você já criou {diarioCount} de {limits.maxDiariosPerObra} diário(s) nesta obra.
+                </span>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Contador de diários */}
+          {limits.maxDiariosPerObra !== -1 && (
+            <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+              <span className="text-sm text-muted-foreground">Diários usados nesta obra:</span>
+              <Badge variant={canCreate ? "outline" : "destructive"}>
+                {diarioCount}/{limits.maxDiariosPerObra}
+              </Badge>
+            </div>
+          )}
+
           {/* Seletor de clima */}
           <div className="space-y-2">
             <Label className="text-base font-medium">Clima</Label>
@@ -412,6 +442,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
                     clima === option.value ? '' : 'text-muted-foreground'
                   }`}
                   onClick={() => setClima(option.value)}
+                  disabled={!canCreate}
                 >
                   {option.icon}
                   <span className="text-sm">{option.label}</span>
@@ -439,6 +470,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
               value={atividades}
               onChange={(e) => setAtividades(e.target.value)}
               className="min-h-28 text-base"
+              disabled={!canCreate}
             />
             <p className="text-xs text-muted-foreground">
               💡 Atividades do cronograma e movimentações de estoque são preenchidas automaticamente.
@@ -456,6 +488,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
               className="min-h-20 text-base"
+              disabled={!canCreate}
             />
           </div>
 
@@ -463,7 +496,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
           <ProfissionaisInput
             value={profissionais}
             onChange={setProfissionais}
-            disabled={saving}
+            disabled={saving || !canCreate}
           />
 
           {/* Upload de fotos */}
@@ -473,28 +506,38 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
               fotos={fotos}
               onFotosChange={setFotos}
               obraId={obraId}
-              disabled={saving}
+              disabled={saving || !canCreate}
             />
           </div>
 
-          {/* Botão salvar */}
-          <Button
-            onClick={handleSave}
-            className="w-full h-14 text-lg font-semibold"
-            disabled={saving || !atividades.trim()}
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5 mr-2" />
-                Salvar Relatório
-              </>
-            )}
-          </Button>
+          {/* Botão salvar ou upgrade */}
+          {canCreate ? (
+            <Button
+              onClick={handleSave}
+              className="w-full h-14 text-lg font-semibold"
+              disabled={saving || !atividades.trim()}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5 mr-2" />
+                  Salvar Relatório
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={onUpgradeClick}
+              className="w-full h-14 text-lg font-semibold"
+            >
+              <Crown className="w-5 h-5 mr-2" />
+              Fazer Upgrade para Continuar
+            </Button>
+          )}
         </CardContent>
       </Card>
 

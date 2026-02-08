@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { MapPin, Building2, Camera, Loader2 } from 'lucide-react';
+import { MapPin, Building2, Camera, Loader2, Crown, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
@@ -13,14 +14,16 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useObras } from '@/hooks/useObras';
 import { useFases, useCronogramaItens, defaultItemsByFase } from '@/hooks/useCronograma';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { supabase } from '@/integrations/supabase/client';
 
 interface NovaObraDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onUpgradeClick?: () => void;
 }
 
-export function NovaObraDialog({ open, onOpenChange }: NovaObraDialogProps) {
+export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraDialogProps) {
   const [nome, setNome] = useState('');
   const [endereco, setEndereco] = useState('');
   const [fotoCapa, setFotoCapa] = useState<File | null>(null);
@@ -29,7 +32,10 @@ export function NovaObraDialog({ open, onOpenChange }: NovaObraDialogProps) {
 
   const { createObra } = useObras();
   const { data: fases } = useFases();
+  const { canCreateObra, limits, usage } = usePlanLimits();
   const { toast } = useToast();
+
+  const canCreate = canCreateObra();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -132,6 +138,19 @@ export function NovaObraDialog({ open, onOpenChange }: NovaObraDialogProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Alerta de limite atingido */}
+          {!canCreate && (
+            <Alert variant="destructive" className="bg-destructive/10 border-destructive/30">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="ml-2">
+                <span className="font-semibold">Limite do plano Free atingido!</span>
+                <span className="block text-sm mt-0.5">
+                  Você já criou {usage.obrasUsed} de {limits.maxObras} obra(s) permitida(s).
+                </span>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Foto de capa */}
           <div className="space-y-2">
             <Label className="text-base font-medium">Foto do terreno/obra</Label>
@@ -153,6 +172,7 @@ export function NovaObraDialog({ open, onOpenChange }: NovaObraDialogProps) {
                 accept="image/*"
                 className="hidden"
                 onChange={handleFileChange}
+                disabled={!canCreate}
               />
             </div>
           </div>
@@ -201,20 +221,34 @@ export function NovaObraDialog({ open, onOpenChange }: NovaObraDialogProps) {
             >
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              className="flex-1 h-12"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Criando...
-                </>
-              ) : (
-                'Criar Obra'
-              )}
-            </Button>
+            {canCreate ? (
+              <Button
+                type="submit"
+                className="flex-1 h-12"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Criando...
+                  </>
+                ) : (
+                  'Criar Obra'
+                )}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="flex-1 h-12"
+                onClick={() => {
+                  onOpenChange(false);
+                  onUpgradeClick?.();
+                }}
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Fazer Upgrade
+              </Button>
+            )}
           </div>
         </form>
       </DialogContent>
