@@ -317,6 +317,38 @@ export function useAdminUsers() {
     },
   });
 
+  // Atualizar email do usuário
+  const updateEmailMutation = useMutation({
+    mutationFn: async ({ userId, email, previousEmail }: { userId: string; email: string; previousEmail?: string }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ email, updated_at: new Date().toISOString() })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      
+      // Registrar log
+      await logAction(userId, 'change_email', { 
+        from: previousEmail || 'não definido', 
+        to: email 
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: "Email atualizado",
+        description: "O email do usuário foi alterado com sucesso.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao atualizar email",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     isAdmin: isAdminQuery.data === true,
     isCheckingAdmin: isAdminQuery.isLoading,
@@ -331,6 +363,8 @@ export function useAdminUsers() {
     isTogglingBlock: toggleBlockMutation.isPending,
     toggleAdmin: toggleAdminMutation.mutate,
     isTogglingAdmin: toggleAdminMutation.isPending,
+    updateEmail: updateEmailMutation.mutate,
+    isUpdatingEmail: updateEmailMutation.isPending,
     refetch: () => {
       usersQuery.refetch();
       logsQuery.refetch();

@@ -10,7 +10,8 @@ import {
   Building2,
   Crown,
   User,
-  Search
+  Search,
+  Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAdminUsers, AdminUser } from '@/hooks/useAdminUsers';
 import { useAuth } from '@/hooks/useAuth';
+import { EditEmailDialog } from './EditEmailDialog';
 
 const planColors: Record<string, string> = {
   free: 'bg-muted text-muted-foreground',
@@ -61,12 +63,15 @@ export function UserManagementTable() {
     updatePlan, 
     toggleBlock, 
     toggleAdmin,
+    updateEmail,
     isUpdatingPlan,
     isTogglingBlock,
-    isTogglingAdmin
+    isTogglingAdmin,
+    isUpdatingEmail
   } = useAdminUsers();
   
   const [search, setSearch] = useState('');
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
   const filteredUsers = users.filter(u => 
     u.nome.toLowerCase().includes(search.toLowerCase()) ||
@@ -84,6 +89,17 @@ export function UserManagementTable() {
 
   const handleToggleAdmin = (user: AdminUser) => {
     toggleAdmin({ userId: user.user_id, makeAdmin: user.role !== 'admin' });
+  };
+
+  const handleSaveEmail = (email: string) => {
+    if (editingUser) {
+      updateEmail({ 
+        userId: editingUser.user_id, 
+        email, 
+        previousEmail: editingUser.email || undefined 
+      });
+      setEditingUser(null);
+    }
   };
 
   if (isLoadingUsers) {
@@ -244,8 +260,13 @@ export function UserManagementTable() {
                               >
                                 Premium
                               </DropdownMenuItem>
-                            </DropdownMenuSubContent>
+                          </DropdownMenuSubContent>
                           </DropdownMenuSub>
+
+                          <DropdownMenuItem onClick={() => setEditingUser(user)}>
+                            <Mail className="w-4 h-4 mr-2" />
+                            Editar Email
+                          </DropdownMenuItem>
 
                           {user.user_id !== currentUser?.id && (
                             <>
@@ -293,6 +314,15 @@ export function UserManagementTable() {
           </Table>
         </div>
       </CardContent>
+
+      <EditEmailDialog
+        open={!!editingUser}
+        onOpenChange={(open) => !open && setEditingUser(null)}
+        currentEmail={editingUser?.email || null}
+        userName={editingUser?.nome || ''}
+        onSave={handleSaveEmail}
+        isLoading={isUpdatingEmail}
+      />
     </Card>
   );
 }
