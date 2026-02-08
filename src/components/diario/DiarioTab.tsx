@@ -81,6 +81,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const [compartilharPDFOpen, setCompartilharPDFOpen] = useState(false);
   const [diarioPDF, setDiarioPDF] = useState<jsPDF | null>(null);
   const [diarioPDFFilename, setDiarioPDFFilename] = useState('');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Estado para diálogos
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -284,32 +285,40 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
 
   // Export and share functions for daily reports
   const handleExportarPDFClick = (registro: DiarioLog) => {
-    if (registro.fotos && registro.fotos.length > 0) {
-      // Se tem fotos, abre o dialog para selecionar
-      setRegistroParaExportar(registro);
-      setSelecionarFotosOpen(true);
-    } else {
-      // Se não tem fotos, exporta direto
-      exportarDiarioPDF(registro, []);
-    }
+    // Sempre abre o dialog de seleção de fotos (mesmo sem fotos, permite o usuário ver a opção)
+    setRegistroParaExportar(registro);
+    setSelecionarFotosOpen(true);
   };
 
   const exportarDiarioPDF = async (registro: DiarioLog, fotosSelecionadas: FotoComLegenda[]) => {
-    const pdfOptions = {
-      logoUrl: settings?.empresa_logo_url,
-      empresaNome: settings?.empresa_nome,
-    };
-    const registroComFotos = {
-      ...registro,
-      fotos: fotosSelecionadas,
-    };
-    const doc = await generateDailyReportPDF(registroComFotos, 'Obra', pdfOptions);
-    const filename = `diario-${format(parseDateOnlyAsLocal(registro.data), 'dd-MM-yyyy')}.pdf`;
+    setIsGeneratingPDF(true);
     
-    // Abrir dialog de compartilhamento com as 3 opções
-    setDiarioPDF(doc);
-    setDiarioPDFFilename(filename);
-    setCompartilharPDFOpen(true);
+    try {
+      const pdfOptions = {
+        logoUrl: settings?.empresa_logo_url,
+        empresaNome: settings?.empresa_nome,
+      };
+      const registroComFotos = {
+        ...registro,
+        fotos: fotosSelecionadas,
+      };
+      const doc = await generateDailyReportPDF(registroComFotos, 'Obra', pdfOptions);
+      const filename = `diario-${format(parseDateOnlyAsLocal(registro.data), 'dd-MM-yyyy')}.pdf`;
+      
+      // Abrir dialog de compartilhamento com as 3 opções
+      setDiarioPDF(doc);
+      setDiarioPDFFilename(filename);
+      setCompartilharPDFOpen(true);
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Não foi possível gerar o relatório. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   const handleFotosSelecionadas = (fotosSelecionadas: FotoComLegenda[]) => {
@@ -665,11 +674,14 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
         <SelecionarFotosDialog
           open={selecionarFotosOpen}
           onOpenChange={(open) => {
-            setSelecionarFotosOpen(open);
-            if (!open) setRegistroParaExportar(null);
+            if (!isGeneratingPDF) {
+              setSelecionarFotosOpen(open);
+              if (!open) setRegistroParaExportar(null);
+            }
           }}
-          fotos={registroParaExportar.fotos}
+          fotos={registroParaExportar.fotos || []}
           onConfirm={handleFotosSelecionadas}
+          isLoading={isGeneratingPDF}
         />
       )}
 
