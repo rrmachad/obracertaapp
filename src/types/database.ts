@@ -65,6 +65,11 @@ export interface Profissional {
   quantidade: number;
 }
 
+export interface FotoComLegenda {
+  url: string;
+  legenda: string;
+}
+
 export interface DiarioLog {
   id: string;
   obra_id: string;
@@ -72,7 +77,7 @@ export interface DiarioLog {
   clima: ClimaTipo;
   atividades_realizadas: string;
   observacoes?: string;
-  fotos: string[];
+  fotos: FotoComLegenda[];
   profissionais?: Profissional[];
   created_at: string;
   updated_at: string;

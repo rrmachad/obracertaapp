@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { DiarioLog, ClimaTipo, Profissional } from '@/types/database';
+import { DiarioLog, ClimaTipo, Profissional, FotoComLegenda } from '@/types/database';
 import { format } from 'date-fns';
 import { Json } from '@/integrations/supabase/types';
 
@@ -16,6 +16,24 @@ function parseProfissionais(json: Json | null | undefined): Profissional[] {
       typeof (item as Record<string, unknown>).funcao === 'string' &&
       typeof (item as Record<string, unknown>).quantidade === 'number'
   );
+}
+
+// Helper para converter Json para FotoComLegenda[]
+function parseFotos(json: Json | null | undefined): FotoComLegenda[] {
+  if (!json || !Array.isArray(json)) return [];
+  return json.map((item) => {
+    if (typeof item === 'string') {
+      // Compatibilidade com formato antigo (string)
+      return { url: item, legenda: '' };
+    }
+    if (typeof item === 'object' && item !== null && 'url' in item) {
+      return {
+        url: String((item as Record<string, unknown>).url ?? ''),
+        legenda: String((item as Record<string, unknown>).legenda ?? ''),
+      };
+    }
+    return { url: '', legenda: '' };
+  }).filter(f => f.url);
 }
 
 export function useDiario(obraId: string) {
@@ -34,7 +52,7 @@ export function useDiario(obraId: string) {
       
       return (data ?? []).map(item => ({
         ...item,
-        fotos: item.fotos ?? [],
+        fotos: parseFotos(item.fotos),
         profissionais: parseProfissionais(item.profissionais)
       })) as DiarioLog[];
     },
@@ -47,7 +65,7 @@ export function useDiario(obraId: string) {
       clima: ClimaTipo;
       atividades_realizadas: string;
       observacoes?: string;
-      fotos?: string[];
+      fotos?: FotoComLegenda[];
       profissionais?: Profissional[];
     }) => {
       const { data, error } = await supabase
@@ -58,7 +76,7 @@ export function useDiario(obraId: string) {
           atividades_realizadas: diario.atividades_realizadas,
           observacoes: diario.observacoes,
           data: format(new Date(), 'yyyy-MM-dd'),
-          fotos: diario.fotos ?? [],
+          fotos: (diario.fotos ?? []) as unknown as Json,
           profissionais: (diario.profissionais ?? []) as unknown as Json
         })
         .select()
@@ -67,7 +85,7 @@ export function useDiario(obraId: string) {
       if (error) throw error;
       return {
         ...data,
-        fotos: data.fotos ?? [],
+        fotos: parseFotos(data.fotos),
         profissionais: parseProfissionais(data.profissionais)
       } as DiarioLog;
     },
@@ -77,10 +95,13 @@ export function useDiario(obraId: string) {
   });
 
   const updateDiario = useMutation({
-    mutationFn: async ({ id, profissionais, ...updates }: Partial<DiarioLog> & { id: string }) => {
+    mutationFn: async ({ id, profissionais, fotos, ...updates }: Partial<DiarioLog> & { id: string }) => {
       const updateData: Record<string, unknown> = { ...updates };
       if (profissionais !== undefined) {
         updateData.profissionais = profissionais as unknown as Json;
+      }
+      if (fotos !== undefined) {
+        updateData.fotos = fotos as unknown as Json;
       }
       
       const { data, error } = await supabase
@@ -93,7 +114,7 @@ export function useDiario(obraId: string) {
       if (error) throw error;
       return {
         ...data,
-        fotos: data.fotos ?? [],
+        fotos: parseFotos(data.fotos),
         profissionais: parseProfissionais(data.profissionais)
       } as DiarioLog;
     },

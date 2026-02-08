@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { DiarioLog, ClimaTipo, Profissional } from '@/types/database';
+import { DiarioLog, ClimaTipo, Profissional, FotoComLegenda } from '@/types/database';
 
 const climaLabels: Record<ClimaTipo, string> = {
   ensolarado: 'Ensolarado',
@@ -67,7 +67,7 @@ interface DailyReportData {
   atividades_realizadas: string;
   observacoes?: string | null;
   profissionais?: Profissional[] | null;
-  fotos?: string[] | null;
+  fotos?: FotoComLegenda[] | null;
 }
 
 // Helper function to load image as base64
@@ -97,10 +97,10 @@ async function loadImageAsBase64(url: string): Promise<{ data: string; width: nu
   });
 }
 
-// Helper function to add photos to PDF
+// Helper function to add photos to PDF with captions
 async function addPhotosToPDF(
   doc: jsPDF,
-  photos: string[],
+  photos: FotoComLegenda[],
   startY: number,
   margin: number,
   maxWidth: number,
@@ -112,6 +112,7 @@ async function addPhotosToPDF(
   let y = startY;
   const photoMaxWidth = (maxWidth - 10) / 2; // Two photos per row with gap
   const photoMaxHeight = 60;
+  const captionHeight = 12; // Space for caption
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
@@ -120,19 +121,32 @@ async function addPhotosToPDF(
 
   let photoX = margin;
   let rowMaxHeight = 0;
+  const captionsForRow: { x: number; y: number; width: number; text: string }[] = [];
 
   for (let i = 0; i < photos.length; i++) {
-    const photoUrl = photos[i];
-    const imageData = await loadImageAsBase64(photoUrl);
+    const photo = photos[i];
+    const imageData = await loadImageAsBase64(photo.url);
 
     if (imageData) {
       // Calculate scaled dimensions
       const ratio = Math.min(photoMaxWidth / imageData.width, photoMaxHeight / imageData.height);
       const scaledWidth = imageData.width * ratio;
       const scaledHeight = imageData.height * ratio;
+      const totalHeight = scaledHeight + (photo.legenda ? captionHeight : 0);
 
       // Check if we need a new page
-      if (y + scaledHeight > pageHeight - 30) {
+      if (y + totalHeight > pageHeight - 30) {
+        // Add captions before page break
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8);
+        captionsForRow.forEach((cap) => {
+          if (cap.text) {
+            const lines = doc.splitTextToSize(cap.text, cap.width);
+            doc.text(lines[0] || '', cap.x, cap.y);
+          }
+        });
+        captionsForRow.length = 0;
+
         doc.addPage();
         y = 20;
         photoX = margin;
@@ -144,12 +158,35 @@ async function addPhotosToPDF(
         doc.addImage(imageData.data, 'JPEG', photoX, y, scaledWidth, scaledHeight);
         rowMaxHeight = Math.max(rowMaxHeight, scaledHeight);
 
+        // Store caption for later (after row is complete)
+        if (photo.legenda) {
+          captionsForRow.push({
+            x: photoX,
+            y: y + scaledHeight + 4,
+            width: scaledWidth,
+            text: photo.legenda,
+          });
+        }
+
         // Move to next position
         if (i % 2 === 0) {
           photoX = margin + photoMaxWidth + 10;
         } else {
+          // End of row - add captions
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(8);
+          doc.setTextColor(80);
+          captionsForRow.forEach((cap) => {
+            if (cap.text) {
+              const lines = doc.splitTextToSize(cap.text, cap.width);
+              doc.text(lines[0] || '', cap.x, cap.y);
+            }
+          });
+          doc.setTextColor(0);
+          captionsForRow.length = 0;
+
           photoX = margin;
-          y += rowMaxHeight + 5;
+          y += rowMaxHeight + (captionsForRow.length > 0 ? captionHeight : 5);
           rowMaxHeight = 0;
         }
       } catch {
@@ -158,9 +195,19 @@ async function addPhotosToPDF(
     }
   }
 
-  // If last row had an odd number of photos, move y down
+  // If last row had an odd number of photos, add remaining captions and move y down
   if (photos.length % 2 !== 0) {
-    y += rowMaxHeight + 5;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.setTextColor(80);
+    captionsForRow.forEach((cap) => {
+      if (cap.text) {
+        const lines = doc.splitTextToSize(cap.text, cap.width);
+        doc.text(lines[0] || '', cap.x, cap.y);
+      }
+    });
+    doc.setTextColor(0);
+    y += rowMaxHeight + captionHeight;
   }
 
   return y + lineHeight;

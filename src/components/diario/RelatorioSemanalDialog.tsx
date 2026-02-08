@@ -558,12 +558,16 @@ export function RelatorioSemanalDialog({
                   </h4>
                   <div className="grid grid-cols-2 gap-2">
                     {selectedRegistro.fotos.map((foto, index) => (
-                      <img
-                        key={index}
-                        src={foto}
-                        alt={`Foto ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
-                      />
+                      <div key={index} className="space-y-1">
+                        <img
+                          src={foto.url}
+                          alt={foto.legenda || `Foto ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        {foto.legenda && (
+                          <p className="text-xs text-muted-foreground line-clamp-1">{foto.legenda}</p>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>

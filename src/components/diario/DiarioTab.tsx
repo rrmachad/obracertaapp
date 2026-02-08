@@ -23,7 +23,7 @@ import { useObraPin } from '@/hooks/useObraPin';
 import { useDiarioAlteracoes } from '@/hooks/useDiarioAlteracoes';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useToast } from '@/hooks/use-toast';
-import { ClimaTipo, DiarioLog, Profissional } from '@/types/database';
+import { ClimaTipo, DiarioLog, Profissional, FotoComLegenda } from '@/types/database';
 import { FotoUpload } from './FotoUpload';
 import { PinDialog } from './PinDialog';
 import { EditarDiarioDialog } from './EditarDiarioDialog';
@@ -31,6 +31,7 @@ import { ProfissionaisInput } from './ProfissionaisInput';
 import { RelatorioSemanalDialog } from './RelatorioSemanalDialog';
 import { RelatorioMensalDialog } from './RelatorioMensalDialog';
 import { ConfiguracaoEmpresaDialog } from './ConfiguracaoEmpresaDialog';
+import { SelecionarFotosDialog } from './SelecionarFotosDialog';
 import {
   generateDailyReportPDF,
   downloadPDF,
@@ -73,12 +74,14 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   const [clima, setClima] = useState<ClimaTipo>('ensolarado');
   const [atividades, setAtividades] = useState('');
   const [observacoes, setObservacoes] = useState('');
-  const [fotos, setFotos] = useState<string[]>([]);
+  const [fotos, setFotos] = useState<FotoComLegenda[]>([]);
   const [profissionais, setProfissionais] = useState<Profissional[]>([]);
   const [saving, setSaving] = useState(false);
   const [relatorioSemanalOpen, setRelatorioSemanalOpen] = useState(false);
   const [relatorioMensalOpen, setRelatorioMensalOpen] = useState(false);
   const [empresaConfigOpen, setEmpresaConfigOpen] = useState(false);
+  const [selecionarFotosOpen, setSelecionarFotosOpen] = useState(false);
+  const [registroParaExportar, setRegistroParaExportar] = useState<DiarioLog | null>(null);
 
   // Estado para diálogos
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -281,18 +284,40 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
   };
 
   // Export and share functions for daily reports
-  const exportarDiarioPDF = async (registro: DiarioLog) => {
+  const handleExportarPDFClick = (registro: DiarioLog) => {
+    if (registro.fotos && registro.fotos.length > 0) {
+      // Se tem fotos, abre o dialog para selecionar
+      setRegistroParaExportar(registro);
+      setSelecionarFotosOpen(true);
+    } else {
+      // Se não tem fotos, exporta direto
+      exportarDiarioPDF(registro, []);
+    }
+  };
+
+  const exportarDiarioPDF = async (registro: DiarioLog, fotosSelecionadas: FotoComLegenda[]) => {
     const pdfOptions = {
       logoUrl: settings?.empresa_logo_url,
       empresaNome: settings?.empresa_nome,
     };
-    const doc = await generateDailyReportPDF(registro, 'Obra', pdfOptions);
+    const registroComFotos = {
+      ...registro,
+      fotos: fotosSelecionadas,
+    };
+    const doc = await generateDailyReportPDF(registroComFotos, 'Obra', pdfOptions);
     const filename = `diario-${format(parseDateOnlyAsLocal(registro.data), 'dd-MM-yyyy')}.pdf`;
     downloadPDF(doc, filename);
     toast({
       title: "PDF gerado!",
       description: "O diário foi baixado com sucesso.",
     });
+  };
+
+  const handleFotosSelecionadas = (fotosSelecionadas: FotoComLegenda[]) => {
+    if (registroParaExportar) {
+      exportarDiarioPDF(registroParaExportar, fotosSelecionadas);
+      setRegistroParaExportar(null);
+    }
   };
 
   const compartilharDiario = async (registro: DiarioLog) => {
@@ -547,7 +572,7 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => exportarDiarioPDF(registro)}>
+                            <DropdownMenuItem onClick={() => handleExportarPDFClick(registro)}>
                               <Download className="w-4 h-4 mr-2" />
                               Exportar PDF
                             </DropdownMenuItem>
@@ -629,16 +654,21 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
                           {registro.fotos.map((foto, index) => (
                             <a
                               key={index}
-                              href={foto}
+                              href={foto.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="aspect-square rounded-lg overflow-hidden border border-border hover:opacity-90 transition-opacity"
+                              className="relative aspect-square rounded-lg overflow-hidden border border-border hover:opacity-90 transition-opacity"
                             >
                               <img
-                                src={foto}
-                                alt={`Foto ${index + 1}`}
+                                src={foto.url}
+                                alt={foto.legenda || `Foto ${index + 1}`}
                                 className="w-full h-full object-cover"
                               />
+                              {foto.legenda && (
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1">
+                                  <p className="text-[10px] text-white line-clamp-1">{foto.legenda}</p>
+                                </div>
+                              )}
                             </a>
                           ))}
                         </div>
@@ -698,6 +728,19 @@ export function DiarioTab({ obraId }: DiarioTabProps) {
         open={empresaConfigOpen}
         onOpenChange={setEmpresaConfigOpen}
       />
+
+      {/* Selecionar Fotos para PDF Dialog */}
+      {registroParaExportar && (
+        <SelecionarFotosDialog
+          open={selecionarFotosOpen}
+          onOpenChange={(open) => {
+            setSelecionarFotosOpen(open);
+            if (!open) setRegistroParaExportar(null);
+          }}
+          fotos={registroParaExportar.fotos}
+          onConfirm={handleFotosSelecionadas}
+        />
+      )}
     </div>
   );
 }
