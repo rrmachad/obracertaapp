@@ -9,7 +9,8 @@ import {
   Settings,
   BarChart3,
   Building2,
-  Clock
+  Clock,
+  History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,6 +22,7 @@ import { ObraStatsList } from '@/components/admin/ObraStatsList';
 import { ProfileSettings } from '@/components/admin/ProfileSettings';
 import { PlanoResumoCard } from '@/components/admin/PlanoResumoCard';
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
+import { AuditLogList } from '@/components/admin/AuditLogList';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -93,7 +95,7 @@ export function AdminPanel() {
 
       <main className="container py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Visão Geral</span>
@@ -105,6 +107,10 @@ export function AdminPanel() {
             <TabsTrigger value="activity" className="gap-2">
               <Clock className="w-4 h-4" />
               <span className="hidden sm:inline">Atividade</span>
+            </TabsTrigger>
+            <TabsTrigger value="audit" className="gap-2">
+              <History className="w-4 h-4" />
+              <span className="hidden sm:inline">Auditoria</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
@@ -144,6 +150,11 @@ export function AdminPanel() {
                 <RecentActivityList activities={recentActivity} isLoading={isLoading} />
               </div>
             </div>
+          </TabsContent>
+
+          {/* Auditoria */}
+          <TabsContent value="audit" className="space-y-6">
+            <AuditLogList />
           </TabsContent>
 
           {/* Configurações */}
