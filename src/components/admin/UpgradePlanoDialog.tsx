@@ -1,4 +1,4 @@
-import { Check, Crown, Sparkles, Zap, Settings } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, Settings, Rocket, Users, Star, MessageCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -20,72 +20,110 @@ interface UpgradePlanoDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const plans: {
+interface PlanFeature {
+  text: string;
+  highlight?: boolean;
+  icon?: 'check' | 'rocket' | 'users' | 'star';
+}
+
+interface PlanOption {
   id: SubscriptionPlan;
   name: string;
   price: number;
-  users: number;
-  features: string[];
+  features: PlanFeature[];
   popular?: boolean;
-}[] = [
+  buttonText: string;
+  buttonTextCurrent?: string;
+}
+
+const plans: PlanOption[] = [
   {
     id: 'free',
-    name: 'Free',
+    name: 'Iniciante',
     price: 0,
-    users: 1,
     features: [
-      '1 usuário (você)',
-      'Obras ilimitadas',
-      'Diário de obra',
-      'Cronograma básico',
+      { text: '1 Obra Ativa', icon: 'check' },
+      { text: 'Gestão de Fases e Cronograma', icon: 'check' },
+      { text: 'Controle Básico de Estoque', icon: 'check' },
+      { text: '1 Usuário (Você)', icon: 'check' },
     ],
+    buttonText: 'Seu Plano Atual',
+    buttonTextCurrent: 'Seu Plano Atual',
   },
   {
     id: 'start',
-    name: 'Start',
+    name: 'Profissional',
     price: 29.90,
-    users: 2,
     features: [
-      '2 usuários',
-      'Tudo do Free',
-      'Controle de estoque',
-      'Suporte por email',
+      { text: 'Obras Ilimitadas', icon: 'rocket', highlight: true },
+      { text: 'Diário de Obra Completo', icon: 'check' },
+      { text: 'Controle Total de Estoque', icon: 'check' },
+      { text: 'Relatórios em PDF', icon: 'check' },
+      { text: '1 Usuário', icon: 'check' },
     ],
+    buttonText: 'Liberar Obras Ilimitadas',
+    buttonTextCurrent: 'Plano Atual',
   },
   {
     id: 'gold',
-    name: 'Gold',
+    name: 'Construtora',
     price: 59.90,
-    users: 3,
     features: [
-      '3 usuários',
-      'Tudo do Start',
-      'Relatórios avançados',
-      'Suporte prioritário',
+      { text: 'Tudo do Profissional', icon: 'check', highlight: true },
+      { text: 'Até 3 Usuários (Sócio/Mestre)', icon: 'users', highlight: true },
+      { text: 'Gestão Financeira Básica', icon: 'check' },
+      { text: 'Suporte Prioritário (WhatsApp)', icon: 'check' },
     ],
     popular: true,
+    buttonText: 'Escolher Construtora',
+    buttonTextCurrent: 'Plano Atual',
   },
   {
     id: 'premium',
-    name: 'Premium',
+    name: 'Empresarial',
     price: 99.90,
-    users: 5,
     features: [
-      '5 usuários',
-      'Tudo do Gold',
-      'Criar admins ilimitados',
-      'API access',
-      'Suporte 24/7',
+      { text: 'Usuários Ilimitados', icon: 'users', highlight: true },
+      { text: 'Múltiplos Admins', icon: 'check' },
+      { text: 'Exportação de Dados (Excel/API)', icon: 'check' },
+      { text: 'Consultoria de Implantação', icon: 'check' },
+      { text: 'Suporte 24/7 Exclusivo', icon: 'star' },
     ],
+    buttonText: 'Assinar Empresarial',
+    buttonTextCurrent: 'Plano Atual',
   },
 ];
 
+const planNames: Record<SubscriptionPlan, string> = {
+  free: 'Iniciante',
+  start: 'Profissional',
+  gold: 'Construtora',
+  premium: 'Empresarial',
+};
+
+function FeatureIcon({ icon, highlight }: { icon: PlanFeature['icon']; highlight?: boolean }) {
+  const className = `w-4 h-4 mt-0.5 flex-shrink-0 ${highlight ? 'text-primary' : 'text-success'}`;
+  
+  switch (icon) {
+    case 'rocket':
+      return <Rocket className={className} />;
+    case 'users':
+      return <Users className={className} />;
+    case 'star':
+      return <Star className={className} />;
+    default:
+      return <Check className={className} />;
+  }
+}
+
 export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogProps) {
-  const { plan: currentPlan, planName } = useSubscription();
+  const { plan: currentPlan } = useSubscription();
   const { session } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState<SubscriptionPlan | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+
+  const currentPlanName = planNames[currentPlan] || 'Iniciante';
 
   const handleSelectPlan = async (selectedPlan: SubscriptionPlan) => {
     if (selectedPlan === currentPlan) return;
@@ -150,14 +188,14 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            Escolha seu Plano
+            Escolha o Plano Ideal para Você
           </DialogTitle>
           <DialogDescription className="flex items-center justify-between">
-            <span>Plano atual: <strong>{planName}</strong></span>
+            <span>Plano atual: <strong>{currentPlanName}</strong></span>
             {currentPlan !== 'free' && (
               <Button
                 variant="outline"
@@ -180,20 +218,27 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
             return (
               <Card 
                 key={planOption.id}
-                className={`relative ${planOption.popular ? 'border-primary shadow-lg' : ''} ${isCurrentPlan ? 'bg-primary/5 border-primary' : ''}`}
+                className={`relative flex flex-col ${planOption.popular ? 'border-primary shadow-lg ring-2 ring-primary/20' : ''} ${isCurrentPlan ? 'bg-primary/5 border-primary' : ''}`}
               >
                 {planOption.popular && (
-                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary">
-                    Popular
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary px-3 py-1">
+                    <Star className="w-3 h-3 mr-1" />
+                    Mais Popular
+                  </Badge>
+                )}
+
+                {isCurrentPlan && !planOption.popular && (
+                  <Badge variant="secondary" className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1">
+                    Atual
                   </Badge>
                 )}
                 
                 <CardHeader className="text-center pb-2">
-                  <CardTitle className="flex items-center justify-center gap-2">
+                  <CardTitle className="flex items-center justify-center gap-2 text-lg">
                     {planOption.id === 'premium' && <Crown className="w-5 h-5 text-warning" />}
                     {planOption.name}
                   </CardTitle>
-                  <div className="mt-2">
+                  <div className="mt-3">
                     <span className="text-3xl font-bold">
                       {planOption.price === 0 ? 'Grátis' : `R$ ${planOption.price.toFixed(2).replace('.', ',')}`}
                     </span>
@@ -203,19 +248,21 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
                   </div>
                 </CardHeader>
                 
-                <CardContent className="space-y-4">
-                  <ul className="space-y-2 text-sm">
+                <CardContent className="flex flex-col flex-1 space-y-4">
+                  <ul className="space-y-2.5 text-sm flex-1">
                     {planOption.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                        <span>{feature}</span>
+                        <FeatureIcon icon={feature.icon} highlight={feature.highlight} />
+                        <span className={feature.highlight ? 'font-semibold text-foreground' : ''}>
+                          {feature.text}
+                        </span>
                       </li>
                     ))}
                   </ul>
                   
                   <Button
                     variant={isCurrentPlan ? 'outline' : planOption.popular ? 'default' : 'secondary'}
-                    className="w-full"
+                    className={`w-full ${planOption.popular && !isCurrentPlan ? 'bg-primary hover:bg-primary/90' : ''}`}
                     disabled={isCurrentPlan || isDowngrade || loading !== null}
                     onClick={() => handleSelectPlan(planOption.id)}
                   >
@@ -225,13 +272,15 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
                         Processando...
                       </span>
                     ) : isCurrentPlan ? (
-                      'Plano Atual'
+                      planOption.buttonTextCurrent
                     ) : isDowngrade ? (
                       'Downgrade'
                     ) : (
                       <>
-                        <Zap className="w-4 h-4 mr-1" />
-                        Escolher
+                        {planOption.id === 'start' && <Rocket className="w-4 h-4 mr-1" />}
+                        {planOption.id === 'gold' && <Zap className="w-4 h-4 mr-1" />}
+                        {planOption.id === 'premium' && <MessageCircle className="w-4 h-4 mr-1" />}
+                        {planOption.buttonText}
                       </>
                     )}
                   </Button>
