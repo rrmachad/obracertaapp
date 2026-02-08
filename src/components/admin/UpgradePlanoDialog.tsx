@@ -224,16 +224,17 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="cards">
+          <TabsContent value="cards" className="animate-fade-in">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
-              {plans.map((planOption) => {
+              {plans.map((planOption, index) => {
                 const isCurrentPlan = planOption.id === currentPlan;
                 const isDowngrade = plans.findIndex(p => p.id === planOption.id) < plans.findIndex(p => p.id === currentPlan);
                 
                 return (
                   <Card 
                     key={planOption.id}
-                    className={`relative flex flex-col ${planOption.popular ? 'border-primary shadow-lg ring-2 ring-primary/20' : ''} ${isCurrentPlan ? 'bg-primary/5 border-primary' : ''}`}
+                    className={`relative flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${planOption.popular ? 'border-primary shadow-lg ring-2 ring-primary/20' : ''} ${isCurrentPlan ? 'bg-primary/5 border-primary' : ''}`}
+                    style={{ animationDelay: `${index * 75}ms` }}
                   >
                     {planOption.popular && (
                       <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary px-3 py-1">
@@ -306,7 +307,7 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
             </div>
           </TabsContent>
           
-          <TabsContent value="table">
+          <TabsContent value="table" className="animate-fade-in">
             <PlanoComparisonTable onSelectPlan={handleSelectPlan} />
           </TabsContent>
         </Tabs>
