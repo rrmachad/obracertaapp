@@ -7,6 +7,7 @@ import { ObraCard } from '@/components/obras/ObraCard';
 import { NovaObraDialog } from '@/components/obras/NovaObraDialog';
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
 import { EntrarComPinDialog } from '@/components/admin/EntrarComPinDialog';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useObras } from '@/hooks/useObras';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -52,6 +53,7 @@ export function Dashboard() {
                   {planName}
                 </Badge>
               </Button>
+              <ThemeToggle />
               <Button
                 variant="ghost"
                 size="icon"
