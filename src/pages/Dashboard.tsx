@@ -7,6 +7,7 @@ import { ObraCard } from '@/components/obras/ObraCard';
 import { NovaObraDialog } from '@/components/obras/NovaObraDialog';
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
 import { EntrarComPinDialog } from '@/components/admin/EntrarComPinDialog';
+import { PlanoResumoCard } from '@/components/admin/PlanoResumoCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useObras } from '@/hooks/useObras';
 import { useAuth } from '@/hooks/useAuth';
@@ -77,6 +78,9 @@ export function Dashboard() {
       </header>
 
       <main className="container py-4 pb-24">
+        {/* Card de resumo do plano */}
+        <PlanoResumoCard onUpgradeClick={() => setUpgradeDialogOpen(true)} />
+
         {/* Barra de busca */}
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
