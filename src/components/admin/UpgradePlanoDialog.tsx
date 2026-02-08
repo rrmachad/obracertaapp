@@ -1,4 +1,4 @@
-import { Check, Crown, Sparkles, Zap, Settings, Rocket, Users, Star, MessageCircle } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, Settings, Rocket, Users, Star, MessageCircle, Table2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,11 +9,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { PlanoComparisonTable } from './PlanoComparisonTable';
 
 interface UpgradePlanoDialogProps {
   open: boolean;
@@ -210,85 +212,104 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-4">
-          {plans.map((planOption) => {
-            const isCurrentPlan = planOption.id === currentPlan;
-            const isDowngrade = plans.findIndex(p => p.id === planOption.id) < plans.findIndex(p => p.id === currentPlan);
-            
-            return (
-              <Card 
-                key={planOption.id}
-                className={`relative flex flex-col ${planOption.popular ? 'border-primary shadow-lg ring-2 ring-primary/20' : ''} ${isCurrentPlan ? 'bg-primary/5 border-primary' : ''}`}
-              >
-                {planOption.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary px-3 py-1">
-                    <Star className="w-3 h-3 mr-1" />
-                    Mais Popular
-                  </Badge>
-                )}
-
-                {isCurrentPlan && !planOption.popular && (
-                  <Badge variant="secondary" className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1">
-                    Atual
-                  </Badge>
-                )}
+        <Tabs defaultValue="cards" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="cards" className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Visão Geral
+            </TabsTrigger>
+            <TabsTrigger value="table" className="flex items-center gap-2">
+              <Table2 className="w-4 h-4" />
+              Comparar Detalhes
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="cards">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
+              {plans.map((planOption) => {
+                const isCurrentPlan = planOption.id === currentPlan;
+                const isDowngrade = plans.findIndex(p => p.id === planOption.id) < plans.findIndex(p => p.id === currentPlan);
                 
-                <CardHeader className="text-center pb-2">
-                  <CardTitle className="flex items-center justify-center gap-2 text-lg">
-                    {planOption.id === 'premium' && <Crown className="w-5 h-5 text-warning" />}
-                    {planOption.name}
-                  </CardTitle>
-                  <div className="mt-3">
-                    <span className="text-3xl font-bold">
-                      {planOption.price === 0 ? 'Grátis' : `R$ ${planOption.price.toFixed(2).replace('.', ',')}`}
-                    </span>
-                    {planOption.price > 0 && (
-                      <span className="text-muted-foreground text-sm">/mês</span>
-                    )}
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="flex flex-col flex-1 space-y-4">
-                  <ul className="space-y-2.5 text-sm flex-1">
-                    {planOption.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <FeatureIcon icon={feature.icon} highlight={feature.highlight} />
-                        <span className={feature.highlight ? 'font-semibold text-foreground' : ''}>
-                          {feature.text}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <Button
-                    variant={isCurrentPlan ? 'outline' : planOption.popular ? 'default' : 'secondary'}
-                    className={`w-full ${planOption.popular && !isCurrentPlan ? 'bg-primary hover:bg-primary/90' : ''}`}
-                    disabled={isCurrentPlan || isDowngrade || loading !== null}
-                    onClick={() => handleSelectPlan(planOption.id)}
+                return (
+                  <Card 
+                    key={planOption.id}
+                    className={`relative flex flex-col ${planOption.popular ? 'border-primary shadow-lg ring-2 ring-primary/20' : ''} ${isCurrentPlan ? 'bg-primary/5 border-primary' : ''}`}
                   >
-                    {loading === planOption.id ? (
-                      <span className="flex items-center gap-2">
-                        <span className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
-                        Processando...
-                      </span>
-                    ) : isCurrentPlan ? (
-                      planOption.buttonTextCurrent
-                    ) : isDowngrade ? (
-                      'Downgrade'
-                    ) : (
-                      <>
-                        {planOption.id === 'start' && <Rocket className="w-4 h-4 mr-1" />}
-                        {planOption.id === 'gold' && <Zap className="w-4 h-4 mr-1" />}
-                        {planOption.id === 'premium' && <MessageCircle className="w-4 h-4 mr-1" />}
-                        {planOption.buttonText}
-                      </>
+                    {planOption.popular && (
+                      <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary px-3 py-1">
+                        <Star className="w-3 h-3 mr-1" />
+                        Mais Popular
+                      </Badge>
                     )}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+
+                    {isCurrentPlan && !planOption.popular && (
+                      <Badge variant="secondary" className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1">
+                        Atual
+                      </Badge>
+                    )}
+                    
+                    <CardHeader className="text-center pb-2">
+                      <CardTitle className="flex items-center justify-center gap-2 text-lg">
+                        {planOption.id === 'premium' && <Crown className="w-5 h-5 text-warning" />}
+                        {planOption.name}
+                      </CardTitle>
+                      <div className="mt-3">
+                        <span className="text-3xl font-bold">
+                          {planOption.price === 0 ? 'Grátis' : `R$ ${planOption.price.toFixed(2).replace('.', ',')}`}
+                        </span>
+                        {planOption.price > 0 && (
+                          <span className="text-muted-foreground text-sm">/mês</span>
+                        )}
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="flex flex-col flex-1 space-y-4">
+                      <ul className="space-y-2.5 text-sm flex-1">
+                        {planOption.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <FeatureIcon icon={feature.icon} highlight={feature.highlight} />
+                            <span className={feature.highlight ? 'font-semibold text-foreground' : ''}>
+                              {feature.text}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      
+                      <Button
+                        variant={isCurrentPlan ? 'outline' : planOption.popular ? 'default' : 'secondary'}
+                        className={`w-full ${planOption.popular && !isCurrentPlan ? 'bg-primary hover:bg-primary/90' : ''}`}
+                        disabled={isCurrentPlan || isDowngrade || loading !== null}
+                        onClick={() => handleSelectPlan(planOption.id)}
+                      >
+                        {loading === planOption.id ? (
+                          <span className="flex items-center gap-2">
+                            <span className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                            Processando...
+                          </span>
+                        ) : isCurrentPlan ? (
+                          planOption.buttonTextCurrent
+                        ) : isDowngrade ? (
+                          'Downgrade'
+                        ) : (
+                          <>
+                            {planOption.id === 'start' && <Rocket className="w-4 h-4 mr-1" />}
+                            {planOption.id === 'gold' && <Zap className="w-4 h-4 mr-1" />}
+                            {planOption.id === 'premium' && <MessageCircle className="w-4 h-4 mr-1" />}
+                            {planOption.buttonText}
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="table">
+            <PlanoComparisonTable onSelectPlan={handleSelectPlan} />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

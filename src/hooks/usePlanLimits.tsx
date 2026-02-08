@@ -21,23 +21,23 @@ const planLimitsConfig: Record<SubscriptionPlan, PlanLimits> = {
   free: {
     maxUsers: 1,
     maxObras: 1,
-    maxDiariosPerObra: 3,
-    maxMateriaisPerObra: 5,
+    maxDiariosPerObra: 10,
+    maxMateriaisPerObra: 10,
   },
   start: {
-    maxUsers: 2,
-    maxObras: 5,
-    maxDiariosPerObra: 50,
-    maxMateriaisPerObra: 30,
+    maxUsers: 1,
+    maxObras: -1, // ilimitado
+    maxDiariosPerObra: -1, // ilimitado
+    maxMateriaisPerObra: -1, // ilimitado
   },
   gold: {
     maxUsers: 3,
-    maxObras: 15,
-    maxDiariosPerObra: 100,
-    maxMateriaisPerObra: 100,
+    maxObras: -1, // ilimitado
+    maxDiariosPerObra: -1, // ilimitado
+    maxMateriaisPerObra: -1, // ilimitado
   },
   premium: {
-    maxUsers: 5,
+    maxUsers: -1, // ilimitado
     maxObras: -1, // ilimitado
     maxDiariosPerObra: -1, // ilimitado
     maxMateriaisPerObra: -1, // ilimitado
