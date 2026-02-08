@@ -113,7 +113,7 @@ export type Database = {
           clima: Database["public"]["Enums"]["clima_tipo"]
           created_at: string
           data: string
-          fotos: string[] | null
+          fotos: Json | null
           id: string
           obra_id: string
           observacoes: string | null
@@ -125,7 +125,7 @@ export type Database = {
           clima?: Database["public"]["Enums"]["clima_tipo"]
           created_at?: string
           data?: string
-          fotos?: string[] | null
+          fotos?: Json | null
           id?: string
           obra_id: string
           observacoes?: string | null
@@ -137,7 +137,7 @@ export type Database = {
           clima?: Database["public"]["Enums"]["clima_tipo"]
           created_at?: string
           data?: string
-          fotos?: string[] | null
+          fotos?: Json | null
           id?: string
           obra_id?: string
           observacoes?: string | null

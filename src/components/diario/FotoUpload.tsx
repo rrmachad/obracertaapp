@@ -1,12 +1,14 @@
 import { useState, useRef } from 'react';
-import { Camera, X, Loader2, ImagePlus } from 'lucide-react';
+import { Camera, X, Loader2, ImagePlus, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { FotoComLegenda } from '@/types/database';
 
 interface FotoUploadProps {
-  fotos: string[];
-  onFotosChange: (fotos: string[]) => void;
+  fotos: FotoComLegenda[];
+  onFotosChange: (fotos: FotoComLegenda[]) => void;
   obraId: string;
   disabled?: boolean;
 }
@@ -46,6 +48,7 @@ async function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promis
 
 export function FotoUpload({ fotos, onFotosChange, obraId, disabled }: FotoUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -54,7 +57,7 @@ export function FotoUpload({ fotos, onFotosChange, obraId, disabled }: FotoUploa
     if (!files || files.length === 0) return;
 
     setUploading(true);
-    const newFotos: string[] = [...fotos];
+    const newFotos: FotoComLegenda[] = [...fotos];
 
     try {
       for (const file of Array.from(files)) {
@@ -79,7 +82,7 @@ export function FotoUpload({ fotos, onFotosChange, obraId, disabled }: FotoUploa
           .from('diario-fotos')
           .getPublicUrl(fileName);
 
-        newFotos.push(publicUrl);
+        newFotos.push({ url: publicUrl, legenda: '' });
       }
 
       onFotosChange(newFotos);
@@ -107,28 +110,78 @@ export function FotoUpload({ fotos, onFotosChange, obraId, disabled }: FotoUploa
   const handleRemove = (index: number) => {
     const newFotos = fotos.filter((_, i) => i !== index);
     onFotosChange(newFotos);
+    if (editingIndex === index) {
+      setEditingIndex(null);
+    }
+  };
+
+  const handleLegendaChange = (index: number, legenda: string) => {
+    const newFotos = fotos.map((foto, i) =>
+      i === index ? { ...foto, legenda } : foto
+    );
+    onFotosChange(newFotos);
+  };
+
+  const toggleEditLegenda = (index: number) => {
+    setEditingIndex(editingIndex === index ? null : index);
   };
 
   return (
     <div className="space-y-3">
       {/* Grid de fotos */}
       {fotos.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {fotos.map((foto, index) => (
-            <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-border">
-              <img
-                src={foto}
-                alt={`Foto ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
-              <button
-                type="button"
-                onClick={() => handleRemove(index)}
-                className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full shadow-md hover:bg-destructive/90 transition-colors"
-                disabled={disabled}
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <div key={index} className="space-y-2">
+              <div className="relative aspect-square rounded-lg overflow-hidden border border-border">
+                <img
+                  src={foto.url}
+                  alt={foto.legenda || `Foto ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                {/* Botões de ação */}
+                <div className="absolute top-1 right-1 flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => toggleEditLegenda(index)}
+                    className="p-1.5 bg-primary text-primary-foreground rounded-full shadow-md hover:bg-primary/90 transition-colors"
+                    disabled={disabled}
+                    title="Adicionar legenda"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(index)}
+                    className="p-1.5 bg-destructive text-destructive-foreground rounded-full shadow-md hover:bg-destructive/90 transition-colors"
+                    disabled={disabled}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+                {/* Indicador de legenda */}
+                {foto.legenda && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                    <p className="text-xs text-white line-clamp-2">{foto.legenda}</p>
+                  </div>
+                )}
+              </div>
+              {/* Campo de legenda expandido */}
+              {editingIndex === index && (
+                <Input
+                  placeholder="Digite uma legenda..."
+                  value={foto.legenda}
+                  onChange={(e) => handleLegendaChange(index, e.target.value)}
+                  className="text-sm h-8"
+                  autoFocus
+                  onBlur={() => setEditingIndex(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setEditingIndex(null);
+                    }
+                  }}
+                />
+              )}
             </div>
           ))}
         </div>
@@ -198,7 +251,7 @@ export function FotoUpload({ fotos, onFotosChange, obraId, disabled }: FotoUploa
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
-        As fotos são comprimidas automaticamente para economizar dados
+        As fotos são comprimidas automaticamente. Toque em ✏️ para adicionar legendas.
       </p>
     </div>
   );
