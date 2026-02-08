@@ -74,8 +74,8 @@ export function UserManagementTable() {
     u.empresa?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleChangePlan = (userId: string, plan: 'free' | 'start' | 'gold' | 'premium') => {
-    updatePlan({ userId, plan });
+  const handleChangePlan = (user: AdminUser, plan: 'free' | 'start' | 'gold' | 'premium') => {
+    updatePlan({ userId: user.user_id, plan, previousPlan: user.plan || 'free' });
   };
 
   const handleToggleBlock = (user: AdminUser) => {
@@ -221,25 +221,25 @@ export function UserManagementTable() {
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent>
                               <DropdownMenuItem 
-                                onClick={() => handleChangePlan(user.user_id, 'free')}
+                                onClick={() => handleChangePlan(user, 'free')}
                                 disabled={user.plan === 'free'}
                               >
                                 Free
                               </DropdownMenuItem>
                               <DropdownMenuItem 
-                                onClick={() => handleChangePlan(user.user_id, 'start')}
+                                onClick={() => handleChangePlan(user, 'start')}
                                 disabled={user.plan === 'start'}
                               >
                                 Start
                               </DropdownMenuItem>
                               <DropdownMenuItem 
-                                onClick={() => handleChangePlan(user.user_id, 'gold')}
+                                onClick={() => handleChangePlan(user, 'gold')}
                                 disabled={user.plan === 'gold'}
                               >
                                 Gold
                               </DropdownMenuItem>
                               <DropdownMenuItem 
-                                onClick={() => handleChangePlan(user.user_id, 'premium')}
+                                onClick={() => handleChangePlan(user, 'premium')}
                                 disabled={user.plan === 'premium'}
                               >
                                 Premium

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from '@/hooks/use-toast';
+import { startOfMonth } from 'date-fns';
 
 export interface AdminUser {
   id: string;
@@ -15,6 +16,25 @@ export interface AdminUser {
   plan: 'free' | 'start' | 'gold' | 'premium' | null;
   role: 'admin' | 'user' | null;
   total_obras: number;
+}
+
+export interface AdminActionLog {
+  id: string;
+  admin_user_id: string;
+  admin_name?: string;
+  target_user_id: string;
+  target_name?: string;
+  action_type: string;
+  action_details: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface UserMetrics {
+  total: number;
+  byPlan: Record<string, number>;
+  newThisMonth: number;
+  blocked: number;
+  admins: number;
 }
 
 export function useAdminUsers() {
@@ -101,15 +121,88 @@ export function useAdminUsers() {
     enabled: isAdminQuery.data === true,
   });
 
+  // Calcular métricas
+  const metrics: UserMetrics = {
+    total: usersQuery.data?.length || 0,
+    byPlan: {
+      free: usersQuery.data?.filter(u => !u.plan || u.plan === 'free').length || 0,
+      start: usersQuery.data?.filter(u => u.plan === 'start').length || 0,
+      gold: usersQuery.data?.filter(u => u.plan === 'gold').length || 0,
+      premium: usersQuery.data?.filter(u => u.plan === 'premium').length || 0,
+    },
+    newThisMonth: usersQuery.data?.filter(u => {
+      const createdAt = new Date(u.created_at);
+      return createdAt >= startOfMonth(new Date());
+    }).length || 0,
+    blocked: usersQuery.data?.filter(u => u.blocked).length || 0,
+    admins: usersQuery.data?.filter(u => u.role === 'admin').length || 0,
+  };
+
+  // Buscar logs de ações administrativas
+  const logsQuery = useQuery({
+    queryKey: ['admin-action-logs'],
+    queryFn: async () => {
+      const { data: logs, error } = await supabase
+        .from('admin_action_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      // Buscar nomes dos usuários
+      const userIds = [...new Set([
+        ...(logs?.map(l => l.admin_user_id) || []),
+        ...(logs?.map(l => l.target_user_id) || [])
+      ])];
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, nome')
+        .in('user_id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p.nome]) || []);
+
+      return (logs || []).map(log => ({
+        ...log,
+        admin_name: profileMap.get(log.admin_user_id) || 'Admin',
+        target_name: profileMap.get(log.target_user_id) || 'Usuário',
+      })) as AdminActionLog[];
+    },
+    enabled: isAdminQuery.data === true,
+  });
+
+  // Função para registrar log de ação
+  const logAction = async (targetUserId: string, actionType: string, details: Record<string, string | boolean | number>) => {
+    if (!user?.id) return;
+    
+    await supabase
+      .from('admin_action_logs')
+      .insert([{
+        admin_user_id: user.id,
+        target_user_id: targetUserId,
+        action_type: actionType,
+        action_details: details,
+      }]);
+    
+    queryClient.invalidateQueries({ queryKey: ['admin-action-logs'] });
+  };
+
   // Atualizar plano do usuário
   const updatePlanMutation = useMutation({
-    mutationFn: async ({ userId, plan }: { userId: string; plan: 'free' | 'start' | 'gold' | 'premium' }) => {
+    mutationFn: async ({ userId, plan, previousPlan }: { userId: string; plan: 'free' | 'start' | 'gold' | 'premium'; previousPlan?: string }) => {
       const { error } = await supabase
         .from('subscriptions')
         .update({ plan, updated_at: new Date().toISOString() })
         .eq('user_id', userId);
 
       if (error) throw error;
+      
+      // Registrar log
+      await logAction(userId, 'change_plan', { 
+        from: previousPlan || 'unknown', 
+        to: plan 
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -136,6 +229,9 @@ export function useAdminUsers() {
         .eq('user_id', userId);
 
       if (error) throw error;
+      
+      // Registrar log
+      await logAction(userId, 'toggle_block', { blocked });
     },
     onSuccess: (_, { blocked }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -185,6 +281,9 @@ export function useAdminUsers() {
           .eq('user_id', userId);
         if (error) throw error;
       }
+      
+      // Registrar log
+      await logAction(userId, 'toggle_admin', { made_admin: makeAdmin });
     },
     onSuccess: (_, { makeAdmin }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -209,12 +308,18 @@ export function useAdminUsers() {
     isCheckingAdmin: isAdminQuery.isLoading,
     users: usersQuery.data || [],
     isLoadingUsers: usersQuery.isLoading,
+    metrics,
+    actionLogs: logsQuery.data || [],
+    isLoadingLogs: logsQuery.isLoading,
     updatePlan: updatePlanMutation.mutate,
     isUpdatingPlan: updatePlanMutation.isPending,
     toggleBlock: toggleBlockMutation.mutate,
     isTogglingBlock: toggleBlockMutation.isPending,
     toggleAdmin: toggleAdminMutation.mutate,
     isTogglingAdmin: toggleAdminMutation.isPending,
-    refetch: () => usersQuery.refetch(),
+    refetch: () => {
+      usersQuery.refetch();
+      logsQuery.refetch();
+    },
   };
 }
