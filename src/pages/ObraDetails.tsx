@@ -19,6 +19,7 @@ import { EstoqueTab } from '@/components/estoque/EstoqueTab';
 import { DiarioTab } from '@/components/diario/DiarioTab';
 import { EditarObraDialog } from '@/components/obras/EditarObraDialog';
 import { GerenciarAcessosDialog } from '@/components/admin/GerenciarAcessosDialog';
+import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
 import { useObraAccess } from '@/hooks/useUserInvites';
 import { ObraStatus } from '@/types/database';
 
@@ -38,6 +39,8 @@ export function ObraDetails() {
   const { canManageUsers } = useObraAccess(id!);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [acessosDialogOpen, setAcessosDialogOpen] = useState(false);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+
   const handleDelete = async () => {
     if (!obra) return;
     if (!confirm(`Tem certeza que deseja excluir "${obra.nome}"? Esta ação não pode ser desfeita.`)) return;
@@ -211,11 +214,11 @@ export function ObraDetails() {
           </TabsContent>
 
           <TabsContent value="estoque" className="mt-4">
-            <EstoqueTab obraId={obra.id} />
+            <EstoqueTab obraId={obra.id} onUpgradeClick={() => setUpgradeDialogOpen(true)} />
           </TabsContent>
 
           <TabsContent value="diario" className="mt-4">
-            <DiarioTab obraId={obra.id} />
+            <DiarioTab obraId={obra.id} onUpgradeClick={() => setUpgradeDialogOpen(true)} />
           </TabsContent>
         </Tabs>
       </main>
@@ -234,6 +237,10 @@ export function ObraDetails() {
             onOpenChange={setAcessosDialogOpen}
             obraId={obra.id}
             obraNome={obra.nome}
+          />
+          <UpgradePlanoDialog
+            open={upgradeDialogOpen}
+            onOpenChange={setUpgradeDialogOpen}
           />
         </>
       )}

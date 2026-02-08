@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Package, Loader2, Search, Check } from 'lucide-react';
+import { Package, Loader2, Search, Check, Crown, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useMateriais } from '@/hooks/useMateriais';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { materiaisPorFase, todosMateriais, MaterialSugerido } from './MateriaisSugeridos';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +25,7 @@ interface NovoMaterialDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   obraId: string;
+  onUpgradeClick?: () => void;
 }
 
 const unidades = [
@@ -42,7 +45,7 @@ export const isUnidadeInteira = (unidade: string): boolean => {
   return found?.inteiro ?? false;
 };
 
-export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialDialogProps) {
+export function NovoMaterialDialog({ open, onOpenChange, obraId, onUpgradeClick }: NovoMaterialDialogProps) {
   const [nome, setNome] = useState('');
   const [unidade, setUnidade] = useState('un');
   const [qtdAtual, setQtdAtual] = useState('0');
@@ -52,7 +55,11 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
   const [selectedFase, setSelectedFase] = useState<string>('all');
 
   const { createMaterial, materiais } = useMateriais(obraId);
+  const { canCreateMaterial, getMaterialCount, limits } = usePlanLimits();
   const { toast } = useToast();
+
+  const canCreate = canCreateMaterial(obraId);
+  const materialCount = getMaterialCount(obraId);
 
   // Filtrar materiais por fase selecionada
   const materiaisFiltrados = useMemo(() => {
@@ -135,10 +142,33 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Alerta de limite atingido */}
+          {!canCreate && (
+            <Alert variant="destructive" className="bg-destructive/10 border-destructive/30">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="ml-2">
+                <span className="font-semibold">Limite do plano Free atingido!</span>
+                <span className="block text-sm mt-0.5">
+                  Você já adicionou {materialCount} de {limits.maxMateriaisPerObra} item(ns) no estoque desta obra.
+                </span>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Contador de materiais */}
+          {limits.maxMateriaisPerObra !== -1 && (
+            <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+              <span className="text-sm text-muted-foreground">Itens no estoque desta obra:</span>
+              <Badge variant={canCreate ? "outline" : "destructive"}>
+                {materialCount}/{limits.maxMateriaisPerObra}
+              </Badge>
+            </div>
+          )}
+
           {/* Filtro por fase */}
           <div className="space-y-2">
             <Label className="text-base font-medium">Filtrar por fase</Label>
-            <Select value={selectedFase} onValueChange={setSelectedFase}>
+            <Select value={selectedFase} onValueChange={setSelectedFase} disabled={!canCreate}>
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Todas as fases" />
               </SelectTrigger>
@@ -300,20 +330,34 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId }: NovoMaterialD
             >
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              className="flex-1 h-12"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                'Adicionar'
-              )}
-            </Button>
+            {canCreate ? (
+              <Button
+                type="submit"
+                className="flex-1 h-12"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  'Adicionar'
+                )}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="flex-1 h-12"
+                onClick={() => {
+                  onOpenChange(false);
+                  onUpgradeClick?.();
+                }}
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Fazer Upgrade
+              </Button>
+            )}
           </div>
         </form>
       </DialogContent>
