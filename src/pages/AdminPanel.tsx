@@ -25,6 +25,8 @@ import { PlanoResumoCard } from '@/components/admin/PlanoResumoCard';
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
 import { AuditLogList } from '@/components/admin/AuditLogList';
 import { UserManagementTable } from '@/components/admin/UserManagementTable';
+import { UserMetricsCards } from '@/components/admin/UserMetricsCards';
+import { AdminActionLogList } from '@/components/admin/AdminActionLogList';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { useAdminUsers } from '@/hooks/useAdminUsers';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,7 +37,7 @@ export function AdminPanel() {
   const { signOut } = useAuth();
   const { planName } = useSubscription();
   const { stats, obraStats, activityChart, recentActivity, isLoading, refetch } = useAdminStats();
-  const { isAdmin, refetch: refetchUsers } = useAdminUsers();
+  const { isAdmin, metrics, actionLogs, isLoadingUsers, isLoadingLogs, refetch: refetchUsers } = useAdminUsers();
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -175,7 +177,16 @@ export function AdminPanel() {
           {/* Usuários (apenas para admins) */}
           {isAdmin && (
             <TabsContent value="users" className="space-y-6">
-              <UserManagementTable />
+              <UserMetricsCards metrics={metrics} isLoading={isLoadingUsers} />
+              
+              <div className="grid lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <UserManagementTable />
+                </div>
+                <div>
+                  <AdminActionLogList logs={actionLogs} isLoading={isLoadingLogs} />
+                </div>
+              </div>
             </TabsContent>
           )}
 
