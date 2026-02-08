@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarIcon, Save, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Save, Loader2, Sun, Cloud, CloudRain, CloudSun } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { DiarioLog, ClimaTipo } from '@/types/database';
-import { Sun, Cloud, CloudRain, CloudSun } from 'lucide-react';
+import { ProfissionaisInput, Profissional } from './ProfissionaisInput';
 import { cn } from '@/lib/utils';
 
 interface EditarDiarioDialogProps {
@@ -32,6 +32,7 @@ interface EditarDiarioDialogProps {
     clima?: ClimaTipo;
     atividades_realizadas?: string;
     observacoes?: string;
+    profissionais?: Profissional[];
   }, motivo?: string) => Promise<void>;
   requiresMotivo?: boolean;
 }
@@ -54,6 +55,7 @@ export function EditarDiarioDialog({
   const [clima, setClima] = useState<ClimaTipo>('ensolarado');
   const [atividades, setAtividades] = useState('');
   const [observacoes, setObservacoes] = useState('');
+  const [profissionais, setProfissionais] = useState<Profissional[]>([]);
   const [motivo, setMotivo] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -65,6 +67,11 @@ export function EditarDiarioDialog({
       setClima(registro.clima);
       setAtividades(registro.atividades_realizadas);
       setObservacoes(registro.observacoes || '');
+      // Parse profissionais from JSON
+      const profs = Array.isArray(registro.profissionais) 
+        ? (registro.profissionais as Profissional[])
+        : [];
+      setProfissionais(profs);
       setMotivo('');
     }
   }, [registro]);
@@ -80,6 +87,7 @@ export function EditarDiarioDialog({
         clima?: ClimaTipo;
         atividades_realizadas?: string;
         observacoes?: string;
+        profissionais?: Profissional[];
       } = {};
 
       const newDataStr = data ? format(data, 'yyyy-MM-dd') : registro.data;
@@ -87,6 +95,13 @@ export function EditarDiarioDialog({
       if (clima !== registro.clima) updates.clima = clima;
       if (atividades !== registro.atividades_realizadas) updates.atividades_realizadas = atividades;
       if (observacoes !== (registro.observacoes || '')) updates.observacoes = observacoes || undefined;
+      
+      // Check if profissionais changed
+      const originalProfs = Array.isArray(registro.profissionais) 
+        ? (registro.profissionais as Profissional[])
+        : [];
+      const profsChanged = JSON.stringify(profissionais) !== JSON.stringify(originalProfs);
+      if (profsChanged) updates.profissionais = profissionais;
 
       await onSave(updates, motivo.trim());
       onOpenChange(false);
@@ -177,6 +192,12 @@ export function EditarDiarioDialog({
               className="min-h-20"
             />
           </div>
+
+          {/* Profissionais */}
+          <ProfissionaisInput
+            value={profissionais}
+            onChange={setProfissionais}
+          />
 
           {/* Motivo da alteração */}
           {requiresMotivo && (
