@@ -236,22 +236,38 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
       clima?: ClimaTipo;
       atividades_realizadas?: string;
       observacoes?: string;
+      profissionais?: Profissional[];
     },
     motivo?: string
   ) => {
     if (!selectedRegistro) return;
 
     try {
-      // Registrar alterações no log
+      // Registrar alterações no log (exceto profissionais que é JSON)
       for (const [campo, valorNovo] of Object.entries(updates)) {
-        const valorAnterior = selectedRegistro[campo as keyof DiarioLog]?.toString();
-        await registrarAlteracao.mutateAsync({
-          diario_id: selectedRegistro.id,
-          campo_alterado: campo,
-          valor_anterior: valorAnterior,
-          valor_novo: valorNovo?.toString(),
-          motivo,
-        });
+        if (campo === 'profissionais') {
+          // Para profissionais, registrar como JSON string
+          const valorAnterior = JSON.stringify(selectedRegistro.profissionais || []);
+          const valorNovoStr = JSON.stringify(valorNovo || []);
+          if (valorAnterior !== valorNovoStr) {
+            await registrarAlteracao.mutateAsync({
+              diario_id: selectedRegistro.id,
+              campo_alterado: campo,
+              valor_anterior: valorAnterior,
+              valor_novo: valorNovoStr,
+              motivo,
+            });
+          }
+        } else {
+          const valorAnterior = selectedRegistro[campo as keyof DiarioLog]?.toString();
+          await registrarAlteracao.mutateAsync({
+            diario_id: selectedRegistro.id,
+            campo_alterado: campo,
+            valor_anterior: valorAnterior,
+            valor_novo: valorNovo?.toString(),
+            motivo,
+          });
+        }
       }
 
       // Atualizar o registro
