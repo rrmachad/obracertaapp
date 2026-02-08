@@ -97,6 +97,27 @@ async function loadImageAsBase64(url: string): Promise<{ data: string; width: nu
   });
 }
 
+// Helper function to add page numbers to all pages
+function addPageNumbers(doc: jsPDF) {
+  const pageCount = doc.getNumberOfPages();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(128);
+    doc.text(
+      `Página ${i} de ${pageCount}`,
+      pageWidth / 2,
+      pageHeight - 8,
+      { align: 'center' }
+    );
+  }
+  doc.setTextColor(0);
+}
+
 // Helper function to add photos to PDF with captions
 async function addPhotosToPDF(
   doc: jsPDF,
@@ -105,7 +126,8 @@ async function addPhotosToPDF(
   margin: number,
   maxWidth: number,
   pageHeight: number,
-  lineHeight: number
+  lineHeight: number,
+  showHeader: boolean = true
 ): Promise<number> {
   if (!photos || photos.length === 0) return startY;
 
@@ -114,10 +136,12 @@ async function addPhotosToPDF(
   const photoMaxHeight = 60;
   const captionHeight = 12; // Space for caption
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('FOTOS', margin, y);
-  y += lineHeight;
+  if (showHeader) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('FOTOS', margin, y);
+    y += lineHeight;
+  }
 
   let photoX = margin;
   let rowMaxHeight = 0;
@@ -153,8 +177,13 @@ async function addPhotosToPDF(
         rowMaxHeight = 0;
       }
 
-      // Add the image
+      // Add the image with a subtle border
       try {
+        // Draw border around image
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.3);
+        doc.rect(photoX - 1, y - 1, scaledWidth + 2, scaledHeight + 2);
+        
         doc.addImage(imageData.data, 'JPEG', photoX, y, scaledWidth, scaledHeight);
         rowMaxHeight = Math.max(rowMaxHeight, scaledHeight);
 
@@ -211,6 +240,36 @@ async function addPhotosToPDF(
   }
 
   return y + lineHeight;
+}
+
+// Helper function to add date separator for photo sections
+function addPhotoDateSeparator(
+  doc: jsPDF,
+  dataFormatada: string,
+  y: number,
+  margin: number,
+  maxWidth: number
+): number {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Draw a subtle background bar
+  doc.setFillColor(245, 245, 245);
+  doc.rect(margin, y - 4, maxWidth, 8, 'F');
+  
+  // Draw left and right lines
+  doc.setDrawColor(180);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, margin + 30, y);
+  doc.line(pageWidth - margin - 30, y, pageWidth - margin, y);
+  
+  // Add date text in the center
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(60);
+  doc.text(dataFormatada, pageWidth / 2, y + 1, { align: 'center' });
+  doc.setTextColor(0);
+  
+  return y + 10;
 }
 
 interface ReportStats {
@@ -333,19 +392,11 @@ export async function generateDailyReportPDF(
   // Photos
   if (registro.fotos && registro.fotos.length > 0) {
     const pageHeight = doc.internal.pageSize.getHeight();
-    y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight);
+    y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight, true);
   }
 
-  // Footer
-  const footerY = doc.internal.pageSize.getHeight() - 15;
-  doc.setFontSize(8);
-  doc.setTextColor(128);
-  doc.text(
-    `Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}`,
-    pageWidth / 2,
-    footerY,
-    { align: 'center' }
-  );
+  // Add page numbers to all pages
+  addPageNumbers(doc);
 
   return doc;
 }
@@ -501,30 +552,21 @@ export async function generateWeeklyReportPDF(
 
       const dataFormatada = format(
         new Date(registro.data + 'T12:00:00'),
-        "dd/MM/yyyy",
+        "EEEE, dd/MM/yyyy",
         { locale: ptBR }
       );
 
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text(dataFormatada, margin, y);
-      y += lineHeight;
+      // Add styled date separator
+      y = addPhotoDateSeparator(doc, dataFormatada.toUpperCase(), y, margin, maxWidth);
+      y += 5;
 
-      y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight);
-      y += lineHeight / 2;
+      y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight, false);
+      y += lineHeight;
     }
   }
 
-  // Footer
-  const footerY = doc.internal.pageSize.getHeight() - 15;
-  doc.setFontSize(8);
-  doc.setTextColor(128);
-  doc.text(
-    `Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}`,
-    pageWidth / 2,
-    footerY,
-    { align: 'center' }
-  );
+  // Add page numbers to all pages
+  addPageNumbers(doc);
 
   return doc;
 }
@@ -680,30 +722,21 @@ export async function generateMonthlyReportPDF(
 
       const dataFormatada = format(
         new Date(registro.data + 'T12:00:00'),
-        "dd/MM/yyyy",
+        "EEEE, dd/MM/yyyy",
         { locale: ptBR }
       );
 
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text(dataFormatada, margin, y);
-      y += lineHeight;
+      // Add styled date separator
+      y = addPhotoDateSeparator(doc, dataFormatada.toUpperCase(), y, margin, maxWidth);
+      y += 5;
 
-      y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight);
-      y += lineHeight / 2;
+      y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight, false);
+      y += lineHeight;
     }
   }
 
-  // Footer
-  const footerY = doc.internal.pageSize.getHeight() - 15;
-  doc.setFontSize(8);
-  doc.setTextColor(128);
-  doc.text(
-    `Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}`,
-    pageWidth / 2,
-    footerY,
-    { align: 'center' }
-  );
+  // Add page numbers to all pages
+  addPageNumbers(doc);
 
   return doc;
 }
