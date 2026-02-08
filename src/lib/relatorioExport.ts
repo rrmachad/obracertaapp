@@ -67,6 +67,103 @@ interface DailyReportData {
   atividades_realizadas: string;
   observacoes?: string | null;
   profissionais?: Profissional[] | null;
+  fotos?: string[] | null;
+}
+
+// Helper function to load image as base64
+async function loadImageAsBase64(url: string): Promise<{ data: string; width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          const data = canvas.toDataURL('image/jpeg', 0.8);
+          resolve({ data, width: img.width, height: img.height });
+        } else {
+          resolve(null);
+        }
+      } catch {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+// Helper function to add photos to PDF
+async function addPhotosToPDF(
+  doc: jsPDF,
+  photos: string[],
+  startY: number,
+  margin: number,
+  maxWidth: number,
+  pageHeight: number,
+  lineHeight: number
+): Promise<number> {
+  if (!photos || photos.length === 0) return startY;
+
+  let y = startY;
+  const photoMaxWidth = (maxWidth - 10) / 2; // Two photos per row with gap
+  const photoMaxHeight = 60;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('FOTOS', margin, y);
+  y += lineHeight;
+
+  let photoX = margin;
+  let rowMaxHeight = 0;
+
+  for (let i = 0; i < photos.length; i++) {
+    const photoUrl = photos[i];
+    const imageData = await loadImageAsBase64(photoUrl);
+
+    if (imageData) {
+      // Calculate scaled dimensions
+      const ratio = Math.min(photoMaxWidth / imageData.width, photoMaxHeight / imageData.height);
+      const scaledWidth = imageData.width * ratio;
+      const scaledHeight = imageData.height * ratio;
+
+      // Check if we need a new page
+      if (y + scaledHeight > pageHeight - 30) {
+        doc.addPage();
+        y = 20;
+        photoX = margin;
+        rowMaxHeight = 0;
+      }
+
+      // Add the image
+      try {
+        doc.addImage(imageData.data, 'JPEG', photoX, y, scaledWidth, scaledHeight);
+        rowMaxHeight = Math.max(rowMaxHeight, scaledHeight);
+
+        // Move to next position
+        if (i % 2 === 0) {
+          photoX = margin + photoMaxWidth + 10;
+        } else {
+          photoX = margin;
+          y += rowMaxHeight + 5;
+          rowMaxHeight = 0;
+        }
+      } catch {
+        // Skip image if it fails to add
+      }
+    }
+  }
+
+  // If last row had an odd number of photos, move y down
+  if (photos.length % 2 !== 0) {
+    y += rowMaxHeight + 5;
+  }
+
+  return y + lineHeight;
 }
 
 interface ReportStats {
@@ -183,6 +280,13 @@ export async function generateDailyReportPDF(
 
     doc.setFont('helvetica', 'normal');
     y = addWrappedText(doc, registro.observacoes, margin, y, maxWidth, lineHeight);
+    y += lineHeight;
+  }
+
+  // Photos
+  if (registro.fotos && registro.fotos.length > 0) {
+    const pageHeight = doc.internal.pageSize.getHeight();
+    y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight);
   }
 
   // Footer
@@ -301,9 +405,9 @@ export async function generateWeeklyReportPDF(
   doc.text('ATIVIDADES DIÁRIAS', margin, y);
   y += lineHeight * 1.5;
 
-  data.registros.forEach((registro) => {
+  data.registros.forEach((registro, regIdx) => {
     // Check if we need a new page
-    if (y > pageHeight - 40) {
+    if (y > pageHeight - 60) {
       doc.addPage();
       y = 20;
     }
@@ -330,6 +434,39 @@ export async function generateWeeklyReportPDF(
 
     y += lineHeight;
   });
+
+  // Add photos section at the end
+  const registrosComFotos = data.registros.filter(r => r.fotos && r.fotos.length > 0);
+  if (registrosComFotos.length > 0) {
+    doc.addPage();
+    y = 20;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('REGISTRO FOTOGRÁFICO', pageWidth / 2, y, { align: 'center' });
+    y += lineHeight * 2;
+
+    for (const registro of registrosComFotos) {
+      if (y > pageHeight - 80) {
+        doc.addPage();
+        y = 20;
+      }
+
+      const dataFormatada = format(
+        new Date(registro.data + 'T12:00:00'),
+        "dd/MM/yyyy",
+        { locale: ptBR }
+      );
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`📅 ${dataFormatada}`, margin, y);
+      y += lineHeight;
+
+      y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight);
+      y += lineHeight / 2;
+    }
+  }
 
   // Footer
   const footerY = doc.internal.pageSize.getHeight() - 15;
@@ -449,7 +586,7 @@ export async function generateMonthlyReportPDF(
 
   data.registros.forEach((registro) => {
     // Check if we need a new page
-    if (y > pageHeight - 40) {
+    if (y > pageHeight - 60) {
       doc.addPage();
       y = 20;
     }
@@ -476,6 +613,39 @@ export async function generateMonthlyReportPDF(
 
     y += lineHeight;
   });
+
+  // Add photos section at the end
+  const registrosComFotos = data.registros.filter(r => r.fotos && r.fotos.length > 0);
+  if (registrosComFotos.length > 0) {
+    doc.addPage();
+    y = 20;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('REGISTRO FOTOGRÁFICO', pageWidth / 2, y, { align: 'center' });
+    y += lineHeight * 2;
+
+    for (const registro of registrosComFotos) {
+      if (y > pageHeight - 80) {
+        doc.addPage();
+        y = 20;
+      }
+
+      const dataFormatada = format(
+        new Date(registro.data + 'T12:00:00'),
+        "dd/MM/yyyy",
+        { locale: ptBR }
+      );
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`📅 ${dataFormatada}`, margin, y);
+      y += lineHeight;
+
+      y = await addPhotosToPDF(doc, registro.fotos, y, margin, maxWidth, pageHeight, lineHeight);
+      y += lineHeight / 2;
+    }
+  }
 
   // Footer
   const footerY = doc.internal.pageSize.getHeight() - 15;
