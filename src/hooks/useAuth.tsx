@@ -49,10 +49,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!error && data.user) {
-      // Criar perfil do usuário
+      // Criar perfil do usuário com email
       await supabase.from('profiles').insert({
         user_id: data.user.id,
-        nome: nome
+        nome: nome,
+        email: email
       });
     }
 
