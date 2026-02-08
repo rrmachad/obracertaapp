@@ -81,9 +81,9 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
   const categories = [...new Set(features.map(f => f.category))];
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border border-border">
       <table className="w-full border-collapse">
-        <thead>
+        <thead className="sticky top-0 z-10">
           <tr>
             <th className="text-left p-3 bg-muted/50 font-medium text-sm min-w-[180px]">
               Funcionalidade
@@ -146,7 +146,7 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
                 {categoryFeatures.map((feature, idx) => (
                   <tr
                     key={`${category}-${idx}`}
-                    className="border-b border-border/50 hover:bg-muted/20 transition-colors"
+                    className="border-b border-border/50 hover:bg-muted/30 transition-all duration-200"
                   >
                     <td className="p-3 text-sm">{feature.name}</td>
                     {plans.map((plan) => {
