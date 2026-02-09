@@ -16,7 +16,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const { obras, isLoading } = useObras();
+  const { obras, isLoading, isInvitedUser } = useObras();
   const { signOut, user } = useAuth();
   const { planName, plan } = useSubscription();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -45,26 +45,30 @@ export function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setUpgradeDialogOpen(true)}
-                className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5"
-              >
-                <Crown className="w-4 h-4" />
-                <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground">
-                  {planName}
-                </Badge>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/admin')}
-                className="text-secondary-foreground hover:bg-secondary-foreground/10"
-                title="Painel Admin"
-              >
-                <LayoutDashboard className="w-5 h-5" />
-              </Button>
+              {!isInvitedUser && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setUpgradeDialogOpen(true)}
+                  className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5"
+                >
+                  <Crown className="w-4 h-4" />
+                  <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground">
+                    {planName}
+                  </Badge>
+                </Button>
+              )}
+              {!isInvitedUser && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate('/admin')}
+                  className="text-secondary-foreground hover:bg-secondary-foreground/10"
+                  title="Painel Admin"
+                >
+                  <LayoutDashboard className="w-5 h-5" />
+                </Button>
+              )}
               <ThemeToggle />
               <Button
                 variant="ghost"
@@ -90,7 +94,7 @@ export function Dashboard() {
 
       <main className="container py-4 pb-24">
         {/* Card de resumo do plano */}
-        <PlanoResumoCard onUpgradeClick={() => setUpgradeDialogOpen(true)} />
+        {!isInvitedUser && <PlanoResumoCard onUpgradeClick={() => setUpgradeDialogOpen(true)} />}
 
         {/* Barra de busca */}
         <div className="relative mb-4">
@@ -115,12 +119,12 @@ export function Dashboard() {
               <HardHat className="w-10 h-10 text-muted-foreground" />
             </div>
             <h2 className="text-xl font-semibold mb-2">
-              {searchTerm ? 'Nenhuma obra encontrada' : 'Nenhuma obra cadastrada'}
+              {searchTerm ? 'Nenhuma obra encontrada' : isInvitedUser ? 'Aguardando acesso' : 'Nenhuma obra cadastrada'}
             </h2>
             <p className="text-muted-foreground mb-6">
-              {searchTerm ? 'Tente outro termo de busca' : 'Comece adicionando sua primeira obra'}
+              {searchTerm ? 'Tente outro termo de busca' : isInvitedUser ? 'Peça ao responsável para compartilhar uma obra com você' : 'Comece adicionando sua primeira obra'}
             </p>
-            {!searchTerm && (
+            {!searchTerm && !isInvitedUser && (
               <Button onClick={() => setDialogOpen(true)} size="lg">
                 <Plus className="w-5 h-5 mr-2" />
                 Nova Obra
@@ -137,13 +141,15 @@ export function Dashboard() {
       </main>
 
       {/* FAB - Botão flutuante */}
-      <Button
-        onClick={() => setDialogOpen(true)}
-        className="fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-lg z-50"
-        size="icon"
-      >
-        <Plus className="w-8 h-8" />
-      </Button>
+      {!isInvitedUser && (
+        <Button
+          onClick={() => setDialogOpen(true)}
+          className="fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-lg z-50"
+          size="icon"
+        >
+          <Plus className="w-8 h-8" />
+        </Button>
+      )}
 
       <NovaObraDialog 
         open={dialogOpen} 

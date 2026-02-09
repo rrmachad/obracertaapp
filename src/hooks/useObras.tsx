@@ -7,12 +7,14 @@ export function useObras() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const obrasQuery = useQuery({
-    queryKey: ['obras', user?.id],
+  // Fetch obras owned by the user
+  const ownObrasQuery = useQuery({
+    queryKey: ['obras-own', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('obras')
         .select('*')
+        .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -20,6 +22,44 @@ export function useObras() {
     },
     enabled: !!user,
   });
+
+  // Fetch obras shared with the user via obra_access
+  const sharedObrasQuery = useQuery({
+    queryKey: ['obras-shared', user?.id],
+    queryFn: async () => {
+      // Get obra IDs the user has access to
+      const { data: accessList, error: accessError } = await supabase
+        .from('obra_access')
+        .select('obra_id')
+        .eq('user_id', user!.id);
+      
+      if (accessError) throw accessError;
+      if (!accessList || accessList.length === 0) return [];
+
+      const obraIds = accessList.map(a => a.obra_id);
+      const { data, error } = await supabase
+        .from('obras')
+        .select('*')
+        .in('id', obraIds)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as Obra[];
+    },
+    enabled: !!user,
+  });
+
+  // Combine own + shared obras, deduplicating by id
+  const allObras = (() => {
+    const own = ownObrasQuery.data ?? [];
+    const shared = sharedObrasQuery.data ?? [];
+    const ownIds = new Set(own.map(o => o.id));
+    const uniqueShared = shared.filter(o => !ownIds.has(o.id));
+    return [...own, ...uniqueShared];
+  })();
+
+  const isLoading = ownObrasQuery.isLoading || sharedObrasQuery.isLoading;
+  const isInvitedUser = (ownObrasQuery.data ?? []).length === 0 && (sharedObrasQuery.data ?? []).length > 0;
 
   const createObra = useMutation({
     mutationFn: async (obra: { nome: string; endereco: string; foto_capa?: string }) => {
@@ -74,9 +114,10 @@ export function useObras() {
   });
 
   return {
-    obras: obrasQuery.data ?? [],
-    isLoading: obrasQuery.isLoading,
-    error: obrasQuery.error,
+    obras: allObras,
+    isLoading,
+    isInvitedUser,
+    error: ownObrasQuery.error || sharedObrasQuery.error,
     createObra,
     updateObra,
     deleteObra,
