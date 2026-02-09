@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowRight, 
@@ -181,6 +182,10 @@ const faqs = [
     answer: 'Sim, qualquer tipo de obra! Desde uma reforma de banheiro até um condomínio de alto padrão. O sistema se adapta ao seu projeto.',
   },
   {
+    question: 'Como funciona o sistema de medição e retenção técnica?',
+    answer: 'Você define o valor do contrato de mão de obra por fase ou item no cronograma. A cada medição, informa o percentual executado e o sistema calcula automaticamente o valor bruto, desconta os adiantamentos (vales) pendentes e aplica a retenção técnica (padrão 5%, mas você pode personalizar). O resultado é o valor líquido exato a pagar, sem surpresas.',
+  },
+  {
     question: 'Preciso instalar algum programa?',
     answer: 'Não! O Obra Certa funciona direto no navegador do celular ou computador. Basta acessar, criar sua conta e começar.',
   },
@@ -190,7 +195,38 @@ const faqs = [
   },
 ];
 
+function CountUp({ target, active }: { target: number; active: boolean }) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    if (target === 0) { setValue(0); return; }
+    let start = 0;
+    const duration = 1500;
+    const step = Math.max(1, Math.floor(target / (duration / 30)));
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= target) { setValue(target); clearInterval(timer); }
+      else setValue(start);
+    }, 30);
+    return () => clearInterval(timer);
+  }, [active, target]);
+  return <>{value}</>;
+}
+
 export function LandingPage() {
+  const counterRef = useRef<HTMLDivElement>(null);
+  const [countersVisible, setCountersVisible] = useState(false);
+
+  useEffect(() => {
+    const el = counterRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setCountersVisible(true); obs.disconnect(); }
+    }, { threshold: 0.3 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Floating WhatsApp Button */}
@@ -485,6 +521,22 @@ export function LandingPage() {
               Profissionalize sua relação com empreiteiros e evite pagar mais do que foi executado.
             </p>
           </AnimatedSection>
+
+          {/* Animated stat counters */}
+          <div ref={counterRef} className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-12">
+            {[
+              { value: 100, suffix: '%', label: 'Cálculo automático' },
+              { value: 5, suffix: '%', label: 'Retenção padrão' },
+              { value: 0, suffix: '', label: 'Erros de pagamento', prefix: '' },
+            ].map((stat, i) => (
+              <div key={i} className="text-center">
+                <p className="text-4xl md:text-5xl font-extrabold text-primary">
+                  <CountUp target={stat.value} active={countersVisible} />{stat.suffix}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
