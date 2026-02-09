@@ -60,6 +60,13 @@ export type Database = {
             referencedRelation: "obras"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "adiantamentos_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       admin_action_logs: {
@@ -117,6 +124,13 @@ export type Database = {
             columns: ["diario_id"]
             isOneToOne: false
             referencedRelation: "diario_log"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumo_diario_diario_id_fkey"
+            columns: ["diario_id"]
+            isOneToOne: false
+            referencedRelation: "fotos_portal"
             referencedColumns: ["id"]
           },
           {
@@ -183,6 +197,13 @@ export type Database = {
             referencedRelation: "obras"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cronograma_itens_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       diario_log: {
@@ -230,6 +251,13 @@ export type Database = {
             referencedRelation: "obras"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "diario_log_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       diario_log_alteracoes: {
@@ -269,6 +297,13 @@ export type Database = {
             columns: ["diario_id"]
             isOneToOne: false
             referencedRelation: "diario_log"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diario_log_alteracoes_diario_id_fkey"
+            columns: ["diario_id"]
+            isOneToOne: false
+            referencedRelation: "fotos_portal"
             referencedColumns: ["id"]
           },
         ]
@@ -345,6 +380,13 @@ export type Database = {
             referencedRelation: "obras"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "materiais_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       medicoes: {
@@ -417,6 +459,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "medicoes_cronograma_item_id_fkey"
+            columns: ["cronograma_item_id"]
+            isOneToOne: false
+            referencedRelation: "cronograma_portal"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "medicoes_fase_id_fkey"
             columns: ["fase_id"]
             isOneToOne: false
@@ -428,6 +477,13 @@ export type Database = {
             columns: ["obra_id"]
             isOneToOne: false
             referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicoes_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras_portal"
             referencedColumns: ["id"]
           },
         ]
@@ -503,6 +559,13 @@ export type Database = {
             referencedRelation: "obras"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "obra_access_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       obra_pin: {
@@ -535,6 +598,13 @@ export type Database = {
             referencedRelation: "obras"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "obra_pin_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: true
+            referencedRelation: "obras_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       obras: {
@@ -544,9 +614,11 @@ export type Database = {
           foto_capa: string | null
           id: string
           nome: string
+          portal_ativo: boolean
           progresso: number | null
           retencao_tecnica_percentual: number
           status: Database["public"]["Enums"]["obra_status"]
+          token_portal: string | null
           updated_at: string
           user_id: string
         }
@@ -556,9 +628,11 @@ export type Database = {
           foto_capa?: string | null
           id?: string
           nome: string
+          portal_ativo?: boolean
           progresso?: number | null
           retencao_tecnica_percentual?: number
           status?: Database["public"]["Enums"]["obra_status"]
+          token_portal?: string | null
           updated_at?: string
           user_id: string
         }
@@ -568,9 +642,11 @@ export type Database = {
           foto_capa?: string | null
           id?: string
           nome?: string
+          portal_ativo?: boolean
           progresso?: number | null
           retencao_tecnica_percentual?: number
           status?: Database["public"]["Enums"]["obra_status"]
+          token_portal?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -690,6 +766,13 @@ export type Database = {
             referencedRelation: "obras"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_invites_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras_portal"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -742,7 +825,101 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      cronograma_portal: {
+        Row: {
+          data_conclusao: string | null
+          descricao: string | null
+          fase_icone: string | null
+          fase_id: string | null
+          fase_nome: string | null
+          fase_ordem: number | null
+          id: string | null
+          obra_id: string | null
+          ordem: number | null
+          status: Database["public"]["Enums"]["item_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cronograma_itens_fase_id_fkey"
+            columns: ["fase_id"]
+            isOneToOne: false
+            referencedRelation: "fases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cronograma_itens_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cronograma_itens_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras_portal"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fotos_portal: {
+        Row: {
+          atividades_realizadas: string | null
+          data: string | null
+          fotos: Json | null
+          id: string | null
+          obra_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diario_log_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diario_log_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras_portal"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      obras_portal: {
+        Row: {
+          endereco: string | null
+          foto_capa: string | null
+          id: string | null
+          nome: string | null
+          portal_ativo: boolean | null
+          progresso: number | null
+          status: Database["public"]["Enums"]["obra_status"] | null
+          token_portal: string | null
+        }
+        Insert: {
+          endereco?: string | null
+          foto_capa?: string | null
+          id?: string | null
+          nome?: string | null
+          portal_ativo?: boolean | null
+          progresso?: number | null
+          status?: Database["public"]["Enums"]["obra_status"] | null
+          token_portal?: string | null
+        }
+        Update: {
+          endereco?: string | null
+          foto_capa?: string | null
+          id?: string | null
+          nome?: string | null
+          portal_ativo?: boolean | null
+          progresso?: number | null
+          status?: Database["public"]["Enums"]["obra_status"] | null
+          token_portal?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calcular_progresso_obra: { Args: { p_obra_id: string }; Returns: number }
