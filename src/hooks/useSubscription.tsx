@@ -31,26 +31,28 @@ const planNames: Record<SubscriptionPlan, string> = {
   premium: 'Empresarial',
 };
 
-export function useSubscription() {
+export function useSubscription(overrideUserId?: string | null) {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
 
+  const targetUserId = overrideUserId || user?.id;
+
   // Buscar subscription do banco de dados
   const subscriptionQuery = useQuery({
-    queryKey: ['subscription', user?.id],
+    queryKey: ['subscription', targetUserId],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!targetUserId) return null;
       
       const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId)
         .maybeSingle();
       
       if (error) throw error;
       return data as Subscription | null;
     },
-    enabled: !!user?.id,
+    enabled: !!targetUserId,
   });
 
   // Verificar subscription no Stripe e sincronizar

@@ -23,43 +23,47 @@ export function useObras() {
     enabled: !!user,
   });
 
-  // Fetch obras shared with the user via obra_access
+  // Fetch ALL obras from license owners who invited the user
   const sharedObrasQuery = useQuery({
     queryKey: ['obras-shared', user?.id],
     queryFn: async () => {
-      // Get obra IDs the user has access to
+      // Get owner IDs (granted_by) from obra_access
       const { data: accessList, error: accessError } = await supabase
         .from('obra_access')
-        .select('obra_id')
+        .select('granted_by')
         .eq('user_id', user!.id);
       
       if (accessError) throw accessError;
-      if (!accessList || accessList.length === 0) return [];
+      if (!accessList || accessList.length === 0) return { obras: [] as Obra[], ownerIds: [] as string[] };
 
-      const obraIds = accessList.map(a => a.obra_id);
+      const ownerIds = [...new Set(accessList.map(a => a.granted_by).filter(Boolean))] as string[];
+      if (ownerIds.length === 0) return { obras: [] as Obra[], ownerIds: [] as string[] };
+
       const { data, error } = await supabase
         .from('obras')
         .select('*')
-        .in('id', obraIds)
+        .in('user_id', ownerIds)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Obra[];
+      return { obras: data as Obra[], ownerIds };
     },
     enabled: !!user,
   });
 
   // Combine own + shared obras, deduplicating by id
+  const sharedData = sharedObrasQuery.data;
   const allObras = (() => {
     const own = ownObrasQuery.data ?? [];
-    const shared = sharedObrasQuery.data ?? [];
+    const shared = sharedData?.obras ?? [];
     const ownIds = new Set(own.map(o => o.id));
     const uniqueShared = shared.filter(o => !ownIds.has(o.id));
     return [...own, ...uniqueShared];
   })();
 
   const isLoading = ownObrasQuery.isLoading || sharedObrasQuery.isLoading;
-  const isInvitedUser = (ownObrasQuery.data ?? []).length === 0 && (sharedObrasQuery.data ?? []).length > 0;
+  const isInvitedUser = (ownObrasQuery.data ?? []).length === 0 && (sharedData?.obras ?? []).length > 0;
+  const ownerUserId = sharedData?.ownerIds?.[0] ?? null;
 
   const createObra = useMutation({
     mutationFn: async (obra: { nome: string; endereco: string; foto_capa?: string }) => {
@@ -117,6 +121,7 @@ export function useObras() {
     obras: allObras,
     isLoading,
     isInvitedUser,
+    ownerUserId,
     error: ownObrasQuery.error || sharedObrasQuery.error,
     createObra,
     updateObra,

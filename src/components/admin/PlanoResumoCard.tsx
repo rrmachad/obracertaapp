@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 
 interface PlanoResumoCardProps {
   onUpgradeClick: () => void;
+  ownerUserId?: string | null;
+  isInvitedUser?: boolean;
 }
 
 const planFeatures: Record<SubscriptionPlan, { included: string[]; locked: string[]; lockedTitle: string }> = {
@@ -80,8 +82,8 @@ const planColors: Record<SubscriptionPlan, string> = {
   premium: 'bg-primary/30 text-primary',
 };
 
-export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
-  const { plan, planName, maxUsers } = useSubscription();
+export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: PlanoResumoCardProps) {
+  const { plan, planName, maxUsers } = useSubscription(ownerUserId);
   const { limits, usage, getObrasPercentage } = usePlanLimits();
 
   const usersUsed = usage.usersUsed;
@@ -112,7 +114,7 @@ export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Crown className="w-5 h-5 text-primary" />
-            <CardTitle className="text-base">Meu Plano</CardTitle>
+            <CardTitle className="text-base">{isInvitedUser ? 'Plano da Equipe' : 'Meu Plano'}</CardTitle>
           </div>
           <Badge className={planColors[plan]}>
             {planName}
@@ -264,7 +266,7 @@ export function PlanoResumoCard({ onUpgradeClick }: PlanoResumoCardProps) {
         )}
 
         {/* Botão de upgrade */}
-        {plan !== 'premium' && (
+        {plan !== 'premium' && !isInvitedUser && (
           <Button 
             onClick={onUpgradeClick} 
             className={cn(
