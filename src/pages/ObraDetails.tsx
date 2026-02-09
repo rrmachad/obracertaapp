@@ -51,7 +51,7 @@ export function ObraDetails() {
         title: 'Obra excluída',
         description: obra.nome,
       });
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       toast({
         title: 'Erro ao excluir',
@@ -91,7 +91,7 @@ export function ObraDetails() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <p className="text-lg text-muted-foreground mb-4">Obra não encontrada</p>
-        <Button onClick={() => navigate('/')}>Voltar ao início</Button>
+        <Button onClick={() => navigate('/dashboard')}>Voltar ao início</Button>
       </div>
     );
   }
@@ -120,7 +120,7 @@ export function ObraDetails() {
           <Button
             variant="default"
             size="icon"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="bg-primary shadow-lg hover:bg-primary/90"
           >
             <ArrowLeft className="w-5 h-5 text-primary-foreground" />
