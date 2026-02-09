@@ -382,6 +382,35 @@ export function useAdminUsers() {
     },
   });
 
+  // Deletar usuário (via edge function)
+  const deleteUserMutation = useMutation({
+    mutationFn: async ({ userId, userName, userEmail }: { userId: string; userName: string; userEmail: string | null }) => {
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { userId, userName, userEmail },
+      });
+
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-action-logs'] });
+      toast({
+        title: "Usuário excluído",
+        description: "O usuário foi excluído permanentemente do sistema.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao excluir usuário",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     isAdmin: isAdminQuery.data === true,
     isCheckingAdmin: isAdminQuery.isLoading,
@@ -400,6 +429,8 @@ export function useAdminUsers() {
     isUpdatingEmail: updateEmailMutation.isPending,
     createUser: createUserMutation.mutate,
     isCreatingUser: createUserMutation.isPending,
+    deleteUser: deleteUserMutation.mutate,
+    isDeletingUser: deleteUserMutation.isPending,
     refetch: () => {
       usersQuery.refetch();
       logsQuery.refetch();

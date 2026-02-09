@@ -12,7 +12,8 @@ import {
   User,
   Search,
   Mail,
-  UserPlus
+  UserPlus,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +43,7 @@ import { useAdminUsers, AdminUser } from '@/hooks/useAdminUsers';
 import { useAuth } from '@/hooks/useAuth';
 import { EditEmailDialog } from './EditEmailDialog';
 import { AddUserDialog } from './AddUserDialog';
+import { DeleteUserDialog } from './DeleteUserDialog';
 
 const planColors: Record<string, string> = {
   free: 'bg-muted text-muted-foreground border-muted',
@@ -67,16 +69,19 @@ export function UserManagementTable() {
     toggleAdmin,
     updateEmail,
     createUser,
+    deleteUser,
     isUpdatingPlan,
     isTogglingBlock,
     isTogglingAdmin,
     isUpdatingEmail,
-    isCreatingUser
+    isCreatingUser,
+    isDeletingUser
   } = useAdminUsers();
   
   const [search, setSearch] = useState('');
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
 
   const filteredUsers = users.filter(u => 
     u.nome.toLowerCase().includes(search.toLowerCase()) ||
@@ -113,6 +118,20 @@ export function UserManagementTable() {
         setShowAddUserDialog(false);
       }
     });
+  };
+
+  const handleDeleteUser = () => {
+    if (deletingUser) {
+      deleteUser({ 
+        userId: deletingUser.user_id, 
+        userName: deletingUser.nome,
+        userEmail: deletingUser.email 
+      }, {
+        onSuccess: () => {
+          setDeletingUser(null);
+        }
+      });
+    }
   };
 
   if (isLoadingUsers) {
@@ -321,6 +340,14 @@ export function UserManagementTable() {
                                   </>
                                 )}
                               </DropdownMenuItem>
+
+                              <DropdownMenuItem 
+                                onClick={() => setDeletingUser(user)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Excluir Usuário
+                              </DropdownMenuItem>
                             </>
                           )}
                         </DropdownMenuContent>
@@ -348,6 +375,15 @@ export function UserManagementTable() {
         onOpenChange={setShowAddUserDialog}
         onSave={handleCreateUser}
         isLoading={isCreatingUser}
+      />
+
+      <DeleteUserDialog
+        open={!!deletingUser}
+        onOpenChange={(open) => !open && setDeletingUser(null)}
+        userName={deletingUser?.nome || ''}
+        userEmail={deletingUser?.email || null}
+        onConfirm={handleDeleteUser}
+        isLoading={isDeletingUser}
       />
     </Card>
   );
