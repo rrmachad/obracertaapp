@@ -33,7 +33,7 @@ export function GerenciarAcessosDialog({
   obraNome,
 }: GerenciarAcessosDialogProps) {
   const { toast } = useToast();
-  const { invites, accessList, createInvite, cancelInvite, revokeAccess, isLoading } = useUserInvites(obraId);
+  const { invites, accessList, createInvite, cancelInvite, revokeAccess, updateAccessRole, isLoading } = useUserInvites(obraId);
   const { plan, planName, maxUsers } = useSubscription();
   const [newRole, setNewRole] = useState<AppRole>('user');
   const [copiedPin, setCopiedPin] = useState<string | null>(null);
@@ -96,14 +96,18 @@ export function GerenciarAcessosDialog({
     
     try {
       await revokeAccess.mutateAsync(accessId);
-      toast({
-        title: 'Acesso revogado',
-      });
+      toast({ title: 'Acesso revogado' });
     } catch (error) {
-      toast({
-        title: 'Erro ao revogar acesso',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro ao revogar acesso', variant: 'destructive' });
+    }
+  };
+
+  const handleChangeRole = async (accessId: string, role: AppRole) => {
+    try {
+      await updateAccessRole.mutateAsync({ accessId, role });
+      toast({ title: 'Permissão atualizada' });
+    } catch (error) {
+      toast({ title: 'Erro ao alterar permissão', variant: 'destructive' });
     }
   };
 
@@ -251,28 +255,49 @@ export function GerenciarAcessosDialog({
                   key={access.id}
                   className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     {getRoleIcon(access.role)}
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">
                         {access.user_nome || 'Usuário convidado'}
                       </span>
                       {access.user_email && (
-                        <span className="text-xs text-muted-foreground">{access.user_email}</span>
+                        <span className="text-xs text-muted-foreground truncate">{access.user_email}</span>
                       )}
                     </div>
-                    <Badge className={getRoleBadgeClass(access.role)}>
-                      {access.role}
-                    </Badge>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRevokeAccess(access.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={access.role}
+                      onValueChange={(v) => handleChangeRole(access.id, v as AppRole)}
+                    >
+                      <SelectTrigger className="w-[110px] h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">
+                          <div className="flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            <span>Usuário</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="admin">
+                          <div className="flex items-center gap-1">
+                            <Shield className="w-3 h-3" />
+                            <span>Admin</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRevokeAccess(access.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
 

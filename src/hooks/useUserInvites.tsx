@@ -161,6 +161,21 @@ export function useUserInvites(obraId: string) {
     },
   });
 
+  // Alterar role de usuário com acesso
+  const updateAccessRole = useMutation({
+    mutationFn: async ({ accessId, role }: { accessId: string; role: AppRole }) => {
+      const { error } = await supabase
+        .from('obra_access')
+        .update({ role })
+        .eq('id', accessId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['obra-access', obraId] });
+    },
+  });
+
   // Revogar acesso de usuário
   const revokeAccess = useMutation({
     mutationFn: async (accessId: string) => {
@@ -197,6 +212,7 @@ export function useUserInvites(obraId: string) {
     isLoading: invitesQuery.isLoading || accessQuery.isLoading,
     createInvite,
     useInvite,
+    updateAccessRole,
     revokeAccess,
     cancelInvite,
   };
