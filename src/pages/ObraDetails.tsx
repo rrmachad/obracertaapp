@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users, Home, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -191,8 +191,27 @@ export function ObraDetails() {
         </div>
       </header>
 
+      {/* Breadcrumbs */}
+      <nav className="container py-3">
+        <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <li>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-1 hover:text-foreground transition-colors"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>Dashboard</span>
+            </button>
+          </li>
+          <li><ChevronRight className="w-3.5 h-3.5" /></li>
+          <li className="text-foreground font-medium truncate max-w-[200px]">
+            {obra.nome}
+          </li>
+        </ol>
+      </nav>
+
       {/* Tabs */}
-      <main className="container py-4">
+      <main className="container pb-4">
         <Tabs defaultValue="cronograma" className="w-full">
           <TabsList className="grid w-full grid-cols-3 h-14">
             <TabsTrigger value="cronograma" className="flex flex-col gap-0.5 h-full">
