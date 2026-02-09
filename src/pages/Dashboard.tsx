@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard } from 'lucide-react';
+import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -14,12 +14,14 @@ import { SuporteVipButton } from '@/components/SuporteVipButton';
 import { useObras } from '@/hooks/useObras';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 
 export function Dashboard() {
   const navigate = useNavigate();
   const { obras, isLoading, isInvitedUser, ownerUserId } = useObras();
   const { signOut, user } = useAuth();
   const { planName, plan } = useSubscription(isInvitedUser ? ownerUserId : undefined);
+  const { limits } = usePlanLimits();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -63,6 +65,28 @@ export function Dashboard() {
                 <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground">
                   Equipe · {planName}
                 </Badge>
+              )}
+              {!isInvitedUser && limits.canAccessCompras && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate('/compras')}
+                  className="text-secondary-foreground hover:bg-secondary-foreground/10"
+                  title="Módulo de Compras"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                </Button>
+              )}
+              {!isInvitedUser && limits.canAccessDashboardLucratividade && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate('/lucratividade')}
+                  className="text-secondary-foreground hover:bg-secondary-foreground/10"
+                  title="Dashboard de Lucratividade"
+                >
+                  <TrendingUp className="w-5 h-5" />
+                </Button>
               )}
               {!isInvitedUser && (
                 <Button

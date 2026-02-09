@@ -13,6 +13,8 @@ import { Dashboard } from "./pages/Dashboard";
 import { ObraDetails } from "./pages/ObraDetails";
 import { AdminPanel } from "./pages/AdminPanel";
 import { PortalCliente } from "./pages/PortalCliente";
+import { ComprasPage } from "./pages/ComprasPage";
+import { LucratividadePage } from "./pages/LucratividadePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +48,16 @@ const App = () => (
                 <Route path="/admin" element={
                   <ProtectedRoute>
                     <AdminPanel />
+                  </ProtectedRoute>
+                } />
+                <Route path="/compras" element={
+                  <ProtectedRoute>
+                    <ComprasPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/lucratividade" element={
+                  <ProtectedRoute>
+                    <LucratividadePage />
                   </ProtectedRoute>
                 } />
                 
