@@ -4,11 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useMedicoes, useAdiantamentos } from '@/hooks/useMedicoes';
+import { useCronogramaItens, useFases } from '@/hooks/useCronograma';
 import { NovaMedicaoDialog } from './NovaMedicaoDialog';
 import { NovoAdiantamentoDialog } from './NovoAdiantamentoDialog';
 import { EditarMedicaoDialog } from './EditarMedicaoDialog';
 import { GraficosFinanceiros } from './GraficosFinanceiros';
-import { Calculator, Plus, Wallet, ShieldCheck, ArrowDownCircle, Trash2, FileDown, Pencil } from 'lucide-react';
+import { Calculator, Plus, Wallet, ShieldCheck, ArrowDownCircle, Trash2, FileDown, Pencil, CheckCircle2, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Medicao } from '@/types/database';
 import jsPDF from 'jspdf';
@@ -22,6 +23,8 @@ interface FinanceiroTabProps {
 export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: FinanceiroTabProps) {
   const { medicoes, isLoading: loadingMedicoes, deleteMedicao } = useMedicoes(obraId);
   const { adiantamentos, pendentes, isLoading: loadingAdiantamentos, deleteAdiantamento } = useAdiantamentos(obraId);
+  const { itens, isLoading: loadingItens } = useCronogramaItens(obraId);
+  const { data: fases } = useFases();
   const { toast } = useToast();
 
   const [medicaoDialogOpen, setMedicaoDialogOpen] = useState(false);
@@ -34,6 +37,23 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
   const totalPago = medicoes.reduce((s, m) => s + Number(m.valor_liquido_a_pagar), 0);
   const saldoRetencao = medicoes.reduce((s, m) => s + Number(m.valor_retencao_tecnica), 0);
   const totalAdiantamentosPendentes = pendentes.reduce((s, a) => s + Number(a.valor), 0);
+
+  // Computed values from completed cronograma items
+  const valorTotalContrato = itens.reduce((s, i) => s + (Number(i.valor_contrato_mao_de_obra) || 0), 0);
+  const valorConcluido = itens
+    .filter(i => i.status === 'concluido')
+    .reduce((s, i) => s + (Number(i.valor_contrato_mao_de_obra) || 0), 0);
+  const valorPendente = valorTotalContrato - valorConcluido;
+
+  // Group completed values by phase
+  const valoresPorFase = fases?.map(fase => {
+    const itensFase = itens.filter(i => i.fase_id === fase.id);
+    const total = itensFase.reduce((s, i) => s + (Number(i.valor_contrato_mao_de_obra) || 0), 0);
+    const concluido = itensFase
+      .filter(i => i.status === 'concluido')
+      .reduce((s, i) => s + (Number(i.valor_contrato_mao_de_obra) || 0), 0);
+    return { fase, total, concluido, pendente: total - concluido };
+  }).filter(f => f.total > 0) ?? [];
 
   const handleDeleteMedicao = async (id: string) => {
     if (!confirm('Excluir esta medição?')) return;
@@ -62,7 +82,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
     const maxWidth = pageWidth - margin * 2;
     let y = 20;
 
-    // Header
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('EXTRATO FINANCEIRO', pageWidth / 2, y, { align: 'center' });
@@ -77,10 +96,43 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
     doc.setTextColor(0);
     y += 12;
 
-    // Summary
+    // Contract summary
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('RESUMO', margin, y);
+    doc.text('VALORES DO CONTRATO', margin, y);
+    y += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    const contractItems = [
+      ['Valor Total do Contrato', formatCurrency(valorTotalContrato)],
+      ['Valor Concluido (A Pagar)', formatCurrency(valorConcluido)],
+      ['Valor Pendente', formatCurrency(valorPendente)],
+    ];
+    contractItems.forEach(([label, value]) => {
+      doc.text(`${label}:`, margin, y);
+      doc.text(value, pageWidth - margin, y, { align: 'right' });
+      y += 6;
+    });
+    y += 4;
+
+    // Phase breakdown
+    if (valoresPorFase.length > 0) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('POR FASE:', margin, y);
+      y += 6;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      valoresPorFase.forEach(f => {
+        doc.text(`  ${f.fase.nome}: ${formatCurrency(f.concluido)} / ${formatCurrency(f.total)}`, margin, y);
+        y += 5;
+      });
+      y += 4;
+    }
+
+    // Payment summary
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('RESUMO DE PAGAMENTOS', margin, y);
     y += 7;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
@@ -97,19 +149,16 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
     });
     y += 6;
 
-    // Separator
     doc.setLineWidth(0.5);
     doc.line(margin, y, pageWidth - margin, y);
     y += 10;
 
-    // Medicoes table
     if (medicoes.length > 0) {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.text('HISTORICO DE MEDICOES', margin, y);
       y += 8;
 
-      // Table header
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
       doc.setFillColor(240, 240, 240);
@@ -137,7 +186,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
       y += 8;
     }
 
-    // Adiantamentos
     if (adiantamentos.length > 0) {
       if (y > 240) { doc.addPage(); y = 20; }
       doc.setFont('helvetica', 'bold');
@@ -167,7 +215,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
       });
     }
 
-    // Page numbers
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -180,7 +227,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
     toast({ title: 'PDF exportado com sucesso!' });
   };
 
-  if (loadingMedicoes || loadingAdiantamentos) {
+  if (loadingMedicoes || loadingAdiantamentos || loadingItens) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -205,15 +252,72 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
         </Button>
       </div>
 
+      {/* Contract value cards */}
+      {valorTotalContrato > 0 && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              Valores do Contrato
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-sm font-bold">{formatCurrency(valorTotalContrato)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Concluído</p>
+                <p className="text-sm font-bold text-success">{formatCurrency(valorConcluido)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Pendente</p>
+                <p className="text-sm font-bold text-warning">{formatCurrency(valorPendente)}</p>
+              </div>
+            </div>
+
+            {/* Phase breakdown */}
+            {valoresPorFase.length > 0 && (
+              <div className="space-y-1.5 pt-2 border-t border-primary/10">
+                {valoresPorFase.map(f => {
+                  const pct = f.total > 0 ? Math.round((f.concluido / f.total) * 100) : 0;
+                  return (
+                    <div key={f.fase.id} className="flex items-center gap-2 text-xs">
+                      <span className="flex-1 truncate">{f.fase.nome}</span>
+                      <Badge variant={pct === 100 ? 'default' : 'outline'} className="text-[10px] px-1.5">
+                        {pct}%
+                      </Badge>
+                      <span className="text-muted-foreground w-24 text-right">
+                        {formatCurrency(f.concluido)} / {formatCurrency(f.total)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <CheckCircle2 className="w-4 h-4 text-success" />
+              <span className="text-xs text-muted-foreground">Valor Concluído</span>
+            </div>
+            <p className="text-lg font-bold text-success">{formatCurrency(valorConcluido)}</p>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-1">
               <Wallet className="w-4 h-4 text-primary" />
               <span className="text-xs text-muted-foreground">Total Pago</span>
             </div>
-            <p className="text-lg font-bold text-success">{formatCurrency(totalPago)}</p>
+            <p className="text-lg font-bold text-primary">{formatCurrency(totalPago)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -223,15 +327,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
               <span className="text-xs text-muted-foreground">Saldo Retenção</span>
             </div>
             <p className="text-lg font-bold text-warning">{formatCurrency(saldoRetencao)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Calculator className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Total Medido</span>
-            </div>
-            <p className="text-lg font-bold">{formatCurrency(totalMedido)}</p>
           </CardContent>
         </Card>
         <Card>

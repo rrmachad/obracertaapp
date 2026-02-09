@@ -49,6 +49,37 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
     return Math.round((concluidos / itensFase.length) * 100);
   };
 
+  const calcularValorFase = (faseId: string) => {
+    const itensFase = getItensByFase(faseId);
+    return itensFase.reduce((sum, item) => sum + (Number(item.valor_contrato_mao_de_obra) || 0), 0);
+  };
+
+  const calcularValorConcluidoFase = (faseId: string) => {
+    const itensFase = getItensByFase(faseId);
+    return itensFase
+      .filter(item => item.status === 'concluido')
+      .reduce((sum, item) => sum + (Number(item.valor_contrato_mao_de_obra) || 0), 0);
+  };
+
+  const handleDistribuirValorFase = async (faseId: string, valorTotal: number) => {
+    const itensFase = getItensByFase(faseId);
+    if (itensFase.length === 0) return;
+
+    const valorPorItem = Math.round((valorTotal / itensFase.length) * 100) / 100;
+    // Adjust last item for rounding
+    const valorUltimoItem = valorTotal - valorPorItem * (itensFase.length - 1);
+
+    try {
+      for (let i = 0; i < itensFase.length; i++) {
+        const val = i === itensFase.length - 1 ? valorUltimoItem : valorPorItem;
+        await updateItem.mutateAsync({ id: itensFase[i].id, valor_contrato_mao_de_obra: val as any });
+      }
+      toast({ title: 'Valor distribuído entre os itens!' });
+    } catch {
+      toast({ title: 'Erro ao distribuir valor', variant: 'destructive' });
+    }
+  };
+
   const handleToggleItem = async (item: CronogramaItem) => {
     const novoStatus: ItemStatus = item.status === 'concluido' ? 'pendente' : 'concluido';
     
@@ -91,6 +122,9 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
     }
   };
 
+  const formatCurrency = (v: number) =>
+    v > 0 ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '';
+
   if (fasesLoading || itensLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -106,6 +140,8 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
           const progresso = calcularProgressoFase(fase.id);
           const itensFase = getItensByFase(fase.id);
           const concluidos = itensFase.filter(i => i.status === 'concluido').length;
+          const valorFase = calcularValorFase(fase.id);
+          const valorConcluido = calcularValorConcluidoFase(fase.id);
 
           return (
             <AccordionItem 
@@ -129,12 +165,73 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                       <Progress value={progresso} className="h-2 flex-1" />
                       <span className="text-xs text-muted-foreground w-10">{progresso}%</span>
                     </div>
+                    {valorFase > 0 && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-primary font-medium">
+                          {formatCurrency(valorFase)}
+                        </span>
+                        {valorConcluido > 0 && (
+                          <span className="text-xs text-success">
+                            (concluído: {formatCurrency(valorConcluido)})
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </AccordionTrigger>
               
               <AccordionContent className="px-4 pb-4">
                 <div className="space-y-2 pt-2">
+                  {/* Phase value editor */}
+                  <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+                    <DollarSign className="w-4 h-4 text-primary shrink-0" />
+                    <Label className="text-xs text-primary whitespace-nowrap">Valor da Fase:</Label>
+                    <span className="text-sm font-semibold text-primary flex-1">
+                      {valorFase > 0 ? formatCurrency(valorFase) : 'Não definido'}
+                    </span>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 text-xs">
+                          Definir Total
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72" align="end">
+                        <div className="space-y-3">
+                          <Label className="text-xs font-medium">Valor Total da Fase</Label>
+                          <p className="text-xs text-muted-foreground">
+                            O valor será distribuído igualmente entre os {itensFase.length} itens desta fase.
+                          </p>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="R$ 0,00"
+                            defaultValue={valorFase > 0 ? valorFase : ''}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const val = parseFloat((e.target as HTMLInputElement).value) || 0;
+                                if (val > 0) handleDistribuirValorFase(fase.id, val);
+                              }
+                            }}
+                            id={`fase-valor-${fase.id}`}
+                          />
+                          <Button
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                              const input = document.getElementById(`fase-valor-${fase.id}`) as HTMLInputElement;
+                              const val = parseFloat(input?.value) || 0;
+                              if (val > 0) handleDistribuirValorFase(fase.id, val);
+                            }}
+                          >
+                            Distribuir entre itens
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
                   {itensFase.map((item) => (
                     <div 
                       key={item.id}
