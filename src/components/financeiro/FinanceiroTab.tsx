@@ -148,15 +148,63 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
 
     if (valoresPorFase.length > 0) {
       doc.setFont('helvetica', 'bold');
-      doc.text('POR FASE:', margin, y);
+      doc.setFontSize(11);
+      doc.text('COMPARATIVO POR FASE', margin, y);
+      y += 8;
+
+      // Table header
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(240, 240, 240);
+      doc.rect(margin, y - 4, maxWidth, 7, 'F');
+      const fCols = [margin, margin + 45, margin + 80, margin + 115, margin + 145];
+      doc.text('Fase', fCols[0], y);
+      doc.text('Contratado', fCols[1], y);
+      doc.text('Concluido', fCols[2], y);
+      doc.text('Pago', fCols[3], y);
+      doc.text('% Exec.', fCols[4], y);
       y += 6;
+
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
       valoresPorFase.forEach(f => {
-        doc.text(`  ${f.fase.nome}: ${formatCurrency(f.concluido)} / ${formatCurrency(f.total)}`, margin, y);
-        y += 5;
+        if (y > 265) { doc.addPage(); y = 20; }
+        const medicoesFase = medicoes.filter(m => m.fase_id === f.fase.id);
+        const pagoFase = medicoesFase.reduce((s, m) => s + Number(m.valor_liquido_a_pagar), 0);
+        const pctExec = f.total > 0 ? Math.round((f.concluido / f.total) * 100) : 0;
+
+        doc.text(f.fase.nome.substring(0, 20), fCols[0], y);
+        doc.text(formatCurrency(f.total), fCols[1], y);
+        doc.text(formatCurrency(f.concluido), fCols[2], y);
+        doc.text(formatCurrency(pagoFase), fCols[3], y);
+
+        // Mini progress bar
+        const barX = fCols[4];
+        const barW = 20;
+        doc.setFillColor(230, 230, 230);
+        doc.rect(barX, y - 3, barW, 4, 'F');
+        if (pctExec > 0) {
+          doc.setFillColor(34, 139, 34);
+          doc.rect(barX, y - 3, (barW * pctExec) / 100, 4, 'F');
+        }
+        doc.text(`${pctExec}%`, barX + barW + 2, y);
+        y += 6;
       });
-      y += 4;
+
+      // Totals row
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(245, 245, 245);
+      doc.rect(margin, y - 4, maxWidth, 7, 'F');
+      const totalContrato = valoresPorFase.reduce((s, f) => s + f.total, 0);
+      const totalConcluidoFases = valoresPorFase.reduce((s, f) => s + f.concluido, 0);
+      const totalPagoFases = valoresPorFase.reduce((s, f) => {
+        const mf = medicoes.filter(m => m.fase_id === f.fase.id);
+        return s + mf.reduce((ss, m) => ss + Number(m.valor_liquido_a_pagar), 0);
+      }, 0);
+      doc.text('TOTAL', fCols[0], y);
+      doc.text(formatCurrency(totalContrato), fCols[1], y);
+      doc.text(formatCurrency(totalConcluidoFases), fCols[2], y);
+      doc.text(formatCurrency(totalPagoFases), fCols[3], y);
+      y += 10;
     }
 
     doc.setFontSize(11);
