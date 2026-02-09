@@ -10,6 +10,7 @@ import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
 import { EntrarComPinDialog } from '@/components/admin/EntrarComPinDialog';
 import { PlanoResumoCard } from '@/components/admin/PlanoResumoCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { SuporteVipButton } from '@/components/SuporteVipButton';
 import { useObras } from '@/hooks/useObras';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -163,6 +164,7 @@ export function Dashboard() {
       />
       <UpgradePlanoDialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen} />
       <EntrarComPinDialog open={pinDialogOpen} onOpenChange={setPinDialogOpen} />
+      <SuporteVipButton />
     </div>
   );
 }
