@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users, Home, ChevronRight, DollarSign } from 'lucide-react';
+import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users, Home, ChevronRight, DollarSign, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,7 @@ import { FinanceiroTab } from '@/components/financeiro/FinanceiroTab';
 import { EditarObraDialog } from '@/components/obras/EditarObraDialog';
 import { GerenciarAcessosDialog } from '@/components/admin/GerenciarAcessosDialog';
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
+import { PortalClienteDialog } from '@/components/obras/PortalClienteDialog';
 import { FeatureBlockedOverlay } from '@/components/FeatureBlockedOverlay';
 import { useObraAccess } from '@/hooks/useUserInvites';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
@@ -44,6 +45,7 @@ export function ObraDetails() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [acessosDialogOpen, setAcessosDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [portalDialogOpen, setPortalDialogOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!obra) return;
@@ -149,6 +151,12 @@ export function ObraDetails() {
                 <DropdownMenuItem onClick={() => setAcessosDialogOpen(true)}>
                   <Users className="w-4 h-4 mr-2" />
                   Gerenciar Acessos
+                </DropdownMenuItem>
+              )}
+              {limits.canAccessPortal && (
+                <DropdownMenuItem onClick={() => setPortalDialogOpen(true)}>
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Portal do Cliente
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
@@ -276,6 +284,15 @@ export function ObraDetails() {
           <UpgradePlanoDialog
             open={upgradeDialogOpen}
             onOpenChange={setUpgradeDialogOpen}
+          />
+          <PortalClienteDialog
+            open={portalDialogOpen}
+            onOpenChange={setPortalDialogOpen}
+            obraId={obra.id}
+            obraNome={obra.nome}
+            portalAtivo={(obra as any).portal_ativo ?? false}
+            tokenPortal={(obra as any).token_portal ?? null}
+            onSuccess={refetch}
           />
         </>
       )}

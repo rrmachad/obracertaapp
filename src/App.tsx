@@ -12,6 +12,7 @@ import { AuthPage } from "./pages/AuthPage";
 import { Dashboard } from "./pages/Dashboard";
 import { ObraDetails } from "./pages/ObraDetails";
 import { AdminPanel } from "./pages/AdminPanel";
+import { PortalCliente } from "./pages/PortalCliente";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
                 {/* Public Routes */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/portal/:token" element={<PortalCliente />} />
                 
                 {/* Protected Routes */}
                 <Route path="/dashboard" element={
