@@ -56,7 +56,7 @@ export function AdminPanel() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/dashboard')}
                 className="text-secondary-foreground hover:bg-secondary-foreground/10"
               >
                 <ArrowLeft className="w-5 h-5" />
