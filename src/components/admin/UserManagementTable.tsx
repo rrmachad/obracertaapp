@@ -49,10 +49,10 @@ const planColors: Record<string, string> = {
 };
 
 const planNames: Record<string, string> = {
-  free: 'Free',
-  start: 'Start',
-  gold: 'Gold',
-  premium: 'Premium',
+  free: 'Iniciante',
+  start: 'Profissional',
+  gold: 'Construtora',
+  premium: 'Empresarial',
 };
 
 export function UserManagementTable() {
@@ -240,25 +240,25 @@ export function UserManagementTable() {
                                 onClick={() => handleChangePlan(user, 'free')}
                                 disabled={user.plan === 'free'}
                               >
-                                Free
+                                Iniciante
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => handleChangePlan(user, 'start')}
                                 disabled={user.plan === 'start'}
                               >
-                                Start
+                                Profissional
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => handleChangePlan(user, 'gold')}
                                 disabled={user.plan === 'gold'}
                               >
-                                Gold
+                                Construtora
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => handleChangePlan(user, 'premium')}
                                 disabled={user.plan === 'premium'}
                               >
-                                Premium
+                                Empresarial
                               </DropdownMenuItem>
                           </DropdownMenuSubContent>
                           </DropdownMenuSub>
