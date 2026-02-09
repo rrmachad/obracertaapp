@@ -536,7 +536,19 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
       </Card>
 
       {/* Charts */}
-      <GraficosFinanceiros medicoes={medicoes} />
+      <GraficosFinanceiros
+        medicoes={medicoes}
+        fasesComparativas={valoresPorFase.map(f => {
+          const medicoesFase = medicoes.filter(m => m.fase_id === f.fase.id);
+          const pagoFase = medicoesFase.reduce((s, m) => s + Number(m.valor_liquido_a_pagar), 0);
+          return {
+            nome: f.fase.nome,
+            contratado: f.total,
+            concluido: f.concluido,
+            pago: pagoFase,
+          };
+        })}
+      />
 
       {/* Dialogs */}
       <NovaMedicaoDialog
