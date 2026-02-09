@@ -96,7 +96,7 @@ export function ObraStatsList({ obras, isLoading }: ObraStatsListProps) {
               variant="outline" 
               size="sm" 
               className="mt-3"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
             >
               Cadastrar primeira obra
             </Button>
