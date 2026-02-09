@@ -16,9 +16,9 @@ import { useSubscription } from '@/hooks/useSubscription';
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const { obras, isLoading, isInvitedUser } = useObras();
+  const { obras, isLoading, isInvitedUser, ownerUserId } = useObras();
   const { signOut, user } = useAuth();
-  const { planName, plan } = useSubscription();
+  const { planName, plan } = useSubscription(isInvitedUser ? ownerUserId : undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -58,6 +58,11 @@ export function Dashboard() {
                   </Badge>
                 </Button>
               )}
+              {isInvitedUser && (
+                <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground">
+                  Equipe · {planName}
+                </Badge>
+              )}
               {!isInvitedUser && (
                 <Button
                   variant="ghost"
@@ -94,7 +99,7 @@ export function Dashboard() {
 
       <main className="container py-4 pb-24">
         {/* Card de resumo do plano */}
-        {!isInvitedUser && <PlanoResumoCard onUpgradeClick={() => setUpgradeDialogOpen(true)} />}
+        <PlanoResumoCard onUpgradeClick={() => setUpgradeDialogOpen(true)} ownerUserId={isInvitedUser ? ownerUserId : undefined} isInvitedUser={isInvitedUser} />
 
         {/* Barra de busca */}
         <div className="relative mb-4">
