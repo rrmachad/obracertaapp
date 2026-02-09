@@ -196,19 +196,23 @@ export function useAdminUsers() {
     premium: 5,
   };
 
-  // Atualizar plano do usuário
+  // Atualizar plano do usuário (upsert para garantir que existe o registro)
   const updatePlanMutation = useMutation({
     mutationFn: async ({ userId, plan, previousPlan }: { userId: string; plan: 'free' | 'start' | 'gold' | 'premium'; previousPlan?: string }) => {
       const maxUsers = planMaxUsers[plan];
       
+      // Usar upsert para criar o registro se não existir
       const { error } = await supabase
         .from('subscriptions')
-        .update({ 
+        .upsert({ 
+          user_id: userId,
           plan, 
           max_users: maxUsers,
+          status: 'active',
           updated_at: new Date().toISOString() 
-        })
-        .eq('user_id', userId);
+        }, { 
+          onConflict: 'user_id' 
+        });
 
       if (error) throw error;
       
@@ -349,6 +353,35 @@ export function useAdminUsers() {
     },
   });
 
+  // Criar novo usuário (via edge function)
+  const createUserMutation = useMutation({
+    mutationFn: async ({ email, password, nome, plan }: { email: string; password: string; nome: string; plan: 'free' | 'start' | 'gold' | 'premium' }) => {
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: { email, password, nome, plan },
+      });
+
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-action-logs'] });
+      toast({
+        title: "Usuário criado",
+        description: "O novo usuário foi criado com sucesso.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao criar usuário",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     isAdmin: isAdminQuery.data === true,
     isCheckingAdmin: isAdminQuery.isLoading,
@@ -365,6 +398,8 @@ export function useAdminUsers() {
     isTogglingAdmin: toggleAdminMutation.isPending,
     updateEmail: updateEmailMutation.mutate,
     isUpdatingEmail: updateEmailMutation.isPending,
+    createUser: createUserMutation.mutate,
+    isCreatingUser: createUserMutation.isPending,
     refetch: () => {
       usersQuery.refetch();
       logsQuery.refetch();
