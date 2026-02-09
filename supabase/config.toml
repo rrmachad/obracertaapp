@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.admin-export-user-data]
 verify_jwt = false
+
+[functions.claim-invite]
+verify_jwt = false
