@@ -22,6 +22,8 @@ export interface ObraAccess {
   role: AppRole;
   granted_by: string | null;
   created_at: string;
+  user_nome?: string;
+  user_email?: string;
 }
 
 // Função para gerar PIN de 6 dígitos
@@ -61,6 +63,23 @@ export function useUserInvites(obraId: string) {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
+
+      // Fetch profile names for each user with access
+      const userIds = (data || []).map(a => a.user_id);
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, nome, email')
+          .in('user_id', userIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+        return (data || []).map(a => ({
+          ...a,
+          user_nome: profileMap.get(a.user_id)?.nome,
+          user_email: profileMap.get(a.user_id)?.email,
+        })) as ObraAccess[];
+      }
+
       return data as ObraAccess[];
     },
     enabled: !!obraId,
