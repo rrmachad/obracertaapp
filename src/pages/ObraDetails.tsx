@@ -238,7 +238,7 @@ export function ObraDetails() {
           </TabsContent>
 
           <TabsContent value="financeiro" className="mt-4">
-            <FinanceiroTab obraId={obra.id} retencaoPercentual={obra.retencao_tecnica_percentual ?? 5} />
+            <FinanceiroTab obraId={obra.id} retencaoPercentual={obra.retencao_tecnica_percentual ?? 5} obraNome={obra.nome} />
           </TabsContent>
 
           <TabsContent value="estoque" className="mt-4">

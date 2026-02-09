@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Building2, Camera, Loader2, Pencil } from 'lucide-react';
+import { MapPin, Building2, Camera, Loader2, Pencil, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +25,7 @@ interface EditarObraDialogProps {
 export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: EditarObraDialogProps) {
   const [nome, setNome] = useState(obra.nome);
   const [endereco, setEndereco] = useState(obra.endereco);
+  const [retencao, setRetencao] = useState(String(obra.retencao_tecnica_percentual ?? 5));
   const [fotoCapa, setFotoCapa] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(obra.foto_capa);
   const [loading, setLoading] = useState(false);
@@ -36,6 +37,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
   useEffect(() => {
     setNome(obra.nome);
     setEndereco(obra.endereco);
+    setRetencao(String(obra.retencao_tecnica_percentual ?? 5));
     setPreviewUrl(obra.foto_capa);
     setFotoCapa(null);
   }, [obra]);
@@ -88,6 +90,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
         nome: nome.trim(),
         endereco: endereco.trim(),
         foto_capa: fotoUrl,
+        retencao_tecnica_percentual: parseFloat(retencao) || 5,
       });
 
       toast({
@@ -180,6 +183,27 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
                 className="pl-10 h-12 text-base"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="retencao-edit" className="text-base font-medium">
+              Retenção Técnica (%)
+            </Label>
+            <div className="relative">
+              <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                id="retencao-edit"
+                type="number"
+                min="0"
+                max="100"
+                step="0.5"
+                placeholder="5"
+                value={retencao}
+                onChange={(e) => setRetencao(e.target.value)}
+                className="pl-10 h-12 text-base"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Percentual retido em cada medição (padrão: 5%)</p>
           </div>
 
           <div className="flex gap-3 pt-2">
