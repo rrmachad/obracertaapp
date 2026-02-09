@@ -27,6 +27,7 @@ import { AuditLogList } from '@/components/admin/AuditLogList';
 import { UserManagementTable } from '@/components/admin/UserManagementTable';
 import { UserMetricsCards } from '@/components/admin/UserMetricsCards';
 import { AdminActionLogList } from '@/components/admin/AdminActionLogList';
+import { InviteHierarchyList } from '@/components/admin/InviteHierarchyList';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { useAdminUsers } from '@/hooks/useAdminUsers';
 import { useAuth } from '@/hooks/useAuth';
@@ -187,6 +188,8 @@ export function AdminPanel() {
                   <AdminActionLogList logs={actionLogs} isLoading={isLoadingLogs} />
                 </div>
               </div>
+
+              <InviteHierarchyList />
             </TabsContent>
           )}
 

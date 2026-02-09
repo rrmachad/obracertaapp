@@ -253,7 +253,14 @@ export function GerenciarAcessosDialog({
                 >
                   <div className="flex items-center gap-3">
                     {getRoleIcon(access.role)}
-                    <span className="text-sm">Usuário convidado</span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        {access.user_nome || 'Usuário convidado'}
+                      </span>
+                      {access.user_email && (
+                        <span className="text-xs text-muted-foreground">{access.user_email}</span>
+                      )}
+                    </div>
                     <Badge className={getRoleBadgeClass(access.role)}>
                       {access.role}
                     </Badge>
