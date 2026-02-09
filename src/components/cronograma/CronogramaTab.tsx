@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CronogramaItem, ItemStatus } from '@/types/database';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CronogramaTabProps {
   obraId: string;
@@ -61,20 +62,41 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
       .reduce((sum, item) => sum + (Number(item.valor_contrato_mao_de_obra) || 0), 0);
   };
 
-  const handleDistribuirValorFase = async (faseId: string, valorTotal: number) => {
+  const handleDistribuirValorFase = async (faseId: string, valorTotal: number, modo: 'igual' | 'proporcional') => {
     const itensFase = getItensByFase(faseId);
     if (itensFase.length === 0) return;
 
-    const valorPorItem = Math.round((valorTotal / itensFase.length) * 100) / 100;
-    // Adjust last item for rounding
-    const valorUltimoItem = valorTotal - valorPorItem * (itensFase.length - 1);
-
     try {
-      for (let i = 0; i < itensFase.length; i++) {
-        const val = i === itensFase.length - 1 ? valorUltimoItem : valorPorItem;
-        await updateItem.mutateAsync({ id: itensFase[i].id, valor_contrato_mao_de_obra: val as any });
+      if (modo === 'igual') {
+        const valorPorItem = Math.round((valorTotal / itensFase.length) * 100) / 100;
+        const valorUltimoItem = Math.round((valorTotal - valorPorItem * (itensFase.length - 1)) * 100) / 100;
+        for (let i = 0; i < itensFase.length; i++) {
+          const val = i === itensFase.length - 1 ? valorUltimoItem : valorPorItem;
+          await updateItem.mutateAsync({ id: itensFase[i].id, valor_contrato_mao_de_obra: val as any });
+        }
+      } else {
+        // Proporcional: items with existing values keep their weight ratio, items without value get equal share
+        const existingTotal = itensFase.reduce((s, i) => s + (Number(i.valor_contrato_mao_de_obra) || 0), 0);
+        
+        if (existingTotal > 0) {
+          // Distribute proportionally based on existing values
+          for (let i = 0; i < itensFase.length; i++) {
+            const currentVal = Number(itensFase[i].valor_contrato_mao_de_obra) || 0;
+            const proportion = currentVal / existingTotal;
+            const newVal = Math.round(proportion * valorTotal * 100) / 100;
+            await updateItem.mutateAsync({ id: itensFase[i].id, valor_contrato_mao_de_obra: newVal as any });
+          }
+        } else {
+          // No existing values, fallback to equal distribution
+          const valorPorItem = Math.round((valorTotal / itensFase.length) * 100) / 100;
+          const valorUltimoItem = Math.round((valorTotal - valorPorItem * (itensFase.length - 1)) * 100) / 100;
+          for (let i = 0; i < itensFase.length; i++) {
+            const val = i === itensFase.length - 1 ? valorUltimoItem : valorPorItem;
+            await updateItem.mutateAsync({ id: itensFase[i].id, valor_contrato_mao_de_obra: val as any });
+          }
+        }
       }
-      toast({ title: 'Valor distribuído entre os itens!' });
+      toast({ title: modo === 'igual' ? 'Valor distribuído igualmente!' : 'Valor distribuído proporcionalmente!' });
     } catch {
       toast({ title: 'Erro ao distribuir valor', variant: 'destructive' });
     }
@@ -184,53 +206,12 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
               <AccordionContent className="px-4 pb-4">
                 <div className="space-y-2 pt-2">
                   {/* Phase value editor */}
-                  <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
-                    <DollarSign className="w-4 h-4 text-primary shrink-0" />
-                    <Label className="text-xs text-primary whitespace-nowrap">Valor da Fase:</Label>
-                    <span className="text-sm font-semibold text-primary flex-1">
-                      {valorFase > 0 ? formatCurrency(valorFase) : 'Não definido'}
-                    </span>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-7 text-xs">
-                          Definir Total
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-72" align="end">
-                        <div className="space-y-3">
-                          <Label className="text-xs font-medium">Valor Total da Fase</Label>
-                          <p className="text-xs text-muted-foreground">
-                            O valor será distribuído igualmente entre os {itensFase.length} itens desta fase.
-                          </p>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="R$ 0,00"
-                            defaultValue={valorFase > 0 ? valorFase : ''}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                const val = parseFloat((e.target as HTMLInputElement).value) || 0;
-                                if (val > 0) handleDistribuirValorFase(fase.id, val);
-                              }
-                            }}
-                            id={`fase-valor-${fase.id}`}
-                          />
-                          <Button
-                            size="sm"
-                            className="w-full"
-                            onClick={() => {
-                              const input = document.getElementById(`fase-valor-${fase.id}`) as HTMLInputElement;
-                              const val = parseFloat(input?.value) || 0;
-                              if (val > 0) handleDistribuirValorFase(fase.id, val);
-                            }}
-                          >
-                            Distribuir entre itens
-                          </Button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <FaseValorEditor
+                    faseId={fase.id}
+                    valorFase={valorFase}
+                    qtdItens={itensFase.length}
+                    onDistribuir={handleDistribuirValorFase}
+                  />
 
                   {itensFase.map((item) => (
                     <div 
@@ -254,7 +235,6 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                           R$ {Number(item.valor_contrato_mao_de_obra).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </Badge>
                       )}
-                      {/* Valor contrato popover */}
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
@@ -337,6 +317,74 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
           );
         })}
       </Accordion>
+    </div>
+  );
+}
+
+// Sub-component for phase value editor with distribution mode
+function FaseValorEditor({ faseId, valorFase, qtdItens, onDistribuir }: {
+  faseId: string;
+  valorFase: number;
+  qtdItens: number;
+  onDistribuir: (faseId: string, valor: number, modo: 'igual' | 'proporcional') => Promise<void>;
+}) {
+  const [modo, setModo] = useState<'igual' | 'proporcional'>('igual');
+
+  return (
+    <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+      <DollarSign className="w-4 h-4 text-primary shrink-0" />
+      <Label className="text-xs text-primary whitespace-nowrap">Valor da Fase:</Label>
+      <span className="text-sm font-semibold text-primary flex-1">
+        {valorFase > 0 ? `R$ ${valorFase.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Não definido'}
+      </span>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="sm" className="h-7 text-xs">
+            Definir Total
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80" align="end">
+          <div className="space-y-3">
+            <Label className="text-xs font-medium">Valor Total da Fase</Label>
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="R$ 0,00"
+              defaultValue={valorFase > 0 ? valorFase : ''}
+              id={`fase-valor-${faseId}`}
+            />
+            <div className="space-y-1.5">
+              <Label className="text-xs">Modo de distribuição</Label>
+              <Select value={modo} onValueChange={(v) => setModo(v as 'igual' | 'proporcional')}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="igual">Igual entre itens</SelectItem>
+                  <SelectItem value="proporcional">Proporcional ao peso atual</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">
+                {modo === 'igual'
+                  ? `O valor será dividido igualmente entre os ${qtdItens} itens.`
+                  : 'O valor será distribuído mantendo a proporção dos valores existentes.'}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                const input = document.getElementById(`fase-valor-${faseId}`) as HTMLInputElement;
+                const val = parseFloat(input?.value) || 0;
+                if (val > 0) onDistribuir(faseId, val, modo);
+              }}
+            >
+              Distribuir entre itens
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

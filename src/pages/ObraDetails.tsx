@@ -37,7 +37,7 @@ export function ObraDetails() {
   const { toast } = useToast();
   const { data: obra, isLoading, refetch } = useObra(id!);
   const { deleteObra, updateObra } = useObras();
-  const { canManageUsers } = useObraAccess(id!);
+  const { canManageUsers, isAdmin } = useObraAccess(id!);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [acessosDialogOpen, setAcessosDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
@@ -238,7 +238,7 @@ export function ObraDetails() {
           </TabsContent>
 
           <TabsContent value="financeiro" className="mt-4">
-            <FinanceiroTab obraId={obra.id} retencaoPercentual={obra.retencao_tecnica_percentual ?? 5} obraNome={obra.nome} />
+            <FinanceiroTab obraId={obra.id} retencaoPercentual={obra.retencao_tecnica_percentual ?? 5} obraNome={obra.nome} isAdmin={isAdmin} />
           </TabsContent>
 
           <TabsContent value="estoque" className="mt-4">
