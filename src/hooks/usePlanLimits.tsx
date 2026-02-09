@@ -8,13 +8,18 @@ export interface PlanLimits {
   maxObras: number;
   maxDiariosPerObra: number;
   maxMateriaisPerObra: number;
+  canAccessFinanceiro: boolean;
+  canAccessMedicao: boolean;
+  canAccessPortal: boolean;
+  canAccessCompras: boolean;
+  canAccessDashboardLucratividade: boolean;
 }
 
 export interface PlanUsage {
   usersUsed: number;
   obrasUsed: number;
-  diariosUsed: Record<string, number>; // obraId -> count
-  materiaisUsed: Record<string, number>; // obraId -> count
+  diariosUsed: Record<string, number>;
+  materiaisUsed: Record<string, number>;
 }
 
 const planLimitsConfig: Record<SubscriptionPlan, PlanLimits> = {
@@ -23,32 +28,60 @@ const planLimitsConfig: Record<SubscriptionPlan, PlanLimits> = {
     maxObras: 1,
     maxDiariosPerObra: 10,
     maxMateriaisPerObra: 10,
+    canAccessFinanceiro: false,
+    canAccessMedicao: false,
+    canAccessPortal: false,
+    canAccessCompras: false,
+    canAccessDashboardLucratividade: false,
   },
-  start: {
+  start: { // Autônomo
     maxUsers: 1,
-    maxObras: -1, // ilimitado
-    maxDiariosPerObra: -1, // ilimitado
-    maxMateriaisPerObra: -1, // ilimitado
+    maxObras: -1,
+    maxDiariosPerObra: -1,
+    maxMateriaisPerObra: -1,
+    canAccessFinanceiro: true,
+    canAccessMedicao: false,
+    canAccessPortal: false,
+    canAccessCompras: false,
+    canAccessDashboardLucratividade: false,
   },
-  gold: {
+  gold: { // Construtora
     maxUsers: 3,
-    maxObras: -1, // ilimitado
-    maxDiariosPerObra: -1, // ilimitado
-    maxMateriaisPerObra: -1, // ilimitado
+    maxObras: -1,
+    maxDiariosPerObra: -1,
+    maxMateriaisPerObra: -1,
+    canAccessFinanceiro: true,
+    canAccessMedicao: true,
+    canAccessPortal: false,
+    canAccessCompras: false,
+    canAccessDashboardLucratividade: false,
   },
-  premium: {
-    maxUsers: -1, // ilimitado
-    maxObras: -1, // ilimitado
-    maxDiariosPerObra: -1, // ilimitado
-    maxMateriaisPerObra: -1, // ilimitado
+  premium: { // Business
+    maxUsers: -1,
+    maxObras: -1,
+    maxDiariosPerObra: -1,
+    maxMateriaisPerObra: -1,
+    canAccessFinanceiro: true,
+    canAccessMedicao: true,
+    canAccessPortal: true,
+    canAccessCompras: true,
+    canAccessDashboardLucratividade: true,
   },
+};
+
+// Map plan names for upgrade messages
+export const planUpgradeTarget: Record<string, { planName: string; feature: string }> = {
+  financeiro: { planName: 'Autônomo', feature: 'Gestão Financeira' },
+  medicao: { planName: 'Construtora', feature: 'Medições e Retenção Técnica' },
+  portal: { planName: 'Business', feature: 'Portal do Cliente' },
+  compras: { planName: 'Business', feature: 'Módulo de Compras' },
+  lucratividade: { planName: 'Business', feature: 'Dashboard de Lucratividade' },
 };
 
 export function usePlanLimits() {
   const { user } = useAuth();
   const { plan } = useSubscription();
 
-  // Buscar contagem de obras do usuário
   const obrasQuery = useQuery({
     queryKey: ['obras-count', user?.id],
     queryFn: async () => {
@@ -57,74 +90,53 @@ export function usePlanLimits() {
         .from('obras')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
-      
       if (error) throw error;
       return count ?? 0;
     },
     enabled: !!user?.id,
   });
 
-  // Buscar contagem de diários por obra
   const diariosQuery = useQuery({
     queryKey: ['diarios-count', user?.id],
     queryFn: async () => {
       if (!user?.id) return {};
-      
-      // Primeiro buscar as obras do usuário
       const { data: obras, error: obrasError } = await supabase
         .from('obras')
         .select('id')
         .eq('user_id', user.id);
-      
       if (obrasError) throw obrasError;
       if (!obras || obras.length === 0) return {};
-      
       const counts: Record<string, number> = {};
-      
       for (const obra of obras) {
         const { count, error } = await supabase
           .from('diario_log')
           .select('*', { count: 'exact', head: true })
           .eq('obra_id', obra.id);
-        
-        if (!error && count !== null) {
-          counts[obra.id] = count;
-        }
+        if (!error && count !== null) counts[obra.id] = count;
       }
-      
       return counts;
     },
     enabled: !!user?.id,
   });
 
-  // Buscar contagem de materiais por obra
   const materiaisQuery = useQuery({
     queryKey: ['materiais-count', user?.id],
     queryFn: async () => {
       if (!user?.id) return {};
-      
-      // Primeiro buscar as obras do usuário
       const { data: obras, error: obrasError } = await supabase
         .from('obras')
         .select('id')
         .eq('user_id', user.id);
-      
       if (obrasError) throw obrasError;
       if (!obras || obras.length === 0) return {};
-      
       const counts: Record<string, number> = {};
-      
       for (const obra of obras) {
         const { count, error } = await supabase
           .from('materiais')
           .select('*', { count: 'exact', head: true })
           .eq('obra_id', obra.id);
-        
-        if (!error && count !== null) {
-          counts[obra.id] = count;
-        }
+        if (!error && count !== null) counts[obra.id] = count;
       }
-      
       return counts;
     },
     enabled: !!user?.id,
@@ -133,26 +145,25 @@ export function usePlanLimits() {
   const limits = planLimitsConfig[plan];
   
   const usage: PlanUsage = {
-    usersUsed: 1, // Por enquanto apenas o próprio usuário
+    usersUsed: 1,
     obrasUsed: obrasQuery.data ?? 0,
     diariosUsed: diariosQuery.data ?? {},
     materiaisUsed: materiaisQuery.data ?? {},
   };
 
-  // Funções de verificação
   const canCreateObra = () => {
-    if (limits.maxObras === -1) return true; // ilimitado
+    if (limits.maxObras === -1) return true;
     return usage.obrasUsed < limits.maxObras;
   };
 
   const canCreateDiario = (obraId: string) => {
-    if (limits.maxDiariosPerObra === -1) return true; // ilimitado
+    if (limits.maxDiariosPerObra === -1) return true;
     const currentCount = usage.diariosUsed[obraId] ?? 0;
     return currentCount < limits.maxDiariosPerObra;
   };
 
   const canCreateMaterial = (obraId: string) => {
-    if (limits.maxMateriaisPerObra === -1) return true; // ilimitado
+    if (limits.maxMateriaisPerObra === -1) return true;
     const currentCount = usage.materiaisUsed[obraId] ?? 0;
     return currentCount < limits.maxMateriaisPerObra;
   };
@@ -160,7 +171,6 @@ export function usePlanLimits() {
   const getDiarioCount = (obraId: string) => usage.diariosUsed[obraId] ?? 0;
   const getMaterialCount = (obraId: string) => usage.materiaisUsed[obraId] ?? 0;
 
-  // Calcular uso percentual
   const getObrasPercentage = () => {
     if (limits.maxObras === -1) return 0;
     return (usage.obrasUsed / limits.maxObras) * 100;
@@ -189,16 +199,14 @@ export function usePlanLimits() {
   return {
     limits,
     usage,
+    plan,
     isLoading,
     refetch,
-    // Verificações
     canCreateObra,
     canCreateDiario,
     canCreateMaterial,
-    // Contagens
     getDiarioCount,
     getMaterialCount,
-    // Percentuais
     getObrasPercentage,
     getDiariosPercentage,
     getMateriaisPercentage,
