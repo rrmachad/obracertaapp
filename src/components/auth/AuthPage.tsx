@@ -90,13 +90,40 @@ export function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
         body: { pin_code: pin, email, password, nome },
       });
 
-      if (error || data?.error) {
+      if (error) {
+        // Parse error body from FunctionsHttpError
+        let errorMessage = 'Tente novamente.';
+        try {
+          const context = (error as any)?.context;
+          if (context && typeof context.json === 'function') {
+            const body = await context.json();
+            errorMessage = body?.error || errorMessage;
+          } else {
+            errorMessage = error.message || errorMessage;
+          }
+        } catch {
+          errorMessage = error.message || errorMessage;
+        }
+        
         toast({
           title: 'Erro ao cadastrar',
-          description: data?.error || error?.message || 'Tente novamente.',
+          description: errorMessage,
           variant: 'destructive',
         });
-        if (data?.error?.includes('PIN inválido')) {
+        if (errorMessage.includes('PIN inválido')) {
+          setMode('pin');
+          setPin('');
+        }
+        return;
+      }
+
+      if (data?.error) {
+        toast({
+          title: 'Erro ao cadastrar',
+          description: data.error,
+          variant: 'destructive',
+        });
+        if (data.error.includes('PIN inválido')) {
           setMode('pin');
           setPin('');
         }
