@@ -3,27 +3,32 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useMedicoes, useAdiantamentos } from '@/hooks/useMedicoes';
 import { useCronogramaItens, useFases } from '@/hooks/useCronograma';
 import { NovaMedicaoDialog } from './NovaMedicaoDialog';
 import { NovoAdiantamentoDialog } from './NovoAdiantamentoDialog';
 import { EditarMedicaoDialog } from './EditarMedicaoDialog';
 import { GraficosFinanceiros } from './GraficosFinanceiros';
-import { Calculator, Plus, Wallet, ShieldCheck, ArrowDownCircle, Trash2, FileDown, Pencil, CheckCircle2, TrendingUp } from 'lucide-react';
+import { Calculator, Plus, Wallet, ShieldCheck, ArrowDownCircle, Trash2, FileDown, Pencil, CheckCircle2, TrendingUp, AlertTriangle, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Medicao } from '@/types/database';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
 import jsPDF from 'jspdf';
 
 interface FinanceiroTabProps {
   obraId: string;
   retencaoPercentual: number;
   obraNome: string;
+  isAdmin?: boolean;
 }
 
-export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: FinanceiroTabProps) {
+export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }: FinanceiroTabProps) {
   const { medicoes, isLoading: loadingMedicoes, deleteMedicao } = useMedicoes(obraId);
   const { adiantamentos, pendentes, isLoading: loadingAdiantamentos, deleteAdiantamento } = useAdiantamentos(obraId);
-  const { itens, isLoading: loadingItens } = useCronogramaItens(obraId);
+  const { itens, isLoading: loadingItens, updateItem } = useCronogramaItens(obraId);
   const { data: fases } = useFases();
   const { toast } = useToast();
 
@@ -52,8 +57,35 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
     const concluido = itensFase
       .filter(i => i.status === 'concluido')
       .reduce((s, i) => s + (Number(i.valor_contrato_mao_de_obra) || 0), 0);
-    return { fase, total, concluido, pendente: total - concluido };
+    return { fase, total, concluido, pendente: total - concluido, itensFase };
   }).filter(f => f.total > 0) ?? [];
+
+  // Contract overrun alerts (admin only)
+  const alertasEstouro = isAdmin ? valoresPorFase
+    .filter(f => f.total > 0 && totalPago > 0)
+    .map(f => {
+      // Check if payments for this phase exceed the phase contract
+      const medicoesFase = medicoes.filter(m => m.fase_id === f.fase.id);
+      const pagoFase = medicoesFase.reduce((s, m) => s + Number(m.valor_liquido_a_pagar), 0);
+      if (pagoFase > f.total) {
+        return { fase: f.fase.nome, total: f.total, pago: pagoFase, excesso: pagoFase - f.total };
+      }
+      return null;
+    }).filter(Boolean) : [];
+
+  // Global overrun
+  const globalOverrun = isAdmin && valorTotalContrato > 0 && totalPago > valorTotalContrato
+    ? { total: valorTotalContrato, pago: totalPago, excesso: totalPago - valorTotalContrato }
+    : null;
+
+  const handleUpdateItemValor = async (itemId: string, valor: number | null) => {
+    try {
+      await updateItem.mutateAsync({ id: itemId, valor_contrato_mao_de_obra: valor as any });
+      toast({ title: 'Valor atualizado!' });
+    } catch {
+      toast({ title: 'Erro ao atualizar', variant: 'destructive' });
+    }
+  };
 
   const handleDeleteMedicao = async (id: string) => {
     if (!confirm('Excluir esta medição?')) return;
@@ -103,19 +135,17 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
     y += 7;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    const contractItems = [
+    [
       ['Valor Total do Contrato', formatCurrency(valorTotalContrato)],
       ['Valor Concluido (A Pagar)', formatCurrency(valorConcluido)],
       ['Valor Pendente', formatCurrency(valorPendente)],
-    ];
-    contractItems.forEach(([label, value]) => {
+    ].forEach(([label, value]) => {
       doc.text(`${label}:`, margin, y);
       doc.text(value, pageWidth - margin, y, { align: 'right' });
       y += 6;
     });
     y += 4;
 
-    // Phase breakdown
     if (valoresPorFase.length > 0) {
       doc.setFont('helvetica', 'bold');
       doc.text('POR FASE:', margin, y);
@@ -129,20 +159,18 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
       y += 4;
     }
 
-    // Payment summary
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text('RESUMO DE PAGAMENTOS', margin, y);
     y += 7;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    const summaryItems = [
+    [
       ['Total Medido (Bruto)', formatCurrency(totalMedido)],
       ['Total Pago (Liquido)', formatCurrency(totalPago)],
       ['Saldo de Retencao Tecnica', formatCurrency(saldoRetencao)],
       ['Adiantamentos Pendentes', formatCurrency(totalAdiantamentosPendentes)],
-    ];
-    summaryItems.forEach(([label, value]) => {
+    ].forEach(([label, value]) => {
       doc.text(`${label}:`, margin, y);
       doc.text(value, pageWidth - margin, y, { align: 'right' });
       y += 6;
@@ -158,7 +186,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
       doc.setFontSize(11);
       doc.text('HISTORICO DE MEDICOES', margin, y);
       y += 8;
-
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
       doc.setFillColor(240, 240, 240);
@@ -171,7 +198,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
       doc.text('Retido', cols[4], y);
       doc.text('Liquido', cols[5], y);
       y += 6;
-
       doc.setFont('helvetica', 'normal');
       medicoes.forEach(m => {
         if (y > 270) { doc.addPage(); y = 20; }
@@ -192,7 +218,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
       doc.setFontSize(11);
       doc.text('ADIANTAMENTOS (VALES)', margin, y);
       y += 8;
-
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
       doc.setFillColor(240, 240, 240);
@@ -202,13 +227,11 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
       doc.text('Valor', margin + 100, y);
       doc.text('Status', margin + 135, y);
       y += 6;
-
       doc.setFont('helvetica', 'normal');
       adiantamentos.forEach(a => {
         if (y > 270) { doc.addPage(); y = 20; }
         doc.text(new Date(a.data).toLocaleDateString('pt-BR'), margin, y);
-        const desc = (a.descricao || '—').substring(0, 40);
-        doc.text(desc, margin + 25, y);
+        doc.text((a.descricao || '—').substring(0, 40), margin + 25, y);
         doc.text(formatCurrency(Number(a.valor)), margin + 100, y);
         doc.text(a.abatido_em_medicao_id ? 'Abatido' : 'Pendente', margin + 135, y);
         y += 5;
@@ -237,6 +260,26 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
 
   return (
     <div className="space-y-4">
+      {/* Contract overrun alerts (admin only) */}
+      {isAdmin && globalOverrun && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Estouro de Contrato Global</AlertTitle>
+          <AlertDescription>
+            O total pago ({formatCurrency(globalOverrun.pago)}) excedeu o valor do contrato ({formatCurrency(globalOverrun.total)}) em {formatCurrency(globalOverrun.excesso)}.
+          </AlertDescription>
+        </Alert>
+      )}
+      {isAdmin && alertasEstouro.map((alerta, i) => alerta && (
+        <Alert key={i} variant="destructive" className="border-warning bg-warning/10">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertTitle className="text-warning">Estouro: {alerta.fase}</AlertTitle>
+          <AlertDescription className="text-warning">
+            Pago {formatCurrency(alerta.pago)} de {formatCurrency(alerta.total)} — excesso de {formatCurrency(alerta.excesso)}.
+          </AlertDescription>
+        </Alert>
+      ))}
+
       {/* Action buttons */}
       <div className="flex gap-2">
         <Button onClick={() => setMedicaoDialogOpen(true)} className="flex-1">
@@ -252,7 +295,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
         </Button>
       </div>
 
-      {/* Contract value cards */}
+      {/* Contract value cards with editable items */}
       {valorTotalContrato > 0 && (
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="pb-2">
@@ -277,20 +320,59 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
               </div>
             </div>
 
-            {/* Phase breakdown */}
+            {/* Phase breakdown with editable values */}
             {valoresPorFase.length > 0 && (
-              <div className="space-y-1.5 pt-2 border-t border-primary/10">
+              <div className="space-y-2 pt-2 border-t border-primary/10">
                 {valoresPorFase.map(f => {
                   const pct = f.total > 0 ? Math.round((f.concluido / f.total) * 100) : 0;
+                  const concluidoItens = f.itensFase.filter(i => i.status === 'concluido');
                   return (
-                    <div key={f.fase.id} className="flex items-center gap-2 text-xs">
-                      <span className="flex-1 truncate">{f.fase.nome}</span>
-                      <Badge variant={pct === 100 ? 'default' : 'outline'} className="text-[10px] px-1.5">
-                        {pct}%
-                      </Badge>
-                      <span className="text-muted-foreground w-24 text-right">
-                        {formatCurrency(f.concluido)} / {formatCurrency(f.total)}
-                      </span>
+                    <div key={f.fase.id} className="space-y-1">
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="flex-1 truncate font-medium">{f.fase.nome}</span>
+                        <Badge variant={pct === 100 ? 'default' : 'outline'} className="text-[10px] px-1.5">
+                          {pct}%
+                        </Badge>
+                        <span className="text-muted-foreground w-24 text-right">
+                          {formatCurrency(f.concluido)} / {formatCurrency(f.total)}
+                        </span>
+                      </div>
+                      {/* Editable completed items */}
+                      {concluidoItens.length > 0 && (
+                        <div className="pl-3 space-y-0.5">
+                          {concluidoItens.map(item => (
+                            <div key={item.id} className="flex items-center gap-2 text-[11px]">
+                              <CheckCircle2 className="w-3 h-3 text-success shrink-0" />
+                              <span className="flex-1 truncate text-muted-foreground">{item.descricao}</span>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button className="text-primary hover:underline text-[11px] font-medium whitespace-nowrap">
+                                    {Number(item.valor_contrato_mao_de_obra) > 0
+                                      ? formatCurrency(Number(item.valor_contrato_mao_de_obra))
+                                      : 'Definir valor'}
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-56" align="end">
+                                  <div className="space-y-2">
+                                    <Label className="text-xs">Valor — {item.descricao}</Label>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      placeholder="R$ 0,00"
+                                      defaultValue={item.valor_contrato_mao_de_obra ?? ''}
+                                      onBlur={(e) => {
+                                        const val = parseFloat(e.target.value) || null;
+                                        handleUpdateItemValor(item.id, val);
+                                      }}
+                                    />
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
