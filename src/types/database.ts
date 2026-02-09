@@ -21,6 +21,7 @@ export interface Obra {
   status: ObraStatus;
   progresso: number;
   foto_capa?: string;
+  retencao_tecnica_percentual: number;
   created_at: string;
   updated_at: string;
 }
@@ -43,6 +44,7 @@ export interface CronogramaItem {
   data_conclusao?: string;
   observacoes?: string;
   ordem: number;
+  valor_contrato_mao_de_obra?: number;
   created_at: string;
   updated_at: string;
 }
@@ -118,4 +120,36 @@ export interface DiarioLogAlteracao {
   valor_novo?: string;
   motivo?: string;
   created_at: string;
+}
+
+export interface Adiantamento {
+  id: string;
+  obra_id: string;
+  data: string;
+  valor: number;
+  descricao?: string;
+  abatido_em_medicao_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Medicao {
+  id: string;
+  obra_id: string;
+  fase_id?: string;
+  cronograma_item_id?: string;
+  data_medicao: string;
+  percentual_anterior: number;
+  percentual_atual: number;
+  percentual_avanco_periodo: number;
+  valor_contrato_referencia: number;
+  valor_bruto_medido: number;
+  valor_retencao_tecnica: number;
+  retencao_percentual_aplicado: number;
+  valor_adiantamentos_descontados: number;
+  valor_liquido_a_pagar: number;
+  observacoes?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }

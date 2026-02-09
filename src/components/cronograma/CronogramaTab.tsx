@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Circle, Clock, Plus, ChevronDown, Shovel, Hammer, Building2, Home, Zap, Paintbrush, LucideIcon } from 'lucide-react';
+import { Check, Circle, Clock, Plus, ChevronDown, Shovel, Hammer, Building2, Home, Zap, Paintbrush, LucideIcon, DollarSign } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { useFases, useCronogramaItens } from '@/hooks/useCronograma';
 import { useToast } from '@/hooks/use-toast';
 import { CronogramaItem, ItemStatus } from '@/types/database';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
 
 interface CronogramaTabProps {
   obraId: string;
@@ -150,6 +152,41 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                       <span className={`flex-1 ${item.status === 'concluido' ? 'line-through text-muted-foreground' : ''}`}>
                         {item.descricao}
                       </span>
+                      {item.valor_contrato_mao_de_obra && item.valor_contrato_mao_de_obra > 0 && (
+                        <Badge variant="outline" className="text-xs text-primary border-primary/30">
+                          R$ {Number(item.valor_contrato_mao_de_obra).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </Badge>
+                      )}
+                      {/* Valor contrato popover */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                            <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64" align="end">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Valor do Contrato (Mão de Obra)</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              placeholder="R$ 0,00"
+                              defaultValue={item.valor_contrato_mao_de_obra ?? ''}
+                              onBlur={async (e) => {
+                                const val = parseFloat(e.target.value) || null;
+                                try {
+                                  await updateItem.mutateAsync({ id: item.id, valor_contrato_mao_de_obra: val as any });
+                                  toast({ title: 'Valor atualizado!' });
+                                } catch {
+                                  toast({ title: 'Erro ao atualizar', variant: 'destructive' });
+                                }
+                              }}
+                            />
+                            <p className="text-xs text-muted-foreground">Usado no cálculo das medições.</p>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                       {item.status === 'concluido' && item.data_conclusao && (
                         <span className="text-xs text-muted-foreground">
                           {new Date(item.data_conclusao).toLocaleDateString('pt-BR')}

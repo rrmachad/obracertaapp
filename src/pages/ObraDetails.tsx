@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users, Home, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users, Home, ChevronRight, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CronogramaTab } from '@/components/cronograma/CronogramaTab';
 import { EstoqueTab } from '@/components/estoque/EstoqueTab';
 import { DiarioTab } from '@/components/diario/DiarioTab';
+import { FinanceiroTab } from '@/components/financeiro/FinanceiroTab';
 import { EditarObraDialog } from '@/components/obras/EditarObraDialog';
 import { GerenciarAcessosDialog } from '@/components/admin/GerenciarAcessosDialog';
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
@@ -213,10 +214,14 @@ export function ObraDetails() {
       {/* Tabs */}
       <main className="container pb-4">
         <Tabs defaultValue="cronograma" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-14">
+          <TabsList className="grid w-full grid-cols-4 h-14">
             <TabsTrigger value="cronograma" className="flex flex-col gap-0.5 h-full">
               <ClipboardList className="w-5 h-5" />
               <span className="text-xs">Cronograma</span>
+            </TabsTrigger>
+            <TabsTrigger value="financeiro" className="flex flex-col gap-0.5 h-full">
+              <DollarSign className="w-5 h-5" />
+              <span className="text-xs">Financeiro</span>
             </TabsTrigger>
             <TabsTrigger value="estoque" className="flex flex-col gap-0.5 h-full">
               <Package className="w-5 h-5" />
@@ -230,6 +235,10 @@ export function ObraDetails() {
 
           <TabsContent value="cronograma" className="mt-4">
             <CronogramaTab obraId={obra.id} />
+          </TabsContent>
+
+          <TabsContent value="financeiro" className="mt-4">
+            <FinanceiroTab obraId={obra.id} retencaoPercentual={obra.retencao_tecnica_percentual ?? 5} />
           </TabsContent>
 
           <TabsContent value="estoque" className="mt-4">

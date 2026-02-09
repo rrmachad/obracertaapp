@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      adiantamentos: {
+        Row: {
+          abatido_em_medicao_id: string | null
+          created_at: string
+          data: string
+          descricao: string | null
+          id: string
+          obra_id: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          abatido_em_medicao_id?: string | null
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          id?: string
+          obra_id: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          abatido_em_medicao_id?: string | null
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          id?: string
+          obra_id?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adiantamentos_abatido_em_medicao_id_fkey"
+            columns: ["abatido_em_medicao_id"]
+            isOneToOne: false
+            referencedRelation: "medicoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "adiantamentos_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_action_logs: {
         Row: {
           action_details: Json | null
@@ -92,6 +140,7 @@ export type Database = {
           ordem: number | null
           status: Database["public"]["Enums"]["item_status"]
           updated_at: string
+          valor_contrato_mao_de_obra: number | null
         }
         Insert: {
           created_at?: string
@@ -104,6 +153,7 @@ export type Database = {
           ordem?: number | null
           status?: Database["public"]["Enums"]["item_status"]
           updated_at?: string
+          valor_contrato_mao_de_obra?: number | null
         }
         Update: {
           created_at?: string
@@ -116,6 +166,7 @@ export type Database = {
           ordem?: number | null
           status?: Database["public"]["Enums"]["item_status"]
           updated_at?: string
+          valor_contrato_mao_de_obra?: number | null
         }
         Relationships: [
           {
@@ -296,6 +347,91 @@ export type Database = {
           },
         ]
       }
+      medicoes: {
+        Row: {
+          created_at: string
+          cronograma_item_id: string | null
+          data_medicao: string
+          fase_id: string | null
+          id: string
+          obra_id: string
+          observacoes: string | null
+          percentual_anterior: number
+          percentual_atual: number
+          percentual_avanco_periodo: number | null
+          retencao_percentual_aplicado: number
+          status: string
+          updated_at: string
+          valor_adiantamentos_descontados: number
+          valor_bruto_medido: number
+          valor_contrato_referencia: number
+          valor_liquido_a_pagar: number
+          valor_retencao_tecnica: number
+        }
+        Insert: {
+          created_at?: string
+          cronograma_item_id?: string | null
+          data_medicao?: string
+          fase_id?: string | null
+          id?: string
+          obra_id: string
+          observacoes?: string | null
+          percentual_anterior?: number
+          percentual_atual?: number
+          percentual_avanco_periodo?: number | null
+          retencao_percentual_aplicado?: number
+          status?: string
+          updated_at?: string
+          valor_adiantamentos_descontados?: number
+          valor_bruto_medido?: number
+          valor_contrato_referencia?: number
+          valor_liquido_a_pagar?: number
+          valor_retencao_tecnica?: number
+        }
+        Update: {
+          created_at?: string
+          cronograma_item_id?: string | null
+          data_medicao?: string
+          fase_id?: string | null
+          id?: string
+          obra_id?: string
+          observacoes?: string | null
+          percentual_anterior?: number
+          percentual_atual?: number
+          percentual_avanco_periodo?: number | null
+          retencao_percentual_aplicado?: number
+          status?: string
+          updated_at?: string
+          valor_adiantamentos_descontados?: number
+          valor_bruto_medido?: number
+          valor_contrato_referencia?: number
+          valor_liquido_a_pagar?: number
+          valor_retencao_tecnica?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicoes_cronograma_item_id_fkey"
+            columns: ["cronograma_item_id"]
+            isOneToOne: false
+            referencedRelation: "cronograma_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicoes_fase_id_fkey"
+            columns: ["fase_id"]
+            isOneToOne: false
+            referencedRelation: "fases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicoes_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movimentacao_estoque: {
         Row: {
           created_at: string
@@ -409,6 +545,7 @@ export type Database = {
           id: string
           nome: string
           progresso: number | null
+          retencao_tecnica_percentual: number
           status: Database["public"]["Enums"]["obra_status"]
           updated_at: string
           user_id: string
@@ -420,6 +557,7 @@ export type Database = {
           id?: string
           nome: string
           progresso?: number | null
+          retencao_tecnica_percentual?: number
           status?: Database["public"]["Enums"]["obra_status"]
           updated_at?: string
           user_id: string
@@ -431,6 +569,7 @@ export type Database = {
           id?: string
           nome?: string
           progresso?: number | null
+          retencao_tecnica_percentual?: number
           status?: Database["public"]["Enums"]["obra_status"]
           updated_at?: string
           user_id?: string
