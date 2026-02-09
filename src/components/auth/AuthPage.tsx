@@ -8,8 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-export function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+interface AuthPageProps {
+  defaultMode?: 'login' | 'signup';
+}
+
+export function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
+  const [isLogin, setIsLogin] = useState(defaultMode === 'login');
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,7 +44,7 @@ export function AuthPage() {
             title: 'Bem-vindo!',
             description: 'Login realizado com sucesso.',
           });
-          navigate('/');
+          navigate('/dashboard');
         }
       } else {
         if (!nome.trim()) {
@@ -68,7 +72,7 @@ export function AuthPage() {
             title: 'Conta criada!',
             description: 'Cadastro realizado com sucesso.',
           });
-          navigate('/');
+          navigate('/dashboard');
         }
       }
     } finally {

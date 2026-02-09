@@ -6,7 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { PageTransition } from "@/components/PageTransition";
-import Index from "./pages/Index";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { LandingPage } from "./pages/LandingPage";
+import { AuthPage } from "./pages/AuthPage";
+import { Dashboard } from "./pages/Dashboard";
 import { ObraDetails } from "./pages/ObraDetails";
 import { AdminPanel } from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
@@ -23,9 +26,27 @@ const App = () => (
           <BrowserRouter>
             <PageTransition>
               <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/obra/:id" element={<ObraDetails />} />
-                <Route path="/admin" element={<AdminPanel />} />
+                {/* Public Routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                
+                {/* Protected Routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/obra/:id" element={
+                  <ProtectedRoute>
+                    <ObraDetails />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <AdminPanel />
+                  </ProtectedRoute>
+                } />
+                
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
