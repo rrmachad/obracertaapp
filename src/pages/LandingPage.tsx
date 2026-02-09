@@ -17,7 +17,11 @@ import {
   ChevronDown,
   Play,
   MessageCircle,
-  Hammer
+  Hammer,
+  ShieldCheck,
+  FileText,
+  Calculator,
+  Receipt
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -41,6 +45,12 @@ const painPoints = [
     solution: 'Controle exato de entrada e saída de materiais',
     painIcon: AlertTriangle,
     solutionIcon: Package,
+  },
+  {
+    pain: 'Paga adiantado, perde o controle dos "vales" e o empreiteiro abandona a obra?',
+    solution: 'Pagamento por Medição Física. O sistema calcula o avanço, desconta os vales automaticamente e aplica a Retenção Técnica antes de você tirar um centavo do bolso.',
+    painIcon: DollarSign,
+    solutionIcon: ShieldCheck,
   },
   {
     pain: 'Cliente cobrando prazos e você perdido',
@@ -91,9 +101,9 @@ const features = [
     description: 'Seu mestre de obras lança o diário, você aprova.',
   },
   {
-    icon: DollarSign,
-    title: 'Controle Financeiro',
-    description: 'Saiba exatamente quanto já gastou em cada fase.',
+    icon: BarChart3,
+    title: 'Dashboard Financeiro Completo',
+    description: 'Acompanhe Previsto x Realizado de cada fase. Saldo de retenção e total pago em tempo real.',
   },
 ];
 
@@ -148,6 +158,12 @@ const testimonials = [
     role: 'Engenheiro Civil',
     content: 'O relatório diário em PDF me salvou de processos. É muito profissional. Meus clientes ficam impressionados.',
     avatar: '👨‍💼',
+  },
+  {
+    name: 'Carlos Mendes',
+    role: 'Engenheiro Civil',
+    content: 'Antes eu me perdia nas contas e pagava o pedreiro duas vezes. Com o sistema de Medição do Obra Certa, o desconto dos vales é automático. Só pago o que foi medido. Economizei R$ 5.000 só no mês passado.',
+    avatar: '👨‍🔧',
   },
 ];
 
@@ -237,8 +253,8 @@ export function LandingPage() {
                 <span className="text-primary">Canteiro de Obras</span>
               </h1>
               <p className="text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
-                A ferramenta mais simples para gerenciar estoque, controlar o cronograma e 
-                profissionalizar sua construtora. Do <strong>"Minha Casa Minha Vida"</strong> ao <strong>Alto Padrão</strong>.
+                A ferramenta definitiva para gerenciar estoque, <strong>controlar pagamentos por medição</strong> e 
+                profissionalizar sua construtora. Elimine furos de caixa com adiantamentos e retenções automáticas.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link to="/auth?mode=signup">
@@ -340,7 +356,7 @@ export function LandingPage() {
             </p>
           </AnimatedSection>
           
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {painPoints.map((item, index) => (
               <AnimatedSection key={index} animation="fadeUp" delay={index * 100}>
                 <Card className="overflow-hidden h-full">
@@ -455,8 +471,46 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Features Grid */}
+      {/* Blindagem Financeira Section */}
       <section className="py-16">
+        <div className="container">
+          <AnimatedSection animation="fadeUp" className="text-center mb-12">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+              <ShieldCheck className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              O Fim do "Caderninho" de <span className="text-primary">Adiantamentos</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Profissionalize sua relação com empreiteiros e evite pagar mais do que foi executado.
+            </p>
+          </AnimatedSection>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {[
+              { icon: Calculator, title: 'Cálculo Automático', text: 'Você insere a % feita, o app diz exatamente o valor líquido a pagar.' },
+              { icon: Receipt, title: 'Controle de Vales', text: 'O sistema abate automaticamente qualquer adiantamento pendente na hora da medição.' },
+              { icon: ShieldCheck, title: 'Retenção Técnica', text: 'Seguramos 5% (ou quanto você definir) de cada pagamento como garantia de entrega.' },
+              { icon: FileText, title: 'Extrato em PDF', text: 'Gere relatórios financeiros detalhados por fase com um clique.' },
+            ].map((item, index) => (
+              <AnimatedSection key={index} animation="scaleUp" delay={index * 100}>
+                <Card className="h-full hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                      <item.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-bold mb-2">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.text}</p>
+                  </CardContent>
+                </Card>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-16 bg-muted/30">
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -613,10 +667,10 @@ export function LandingPage() {
         <div className="container text-center">
           <AnimatedSection animation="scaleUp">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Tome o controle da sua construtora hoje
+              Assuma o controle total do seu estoque e do seu dinheiro
             </h2>
             <p className="text-lg opacity-80 mb-8 max-w-xl mx-auto">
-              Chega de planilhas, papéis perdidos e estresse. Comece agora, é grátis.
+              Chega de planilhas, papéis perdidos e furos de caixa. Comece agora, é grátis.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/auth?mode=signup">
