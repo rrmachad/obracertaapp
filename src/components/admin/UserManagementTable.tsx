@@ -46,6 +46,7 @@ import { EditEmailDialog } from './EditEmailDialog';
 import { AddUserDialog } from './AddUserDialog';
 import { DeleteUserDialog } from './DeleteUserDialog';
 import { ExportUserDataDialog } from './ExportUserDataDialog';
+import { ToggleAdminDialog } from './ToggleAdminDialog';
 
 const planColors: Record<string, string> = {
   free: 'bg-muted text-muted-foreground border-muted',
@@ -85,7 +86,7 @@ export function UserManagementTable() {
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
   const [exportingUser, setExportingUser] = useState<AdminUser | null>(null);
-
+  const [togglingAdminUser, setTogglingAdminUser] = useState<AdminUser | null>(null);
   const filteredUsers = users.filter(u => 
     u.nome.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase()) ||
@@ -101,7 +102,15 @@ export function UserManagementTable() {
   };
 
   const handleToggleAdmin = (user: AdminUser) => {
-    toggleAdmin({ userId: user.user_id, makeAdmin: user.role !== 'admin' });
+    setTogglingAdminUser(user);
+  };
+
+  const confirmToggleAdmin = () => {
+    if (togglingAdminUser) {
+      toggleAdmin({ userId: togglingAdminUser.user_id, makeAdmin: togglingAdminUser.role !== 'admin' }, {
+        onSuccess: () => setTogglingAdminUser(null),
+      });
+    }
   };
 
   const handleSaveEmail = (email: string) => {
@@ -400,6 +409,15 @@ export function UserManagementTable() {
         userId={exportingUser?.user_id || ''}
         userName={exportingUser?.nome || ''}
         userEmail={exportingUser?.email || null}
+      />
+
+      <ToggleAdminDialog
+        open={!!togglingAdminUser}
+        onOpenChange={(open) => !open && setTogglingAdminUser(null)}
+        userName={togglingAdminUser?.nome || ''}
+        makeAdmin={togglingAdminUser?.role !== 'admin'}
+        onConfirm={confirmToggleAdmin}
+        isLoading={isTogglingAdmin}
       />
     </Card>
   );
