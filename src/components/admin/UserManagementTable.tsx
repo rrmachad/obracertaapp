@@ -11,7 +11,8 @@ import {
   Crown,
   User,
   Search,
-  Mail
+  Mail,
+  UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +41,7 @@ import {
 import { useAdminUsers, AdminUser } from '@/hooks/useAdminUsers';
 import { useAuth } from '@/hooks/useAuth';
 import { EditEmailDialog } from './EditEmailDialog';
+import { AddUserDialog } from './AddUserDialog';
 
 const planColors: Record<string, string> = {
   free: 'bg-muted text-muted-foreground border-muted',
@@ -64,14 +66,17 @@ export function UserManagementTable() {
     toggleBlock, 
     toggleAdmin,
     updateEmail,
+    createUser,
     isUpdatingPlan,
     isTogglingBlock,
     isTogglingAdmin,
-    isUpdatingEmail
+    isUpdatingEmail,
+    isCreatingUser
   } = useAdminUsers();
   
   const [search, setSearch] = useState('');
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [showAddUserDialog, setShowAddUserDialog] = useState(false);
 
   const filteredUsers = users.filter(u => 
     u.nome.toLowerCase().includes(search.toLowerCase()) ||
@@ -100,6 +105,14 @@ export function UserManagementTable() {
       });
       setEditingUser(null);
     }
+  };
+
+  const handleCreateUser = (data: { email: string; password: string; nome: string; plan: 'free' | 'start' | 'gold' | 'premium' }) => {
+    createUser(data, {
+      onSuccess: () => {
+        setShowAddUserDialog(false);
+      }
+    });
   };
 
   if (isLoadingUsers) {
@@ -133,14 +146,20 @@ export function UserManagementTable() {
               {users.length} usuário{users.length !== 1 ? 's' : ''} cadastrado{users.length !== 1 ? 's' : ''}
             </CardDescription>
           </div>
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar usuário..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar usuário..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button onClick={() => setShowAddUserDialog(true)} size="sm" className="gap-1 whitespace-nowrap">
+              <UserPlus className="w-4 h-4" />
+              <span className="hidden sm:inline">Adicionar</span>
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -322,6 +341,13 @@ export function UserManagementTable() {
         userName={editingUser?.nome || ''}
         onSave={handleSaveEmail}
         isLoading={isUpdatingEmail}
+      />
+
+      <AddUserDialog
+        open={showAddUserDialog}
+        onOpenChange={setShowAddUserDialog}
+        onSave={handleCreateUser}
+        isLoading={isCreatingUser}
       />
     </Card>
   );
