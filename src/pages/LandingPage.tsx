@@ -103,7 +103,7 @@ const plans = [
     price: 'Grátis',
     period: '',
     description: 'Para testar o sistema',
-    features: ['1 obra ativa', '10 registros de diário', 'Controle básico de estoque', '1 usuário'],
+    features: ['1 obra ativa', '10 registros de diário', '10 materiais no estoque', '1 usuário'],
     cta: 'Comece sem pagar nada',
     popular: false,
   },
@@ -112,17 +112,26 @@ const plans = [
     price: 'R$ 29',
     period: ',90/mês',
     description: 'Para profissionais autônomos',
-    features: ['Obras ilimitadas', 'Diários ilimitados', 'Estoque completo', '2 usuários', 'Relatórios PDF', 'Suporte por email'],
+    features: ['Obras ilimitadas', 'Diários ilimitados', 'Estoque ilimitado', '2 usuários', 'Relatórios PDF', 'Suporte por email'],
     cta: 'Escolher Profissional',
-    popular: true,
+    popular: false,
   },
   {
     name: 'Construtora',
     price: 'R$ 59',
     period: ',90/mês',
     description: 'Para equipes e construtoras',
-    features: ['Tudo do Profissional', 'Até 5 usuários', 'Acesso multi-usuário', 'Controle de permissões', 'Suporte prioritário'],
+    features: ['Tudo do Profissional', 'Até 3 usuários', 'Acesso multi-usuário', 'Controle de permissões', 'Suporte prioritário'],
     cta: 'Escolher Construtora',
+    popular: true,
+  },
+  {
+    name: 'Empresarial',
+    price: 'R$ 99',
+    period: ',90/mês',
+    description: 'Para grandes construtoras',
+    features: ['Tudo da Construtora', 'Até 5 usuários', 'Suporte VIP', 'Onboarding dedicado', 'Relatórios avançados'],
+    cta: 'Escolher Empresarial',
     popular: false,
   },
 ];
@@ -485,7 +494,7 @@ export function LandingPage() {
             </p>
           </AnimatedSection>
           
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {plans.map((plan, index) => (
               <AnimatedSection key={index} animation="fadeUp" delay={index * 100}>
                 <Card 
@@ -617,7 +626,7 @@ export function LandingPage() {
                 </Button>
               </Link>
               <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                <Button size="lg" variant="outline" className="gap-2 text-lg px-8 h-14">
+                <Button size="lg" variant="secondary" className="gap-2 text-lg px-8 h-14 bg-[#25D366] hover:bg-[#20bd5a] text-white border-0">
                   <MessageCircle className="w-5 h-5" />
                   Falar no WhatsApp
                 </Button>
