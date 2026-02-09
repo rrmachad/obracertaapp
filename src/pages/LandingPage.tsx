@@ -113,37 +113,69 @@ const plans = [
     name: 'Iniciante',
     price: 'Grátis',
     period: '',
-    description: 'Para testar o sistema',
-    features: ['1 obra ativa', '10 registros de diário', '10 materiais no estoque', '1 usuário'],
-    cta: 'Comece sem pagar nada',
+    description: 'Para quem está começando e tem apenas 1 obra.',
+    badge: null,
+    features: [
+      { text: 'Gestão de 1 Obra Ativa', included: true },
+      { text: 'Cronograma Físico Básico', included: true },
+      { text: 'Controle de Estoque Simples', included: true },
+      { text: 'Sem Gestão Financeira de Empreiteiros', included: false },
+      { text: 'Sem Relatórios de Medição', included: false },
+    ],
+    cta: 'Começar sem pagar nada',
     popular: false,
+    variant: 'outline' as const,
   },
   {
-    name: 'Profissional',
+    name: 'Autônomo',
     price: 'R$ 29',
     period: ',90/mês',
-    description: 'Para profissionais autônomos',
-    features: ['Obras ilimitadas', 'Diários ilimitados', 'Estoque ilimitado', '2 usuários', 'Relatórios PDF', 'Suporte por email'],
-    cta: 'Escolher Profissional',
-    popular: false,
+    description: 'Evite prejuízos com adiantamentos e pague apenas o executado.',
+    badge: '🛡️ BLINDAGEM FINANCEIRA',
+    anchor: 'Menos que 1 saco de cimento!',
+    features: [
+      { text: '🚀 Obras e Itens Ilimitados', included: true },
+      { text: '💰 Gestão de Medições: Pague por produção real, não por \'chute\'.', included: true },
+      { text: '📉 Controle de Vales: Desconto automático de adiantamentos.', included: true },
+      { text: '🔒 Retenção Técnica: Segure 5% de garantia em cada pagamento.', included: true },
+      { text: '📄 Extrato Financeiro em PDF: Comprovantes profissionais.', included: true },
+    ],
+    cta: 'Quero Parar de Perder Dinheiro',
+    popular: true,
+    variant: 'default' as const,
   },
   {
     name: 'Construtora',
     price: 'R$ 59',
     period: ',90/mês',
-    description: 'Para equipes e construtoras',
-    features: ['Tudo do Profissional', 'Até 3 usuários', 'Acesso multi-usuário', 'Controle de permissões', 'Suporte prioritário'],
-    cta: 'Escolher Construtora',
-    popular: true,
+    description: 'Delegue a rotina. Seu Mestre lança, você aprova e paga.',
+    badge: '👥 PARA EQUIPES',
+    features: [
+      { text: 'Tudo do Plano Profissional', included: true },
+      { text: '👥 3 Usuários: Acesso para Sócios ou Mestres de Obra.', included: true },
+      { text: '📊 Comparativo Previsto x Realizado: Saiba se a obra vai dar lucro.', included: true },
+      { text: '📑 Relatórios Gerenciais Avançados: Histórico completo.', included: true },
+      { text: '📞 Suporte Prioritário WhatsApp.', included: true },
+    ],
+    cta: 'Organizar Minha Equipe',
+    popular: false,
+    variant: 'outline' as const,
   },
   {
-    name: 'Empresarial',
+    name: 'Business',
     price: 'R$ 99',
     period: ',90/mês',
-    description: 'Para grandes construtoras',
-    features: ['Tudo da Construtora', 'Até 5 usuários', 'Suporte VIP', 'Onboarding dedicado', 'Relatórios avançados'],
-    cta: 'Escolher Empresarial',
+    description: 'Gestão total para múltiplas frentes de trabalho.',
+    badge: null,
+    features: [
+      { text: '👑 Usuários Ilimitados', included: true },
+      { text: '📈 Múltiplos Administradores', included: true },
+      { text: '📂 Exportação de Dados (Excel/API)', included: true },
+      { text: '🤝 Consultoria de Implantação: Ajudamos a configurar.', included: true },
+    ],
+    cta: 'Falar com Consultor',
     popular: false,
+    variant: 'outline' as const,
   },
 ];
 
@@ -593,47 +625,54 @@ export function LandingPage() {
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Planos que cabem no seu <span className="text-primary">bolso</span>
+              Quanto custa <span className="text-primary">perder dinheiro</span> em obra?
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Comece grátis. Cresça quando precisar.
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Cada vale sem controle, cada medição no achismo, é dinheiro que sai do seu bolso. Escolha o plano que blinda seu caixa.
             </p>
           </AnimatedSection>
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch">
             {plans.map((plan, index) => (
               <AnimatedSection key={index} animation="fadeUp" delay={index * 100}>
                 <Card 
-                  className={`relative h-full ${plan.popular ? 'border-2 border-primary shadow-xl scale-105' : ''}`}
+                  className={`relative h-full flex flex-col ${plan.popular ? 'border-2 border-primary shadow-xl lg:scale-105 ring-2 ring-primary/20' : ''}`}
                 >
-                  {plan.popular && (
+                  {plan.badge && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-primary text-primary-foreground px-4 py-1">
-                        Mais Escolhido
+                      <Badge className={`px-4 py-1 whitespace-nowrap ${plan.popular ? 'bg-primary text-primary-foreground animate-pulse' : 'bg-muted text-muted-foreground'}`}>
+                        {plan.badge}
                       </Badge>
                     </div>
                   )}
-                  <CardContent className="p-6 pt-8">
+                  <CardContent className="p-6 pt-8 flex flex-col flex-1">
                     <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                    <div className="mb-2">
+                    <div className="mb-1">
                       <span className="text-4xl font-extrabold">{plan.price}</span>
                       <span className="text-muted-foreground">{plan.period}</span>
                     </div>
+                    {'anchor' in plan && plan.anchor && (
+                      <p className="text-xs font-semibold text-primary mb-2">{plan.anchor}</p>
+                    )}
                     <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
                     
-                    <ul className="space-y-3 mb-6">
+                    <ul className="space-y-3 mb-6 flex-1">
                       {plan.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
-                          {feature}
+                        <li key={featureIndex} className={`flex items-start gap-2 text-sm ${!feature.included ? 'text-muted-foreground line-through' : ''}`}>
+                          {feature.included ? (
+                            <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                          ) : (
+                            <X className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+                          )}
+                          <span>{feature.text}</span>
                         </li>
                       ))}
                     </ul>
                     
-                    <Link to="/auth?mode=signup" className="block">
+                    <Link to="/auth?mode=signup" className="block mt-auto">
                       <Button 
-                        className="w-full" 
-                        variant={plan.popular ? 'default' : 'outline'}
+                        className={`w-full ${plan.popular ? 'text-lg py-6' : ''}`}
+                        variant={plan.variant}
                         size="lg"
                       >
                         {plan.cta}
