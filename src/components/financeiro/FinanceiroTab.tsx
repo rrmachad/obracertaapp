@@ -6,8 +6,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useMedicoes, useAdiantamentos } from '@/hooks/useMedicoes';
 import { NovaMedicaoDialog } from './NovaMedicaoDialog';
 import { NovoAdiantamentoDialog } from './NovoAdiantamentoDialog';
-import { Calculator, Plus, Wallet, ShieldCheck, ArrowDownCircle, Trash2, FileDown } from 'lucide-react';
+import { EditarMedicaoDialog } from './EditarMedicaoDialog';
+import { GraficosFinanceiros } from './GraficosFinanceiros';
+import { Calculator, Plus, Wallet, ShieldCheck, ArrowDownCircle, Trash2, FileDown, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Medicao } from '@/types/database';
 import jsPDF from 'jspdf';
 
 interface FinanceiroTabProps {
@@ -23,6 +26,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
 
   const [medicaoDialogOpen, setMedicaoDialogOpen] = useState(false);
   const [adiantamentoDialogOpen, setAdiantamentoDialogOpen] = useState(false);
+  const [editMedicao, setEditMedicao] = useState<Medicao | null>(null);
 
   const formatCurrency = (v: number) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -288,7 +292,10 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
                           {formatCurrency(Number(m.valor_liquido_a_pagar))}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditMedicao(m)}>
+                          <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                        </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteMedicao(m.id)}>
                           <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
                         </Button>
@@ -351,6 +358,9 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
         </CardContent>
       </Card>
 
+      {/* Charts */}
+      <GraficosFinanceiros medicoes={medicoes} />
+
       {/* Dialogs */}
       <NovaMedicaoDialog
         open={medicaoDialogOpen}
@@ -363,6 +373,15 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome }: Financei
         onOpenChange={setAdiantamentoDialogOpen}
         obraId={obraId}
       />
+      {editMedicao && (
+        <EditarMedicaoDialog
+          open={!!editMedicao}
+          onOpenChange={(o) => { if (!o) setEditMedicao(null); }}
+          medicao={editMedicao}
+          obraId={obraId}
+          retencaoPercentual={retencaoPercentual}
+        />
+      )}
     </div>
   );
 }

@@ -49,6 +49,22 @@ export function useMedicoes(obraId: string) {
     },
   });
 
+  const updateMedicao = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Medicao> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('medicoes')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Medicao;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['medicoes', obraId] });
+    },
+  });
+
   const deleteMedicao = useMutation({
     mutationFn: async (id: string) => {
       // First unlink adiantamentos
@@ -73,6 +89,7 @@ export function useMedicoes(obraId: string) {
     medicoes: medicoesQuery.data ?? [],
     isLoading: medicoesQuery.isLoading,
     createMedicao,
+    updateMedicao,
     deleteMedicao,
   };
 }
