@@ -13,7 +13,8 @@ import {
   Search,
   Mail,
   UserPlus,
-  Trash2
+  Trash2,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { EditEmailDialog } from './EditEmailDialog';
 import { AddUserDialog } from './AddUserDialog';
 import { DeleteUserDialog } from './DeleteUserDialog';
+import { ExportUserDataDialog } from './ExportUserDataDialog';
 
 const planColors: Record<string, string> = {
   free: 'bg-muted text-muted-foreground border-muted',
@@ -82,6 +84,7 @@ export function UserManagementTable() {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
+  const [exportingUser, setExportingUser] = useState<AdminUser | null>(null);
 
   const filteredUsers = users.filter(u => 
     u.nome.toLowerCase().includes(search.toLowerCase()) ||
@@ -306,6 +309,11 @@ export function UserManagementTable() {
                             Editar Email
                           </DropdownMenuItem>
 
+                          <DropdownMenuItem onClick={() => setExportingUser(user)}>
+                            <Download className="w-4 h-4 mr-2" />
+                            Exportar Dados
+                          </DropdownMenuItem>
+
                           {user.user_id !== currentUser?.id && (
                             <>
                               <DropdownMenuItem onClick={() => handleToggleAdmin(user)}>
@@ -384,6 +392,14 @@ export function UserManagementTable() {
         userEmail={deletingUser?.email || null}
         onConfirm={handleDeleteUser}
         isLoading={isDeletingUser}
+      />
+
+      <ExportUserDataDialog
+        open={!!exportingUser}
+        onOpenChange={(open) => !open && setExportingUser(null)}
+        userId={exportingUser?.user_id || ''}
+        userName={exportingUser?.nome || ''}
+        userEmail={exportingUser?.email || null}
       />
     </Card>
   );
