@@ -66,16 +66,16 @@ export function UserMetricsCards({ metrics, isLoading }: UserMetricsCardsProps) 
               <p className="text-xs text-muted-foreground mb-1">Por plano</p>
               <div className="flex flex-wrap gap-1">
                 <Badge variant="outline" className="text-xs">
-                  Free: {metrics.byPlan.free}
+                  Iniciante: {metrics.byPlan.free}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  Start: {metrics.byPlan.start}
+                  Profissional: {metrics.byPlan.start}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  Gold: {metrics.byPlan.gold}
+                  Construtora: {metrics.byPlan.gold}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  Premium: {metrics.byPlan.premium}
+                  Empresarial: {metrics.byPlan.premium}
                 </Badge>
               </div>
             </div>
