@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   ArrowRight, 
   CheckCircle, 
@@ -39,200 +40,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AnimatedSection } from '@/hooks/useScrollAnimation';
 
-const WHATSAPP_NUMBER = '5511999999999'; // Altere para o número real
-const WHATSAPP_MESSAGE = encodeURIComponent('Olá! Vim pelo site Obra Certa e gostaria de saber mais.');
-const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`;
-
-const painPoints = [
-  {
-    pain: 'Estoque furado e compras de emergência caras',
-    solution: 'Controle exato de entrada e saída de materiais',
-    painIcon: AlertTriangle,
-    solutionIcon: Package,
-  },
-  {
-    pain: 'Paga adiantado, perde o controle dos "vales" e o empreiteiro abandona a obra?',
-    solution: 'Pagamento por Medição Física. O sistema calcula o avanço, desconta os vales automaticamente e aplica a Retenção Técnica antes de você tirar um centavo do bolso.',
-    painIcon: DollarSign,
-    solutionIcon: ShieldCheck,
-  },
-  {
-    pain: 'Cliente cobrando prazos e você perdido',
-    solution: 'Cronograma visual e Relatório Diário de Obra automático',
-    painIcon: X,
-    solutionIcon: BarChart3,
-  },
-  {
-    pain: 'Anotações em papel de pão que somem',
-    solution: 'Tudo na nuvem, acessível de qualquer lugar',
-    painIcon: X,
-    solutionIcon: CheckCircle,
-  },
-];
-
-const steps = [
-  {
-    icon: Home,
-    title: 'Cadastre sua Obra',
-    description: 'Defina as fases do projeto — já temos templates prontos!',
-  },
-  {
-    icon: Truck,
-    title: 'Controle o Estoque',
-    description: 'Adicione materiais e gerencie entradas/saídas com 2 cliques.',
-  },
-  {
-    icon: LineChart,
-    title: 'Gere Relatórios',
-    description: 'Exporte PDFs profissionais e impressione seu cliente.',
-  },
-];
-
-const features = [
-  {
-    icon: Building2,
-    title: 'Gestão Multi-Obra',
-    description: 'Controle vários canteiros na mesma tela.',
-  },
-  {
-    icon: Bell,
-    title: 'Alertas de Estoque',
-    description: 'O app avisa quando o cimento vai acabar.',
-  },
-  {
-    icon: Users,
-    title: 'Acesso de Equipe',
-    description: 'Seu mestre de obras lança o diário, você aprova.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Dashboard Financeiro Completo',
-    description: 'Acompanhe Previsto x Realizado de cada fase. Saldo de retenção e total pago em tempo real.',
-  },
-];
-
-const plans = [
-  {
-    name: 'Iniciante',
-    price: 'R$ 0',
-    period: '',
-    description: 'Sua porta de entrada para a organização digital.',
-    badge: null,
-    features: [
-      { text: 'Gestão de 1 Obra', included: true },
-      { text: 'Cronograma e Estoque Básicos', included: true },
-      { text: '⚠️ Ideal apenas para testar o sistema.', included: true, warning: true },
-    ],
-    cta: 'Testar Grátis',
-    popular: false,
-    premium: false,
-    variant: 'outline' as const,
-  },
-  {
-    name: 'Autônomo',
-    price: 'R$ 29',
-    period: ',90/mês',
-    description: 'Para quem quer acabar com o papel e a bagunça no canteiro.',
-    badge: '🚀 OPERACIONAL',
-    features: [
-      { text: '🚀 Obras Ilimitadas', included: true },
-      { text: '📝 Diário de Obra Digital: Adeus caderninho.', included: true },
-      { text: '🧱 Controle de Estoque: Saiba o que tem na obra.', included: true },
-      { text: '📅 Cronograma Físico: Acompanhe o avanço.', included: true },
-    ],
-    cta: 'Organizar Minhas Obras',
-    popular: false,
-    premium: false,
-    variant: 'outline' as const,
-  },
-  {
-    name: 'Construtora',
-    price: 'R$ 59',
-    period: ',90/mês',
-    description: 'Pare de perder dinheiro com empreiteiros e materiais.',
-    badge: '🛡️ FINANCEIRO',
-    features: [
-      { text: 'Tudo do Plano Autônomo', included: true },
-      { text: '💰 Medições: Pague apenas o executado.', included: true },
-      { text: '📉 Desconto Automático de Vales', included: true },
-      { text: '🛡️ Retenção Técnica (5%): Garantia automática.', included: true },
-      { text: '👥 3 Usuários', included: true },
-    ],
-    cta: 'Blindar Meu Caixa',
-    popular: false,
-    premium: false,
-    variant: 'outline' as const,
-  },
-  {
-    name: 'Business',
-    price: 'R$ 99',
-    period: ',90/mês',
-    description: 'Escale sua construtora e encante seus clientes.',
-    badge: '👑 GESTÃO TOTAL',
-    features: [
-      { text: 'Tudo do Plano Construtora', included: true },
-      { text: '📱 Portal do Cliente: Link público para o dono da casa acompanhar o progresso.', included: true, highlight: true },
-      { text: '🛒 Módulo de Compras: Listas unificadas para cotação.', included: true },
-      { text: '👥 Usuários Ilimitados', included: true },
-      { text: '📊 Dashboard de Lucratividade', included: true },
-      { text: '🤝 Suporte VIP 24h', included: true },
-    ],
-    cta: 'Escalar Meu Negócio',
-    popular: true,
-    premium: true,
-    variant: 'default' as const,
-  },
-];
-
-const testimonials = [
-  {
-    name: 'João Silva',
-    role: 'Empreiteiro em Belo Horizonte',
-    content: 'Antes eu perdia 20% do material. Com o Obra Certa, o desperdício zerou. Só isso já pagou o app.',
-    avatar: '👷',
-  },
-  {
-    name: 'Marcos Oliveira',
-    role: 'Engenheiro Civil',
-    content: 'O relatório diário em PDF me salvou de processos. É muito profissional. Meus clientes ficam impressionados.',
-    avatar: '👨‍💼',
-  },
-  {
-    name: 'Carlos Mendes',
-    role: 'Engenheiro Civil',
-    content: 'Antes eu me perdia nas contas e pagava o pedreiro duas vezes. Com o sistema de Medição do Obra Certa, o desconto dos vales é automático. Só pago o que foi medido. Economizei R$ 5.000 só no mês passado.',
-    avatar: '👨‍🔧',
-  },
-];
-
-const faqs = [
-  {
-    question: 'Funciona sem internet?',
-    answer: 'Sim! O app funciona offline e sincroniza automaticamente quando você conectar à internet. Perfeito para canteiros sem Wi-Fi.',
-  },
-  {
-    question: 'É difícil de usar?',
-    answer: 'Não! O Obra Certa foi feito para ser usado com uma mão só, no canteiro de obras. Botões grandes, interface simples, sem complicação.',
-  },
-  {
-    question: 'Serve para reformas pequenas?',
-    answer: 'Sim, qualquer tipo de obra! Desde uma reforma de banheiro até um condomínio de alto padrão. O sistema se adapta ao seu projeto.',
-  },
-  {
-    question: 'Como funciona o sistema de medição e retenção técnica?',
-    answer: 'Você define o valor do contrato de mão de obra por fase ou item no cronograma. A cada medição, informa o percentual executado e o sistema calcula automaticamente o valor bruto, desconta os adiantamentos (vales) pendentes e aplica a retenção técnica (padrão 5%, mas você pode personalizar). O resultado é o valor líquido exato a pagar, sem surpresas.',
-  },
-  {
-    question: 'Preciso instalar algum programa?',
-    answer: 'Não! O Obra Certa funciona direto no navegador do celular ou computador. Basta acessar, criar sua conta e começar.',
-  },
-  {
-    question: 'Posso cancelar a qualquer momento?',
-    answer: 'Sim, sem burocracia. Você pode cancelar sua assinatura quando quiser, sem taxa de cancelamento.',
-  },
-];
+const WHATSAPP_NUMBER = '5511999999999';
 
 function CountUp({ target, active }: { target: number; active: boolean }) {
   const [value, setValue] = useState(0);
@@ -254,9 +65,9 @@ function CountUp({ target, active }: { target: number; active: boolean }) {
 
 /* ─── Business Phone Mockup ─── */
 function PhoneMockup() {
+  const { t } = useTranslation();
   return (
     <div className="relative w-72 h-[600px] mx-auto animate-[float_6s_ease-in-out_infinite]">
-      {/* Float animation defined inline via style */}
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
@@ -264,19 +75,15 @@ function PhoneMockup() {
         }
       `}</style>
 
-      {/* Phone Frame */}
       <div className="absolute inset-0 bg-foreground/90 rounded-[3rem] shadow-2xl ring-1 ring-foreground/20" />
-      {/* Glass reflection */}
       <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
 
-      {/* Screen */}
       <div className="absolute inset-[6px] bg-background rounded-[2.6rem] overflow-hidden">
         <div className="p-4 pt-14 h-full flex flex-col gap-3">
-          {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-muted-foreground">Bom dia 👋</p>
-              <p className="text-sm font-bold">Construtora Silva</p>
+              <p className="text-[10px] text-muted-foreground">{t('landing.phoneMockupGreeting')}</p>
+              <p className="text-sm font-bold">{t('landing.phoneMockupCompany')}</p>
             </div>
             <div className="relative">
               <Bell className="w-5 h-5 text-muted-foreground" />
@@ -284,35 +91,26 @@ function PhoneMockup() {
             </div>
           </div>
 
-          {/* Lucro Card */}
           <div className="bg-primary/10 rounded-xl p-3 border border-primary/20">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-[10px] font-medium text-muted-foreground">Lucratividade</p>
-              <Badge className="text-[9px] px-1.5 py-0 h-4 bg-primary/20 text-primary border-0">
-                +22%
-              </Badge>
+              <p className="text-[10px] font-medium text-muted-foreground">{t('landing.phoneMockupProfitability')}</p>
+              <Badge className="text-[9px] px-1.5 py-0 h-4 bg-primary/20 text-primary border-0">+22%</Badge>
             </div>
-            {/* Mini chart */}
             <div className="flex items-end gap-[3px] h-10">
               {[30, 45, 35, 55, 50, 65, 60, 75, 70, 85, 80, 92].map((h, i) => (
-                <div
-                  key={i}
-                  className="flex-1 bg-primary/60 rounded-t-sm"
-                  style={{ height: `${h}%` }}
-                />
+                <div key={i} className="flex-1 bg-primary/60 rounded-t-sm" style={{ height: `${h}%` }} />
               ))}
             </div>
           </div>
 
-          {/* Obra Card */}
           <div className="bg-card border rounded-xl p-3">
             <div className="flex items-start justify-between mb-2">
               <div>
-                <p className="font-semibold text-xs">Residencial Lote 14</p>
-                <p className="text-[10px] text-muted-foreground">Fase: Acabamento</p>
+                <p className="font-semibold text-xs">{t('landing.phoneMockupProjectName')}</p>
+                <p className="text-[10px] text-muted-foreground">{t('landing.phoneMockupPhase')}</p>
               </div>
               <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-0">
-                No Prazo
+                {t('landing.phoneMockupOnTime')}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
@@ -323,46 +121,39 @@ function PhoneMockup() {
             </div>
           </div>
 
-          {/* Portal do Cliente card */}
           <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-violet-500/20 flex items-center justify-center">
                 <Smartphone className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
               </div>
               <div className="flex-1">
-                <p className="text-[10px] font-semibold">Portal do Cliente</p>
-                <p className="text-[9px] text-muted-foreground">Visitado há 5min</p>
+                <p className="text-[10px] font-semibold">{t('landing.phoneMockupPortal')}</p>
+                <p className="text-[9px] text-muted-foreground">{t('landing.phoneMockupVisited')}</p>
               </div>
               <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
             </div>
           </div>
 
-          {/* Quick stats row */}
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-muted/50 rounded-lg p-2 text-center">
               <p className="text-lg font-bold text-foreground">5</p>
-              <p className="text-[9px] text-muted-foreground">Obras ativas</p>
+              <p className="text-[9px] text-muted-foreground">{t('landing.phoneMockupActiveProjects')}</p>
             </div>
             <div className="bg-muted/50 rounded-lg p-2 text-center">
               <p className="text-lg font-bold text-foreground">12</p>
-              <p className="text-[9px] text-muted-foreground">Colaboradores</p>
+              <p className="text-[9px] text-muted-foreground">{t('landing.phoneMockupCollaborators')}</p>
             </div>
           </div>
 
-          {/* Spacer */}
           <div className="flex-1" />
         </div>
 
-        {/* FAB */}
         <div className="absolute bottom-6 right-6 w-12 h-12 rounded-full bg-primary shadow-lg flex items-center justify-center">
           <span className="text-primary-foreground text-2xl font-light">+</span>
         </div>
       </div>
 
-      {/* Dynamic Island */}
       <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-foreground/90 rounded-full" />
-
-      {/* Decorative Elements */}
       <div className="absolute -top-8 -right-8 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
       <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-violet-500/10 rounded-full blur-2xl" />
     </div>
@@ -370,8 +161,12 @@ function PhoneMockup() {
 }
 
 export function LandingPage() {
+  const { t } = useTranslation();
   const counterRef = useRef<HTMLDivElement>(null);
   const [countersVisible, setCountersVisible] = useState(false);
+
+  const WHATSAPP_MESSAGE = encodeURIComponent(t('landing.whatsappMessage'));
+  const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`;
 
   useEffect(() => {
     const el = counterRef.current;
@@ -383,6 +178,90 @@ export function LandingPage() {
     return () => obs.disconnect();
   }, []);
 
+  const painPoints = [
+    { pain: t('landing.pain1'), solution: t('landing.solution1'), painIcon: AlertTriangle, solutionIcon: Package },
+    { pain: t('landing.pain2'), solution: t('landing.solution2'), painIcon: DollarSign, solutionIcon: ShieldCheck },
+    { pain: t('landing.pain3'), solution: t('landing.solution3'), painIcon: X, solutionIcon: BarChart3 },
+    { pain: t('landing.pain4'), solution: t('landing.solution4'), painIcon: X, solutionIcon: CheckCircle },
+  ];
+
+  const steps = [
+    { icon: Home, title: t('landing.step1Title'), description: t('landing.step1Desc') },
+    { icon: Truck, title: t('landing.step2Title'), description: t('landing.step2Desc') },
+    { icon: LineChart, title: t('landing.step3Title'), description: t('landing.step3Desc') },
+  ];
+
+  const features = [
+    { icon: Building2, title: t('landing.feat1Title'), description: t('landing.feat1Desc') },
+    { icon: Bell, title: t('landing.feat2Title'), description: t('landing.feat2Desc') },
+    { icon: Users, title: t('landing.feat3Title'), description: t('landing.feat3Desc') },
+    { icon: BarChart3, title: t('landing.feat4Title'), description: t('landing.feat4Desc') },
+  ];
+
+  const plans = [
+    {
+      name: t('landing.plan1Name'), price: t('landing.plan1Price'), period: t('landing.plan1Period'),
+      description: t('landing.plan1Desc'), badge: null,
+      features: [
+        { text: t('landing.plan1Feat1'), included: true },
+        { text: t('landing.plan1Feat2'), included: true },
+        { text: t('landing.plan1Feat3'), included: true, warning: true },
+      ],
+      cta: t('landing.plan1Cta'), popular: false, premium: false, variant: 'outline' as const,
+    },
+    {
+      name: t('landing.plan2Name'), price: t('landing.plan2Price'), period: t('landing.plan2Period'),
+      description: t('landing.plan2Desc'), badge: t('landing.plan2Badge'),
+      features: [
+        { text: t('landing.plan2Feat1'), included: true },
+        { text: t('landing.plan2Feat2'), included: true },
+        { text: t('landing.plan2Feat3'), included: true },
+        { text: t('landing.plan2Feat4'), included: true },
+      ],
+      cta: t('landing.plan2Cta'), popular: false, premium: false, variant: 'outline' as const,
+    },
+    {
+      name: t('landing.plan3Name'), price: t('landing.plan3Price'), period: t('landing.plan3Period'),
+      description: t('landing.plan3Desc'), badge: t('landing.plan3Badge'),
+      features: [
+        { text: t('landing.plan3Feat1'), included: true },
+        { text: t('landing.plan3Feat2'), included: true },
+        { text: t('landing.plan3Feat3'), included: true },
+        { text: t('landing.plan3Feat4'), included: true },
+        { text: t('landing.plan3Feat5'), included: true },
+      ],
+      cta: t('landing.plan3Cta'), popular: false, premium: false, variant: 'outline' as const,
+    },
+    {
+      name: t('landing.plan4Name'), price: t('landing.plan4Price'), period: t('landing.plan4Period'),
+      description: t('landing.plan4Desc'), badge: t('landing.plan4Badge'),
+      features: [
+        { text: t('landing.plan4Feat1'), included: true },
+        { text: t('landing.plan4Feat2'), included: true, highlight: true },
+        { text: t('landing.plan4Feat3'), included: true },
+        { text: t('landing.plan4Feat4'), included: true },
+        { text: t('landing.plan4Feat5'), included: true },
+        { text: t('landing.plan4Feat6'), included: true },
+      ],
+      cta: t('landing.plan4Cta'), popular: true, premium: true, variant: 'default' as const,
+    },
+  ];
+
+  const testimonials = [
+    { name: t('landing.test1Name'), role: t('landing.test1Role'), content: t('landing.test1Content'), avatar: '👷' },
+    { name: t('landing.test2Name'), role: t('landing.test2Role'), content: t('landing.test2Content'), avatar: '👨‍💼' },
+    { name: t('landing.test3Name'), role: t('landing.test3Role'), content: t('landing.test3Content'), avatar: '👨‍🔧' },
+  ];
+
+  const faqs = [
+    { question: t('landing.faq1Q'), answer: t('landing.faq1A') },
+    { question: t('landing.faq2Q'), answer: t('landing.faq2A') },
+    { question: t('landing.faq3Q'), answer: t('landing.faq3A') },
+    { question: t('landing.faq4Q'), answer: t('landing.faq4A') },
+    { question: t('landing.faq5Q'), answer: t('landing.faq5A') },
+    { question: t('landing.faq6Q'), answer: t('landing.faq6A') },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       {/* Floating WhatsApp Button */}
@@ -391,7 +270,7 @@ export function LandingPage() {
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#20bd5a] rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
-        aria-label="Falar no WhatsApp"
+        aria-label={t('landing.whatsappAriaLabel')}
       >
         <MessageCircle className="w-7 h-7 text-white" />
       </a>
@@ -407,25 +286,26 @@ export function LandingPage() {
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#como-funciona" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Como Funciona
+              {t('landing.navHowItWorks')}
             </a>
             <a href="#demo" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Veja em Ação
+              {t('landing.navDemo')}
             </a>
             <a href="#precos" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Preços
+              {t('landing.navPricing')}
             </a>
             <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Dúvidas
+              {t('landing.navFaq')}
             </a>
           </nav>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <ThemeToggle />
             <Link to="/auth">
-              <Button variant="ghost" size="sm">Entrar</Button>
+              <Button variant="ghost" size="sm">{t('nav.login')}</Button>
             </Link>
             <Link to="/auth?mode=signup" className="hidden sm:block">
-              <Button size="sm">Começar Grátis</Button>
+              <Button size="sm">{t('nav.signup')}</Button>
             </Link>
           </div>
         </div>
@@ -438,38 +318,38 @@ export function LandingPage() {
             <AnimatedSection animation="fadeUp" className="text-center lg:text-left">
               <Badge variant="secondary" className="mb-6 gap-2 px-4 py-2">
                 <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                +500 obras gerenciadas
+                {t('landing.heroBadge')}
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
-                A única plataforma que{' '}
-                <span className="text-primary">Gerencia sua Obra</span>,{' '}
-                <span className="text-primary">Blinda seu Caixa</span> e{' '}
-                <span className="text-violet-600 dark:text-violet-400">Vende para seu Cliente</span>.
+                {t('landing.heroTitle1')}{' '}
+                <span className="text-primary">{t('landing.heroHighlight1')}</span>,{' '}
+                <span className="text-primary">{t('landing.heroHighlight2')}</span>{' '}
+                {'& '}
+                <span className="text-violet-600 dark:text-violet-400">{t('landing.heroHighlight3')}</span>.
               </h1>
               <p className="text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
-                Do controle de estoque ao Portal do Cliente exclusivo. O sistema completo para construtores que querem escalar sem perder o controle.
+                {t('landing.heroSubtitle')}
               </p>
 
-              {/* Bullet Points */}
               <div className="flex flex-col gap-3 mb-8 max-w-sm sm:max-w-md mx-auto lg:mx-0">
                 <div className="flex items-start gap-2 text-sm font-medium">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                  <span>Cronograma e Estoque Integrados</span>
+                  <span>{t('landing.heroBullet1')}</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm font-medium">
                   <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                  <span>Gestão Financeira com Medição</span>
+                  <span>{t('landing.heroBullet2')}</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm font-medium">
                   <CheckCircle className="w-5 h-5 text-violet-600 dark:text-violet-400 flex-shrink-0 mt-0.5" />
-                  <span><strong>NOVO:</strong> Portal do Cliente &amp; Compras</span>
+                  <span><strong>{t('landing.heroBullet3New')}</strong> {t('landing.heroBullet3')}</span>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link to="/auth?mode=signup">
                   <Button size="lg" className="gap-2 text-lg px-8 h-14 w-full sm:w-auto">
-                    Começar Grátis Agora
+                    {t('landing.heroCta')}
                     <ArrowRight className="w-5 h-5" />
                   </Button>
                 </Link>
@@ -477,16 +357,15 @@ export function LandingPage() {
               <p className="text-sm text-muted-foreground mt-4 flex items-center justify-center lg:justify-start gap-4 flex-wrap">
                 <span className="flex items-center gap-1">
                   <CheckCircle className="w-4 h-4 text-primary" />
-                  Sem cartão de crédito
+                  {t('landing.heroNoCreditCard')}
                 </span>
                 <span className="flex items-center gap-1">
                   <CheckCircle className="w-4 h-4 text-primary" />
-                  Pronto em 2 minutos
+                  {t('landing.heroReady')}
                 </span>
               </p>
             </AnimatedSection>
             
-            {/* App Mockup - Business Dashboard */}
             <AnimatedSection animation="fadeLeft" delay={200} className="relative mx-auto lg:mx-0">
               <PhoneMockup />
             </AnimatedSection>
@@ -499,10 +378,10 @@ export function LandingPage() {
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Sua obra não precisa ser uma <span className="text-primary">dor de cabeça</span>
+              {t('landing.painTitle')} <span className="text-primary">{t('landing.painTitleHighlight')}</span>
             </h2>
             <p className="text-lg text-muted-foreground">
-              Chega de estresse. Veja como o Obra Certa transforma seu dia a dia.
+              {t('landing.painSubtitle')}
             </p>
           </AnimatedSection>
           
@@ -511,34 +390,31 @@ export function LandingPage() {
               <AnimatedSection key={index} animation="fadeUp" delay={index * 100}>
                 <Card className="overflow-hidden h-full">
                   <CardContent className="p-0">
-                    {/* Pain */}
                     <div className="bg-destructive/10 p-6 border-b border-destructive/20">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
                           <item.painIcon className="w-5 h-5 text-destructive" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-destructive mb-1">O Problema:</p>
+                          <p className="text-sm font-medium text-destructive mb-1">{t('landing.painLabel')}</p>
                           <p className="font-semibold">{item.pain}</p>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Arrow */}
                     <div className="flex justify-center -my-3 relative z-10">
                       <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg">
                         <ChevronDown className="w-5 h-5 text-primary-foreground" />
                       </div>
                     </div>
                     
-                    {/* Solution */}
                     <div className="bg-primary/5 p-6">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                           <item.solutionIcon className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-primary mb-1">A Solução:</p>
+                          <p className="text-sm font-medium text-primary mb-1">{t('landing.solutionLabel')}</p>
                           <p className="font-semibold">{item.solution}</p>
                         </div>
                       </div>
@@ -556,10 +432,10 @@ export function LandingPage() {
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Veja o Obra Certa <span className="text-primary">em Ação</span>
+              {t('landing.demoTitle')} <span className="text-primary">{t('landing.demoTitleHighlight')}</span>
             </h2>
             <p className="text-lg text-muted-foreground">
-              Um tour rápido de 2 minutos mostrando as principais funcionalidades
+              {t('landing.demoSubtitle')}
             </p>
           </AnimatedSection>
           
@@ -575,8 +451,8 @@ export function LandingPage() {
                   >
                     <Play className="w-8 h-8 ml-1" />
                   </button>
-                  <p className="text-lg font-semibold">Assistir Demonstração</p>
-                  <p className="text-sm text-muted-foreground">2 minutos</p>
+                  <p className="text-lg font-semibold">{t('landing.demoWatch')}</p>
+                  <p className="text-sm text-muted-foreground">{t('landing.demoMinutes')}</p>
                 </div>
               </div>
               
@@ -592,10 +468,10 @@ export function LandingPage() {
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Pronto para usar em <span className="text-primary">3 passos</span>
+              {t('landing.stepsTitle')} <span className="text-primary">{t('landing.stepsTitleHighlight')}</span>
             </h2>
             <p className="text-lg text-muted-foreground">
-              Sem complicação. Sem treinamento. É só começar.
+              {t('landing.stepsSubtitle')}
             </p>
           </AnimatedSection>
           
@@ -626,19 +502,18 @@ export function LandingPage() {
               <ShieldCheck className="w-8 h-8 text-primary" />
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              O Fim do "Caderninho" de <span className="text-primary">Adiantamentos</span>
+              {t('landing.financialTitle')} <span className="text-primary">{t('landing.financialTitleHighlight')}</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Profissionalize sua relação com empreiteiros e evite pagar mais do que foi executado.
+              {t('landing.financialSubtitle')}
             </p>
           </AnimatedSection>
 
-          {/* Animated stat counters */}
           <div ref={counterRef} className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-12">
             {[
-              { value: 100, suffix: '%', label: 'Cálculo automático' },
-              { value: 5, suffix: '%', label: 'Retenção padrão' },
-              { value: 0, suffix: '', label: 'Erros de pagamento', prefix: '' },
+              { value: 100, suffix: '%', label: t('landing.stat1Label') },
+              { value: 5, suffix: '%', label: t('landing.stat2Label') },
+              { value: 0, suffix: '', label: t('landing.stat3Label') },
             ].map((stat, i) => (
               <div key={i} className="text-center">
                 <p className="text-4xl md:text-5xl font-extrabold text-primary">
@@ -651,10 +526,10 @@ export function LandingPage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
-              { icon: Calculator, title: 'Cálculo Automático', text: 'Você insere a % feita, o app diz exatamente o valor líquido a pagar.' },
-              { icon: Receipt, title: 'Controle de Vales', text: 'O sistema abate automaticamente qualquer adiantamento pendente na hora da medição.' },
-              { icon: ShieldCheck, title: 'Retenção Técnica', text: 'Seguramos 5% (ou quanto você definir) de cada pagamento como garantia de entrega.' },
-              { icon: FileText, title: 'Extrato em PDF', text: 'Gere relatórios financeiros detalhados por fase com um clique.' },
+              { icon: Calculator, title: t('landing.finCard1Title'), text: t('landing.finCard1Text') },
+              { icon: Receipt, title: t('landing.finCard2Title'), text: t('landing.finCard2Text') },
+              { icon: ShieldCheck, title: t('landing.finCard3Title'), text: t('landing.finCard3Text') },
+              { icon: FileText, title: t('landing.finCard4Title'), text: t('landing.finCard4Text') },
             ].map((item, index) => (
               <AnimatedSection key={index} animation="scaleUp" delay={index * 100}>
                 <Card className="h-full hover:shadow-lg transition-shadow">
@@ -677,7 +552,7 @@ export function LandingPage() {
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Tudo que você precisa, <span className="text-primary">nada que não precisa</span>
+              {t('landing.featuresTitle')} <span className="text-primary">{t('landing.featuresTitleHighlight')}</span>
             </h2>
           </AnimatedSection>
           
@@ -704,34 +579,22 @@ export function LandingPage() {
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <Badge className="mb-4 bg-violet-600 text-white border-0 px-4 py-1.5">
-              👑 Plano Business
+              {t('landing.businessBadge')}
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Por que Construtoras que Crescem usam o{' '}
-              <span className="text-violet-600 dark:text-violet-400">Plano Business</span>?
+              {t('landing.businessTitle')}{' '}
+              <span className="text-violet-600 dark:text-violet-400">{t('landing.businessTitleHighlight')}</span>?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Funcionalidades exclusivas para quem quer escalar sem perder o controle.
+              {t('landing.businessSubtitle')}
             </p>
           </AnimatedSection>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              {
-                icon: Share2,
-                title: 'O Fim do "Como está a obra?"',
-                description: 'Entregue um Portal do Cliente exclusivo. Seu cliente acompanha fotos e evolução pelo celular, sem ver os custos. Você ganha confiança e paz.',
-              },
-              {
-                icon: ShoppingCart,
-                title: 'Compras Inteligentes',
-                description: 'Tem 5 obras? O sistema unifica a lista de materiais de todas elas. Cote 500 sacos de cimento de uma vez e aumente sua margem de lucro.',
-              },
-              {
-                icon: PieChart,
-                title: 'Lucro em Tempo Real',
-                description: 'Dashboard de Lucratividade. Saiba exatamente qual obra está dando dinheiro e qual está consumindo seu caixa.',
-              },
+              { icon: Share2, title: t('landing.biz1Title'), description: t('landing.biz1Desc') },
+              { icon: ShoppingCart, title: t('landing.biz2Title'), description: t('landing.biz2Desc') },
+              { icon: PieChart, title: t('landing.biz3Title'), description: t('landing.biz3Desc') },
             ].map((item, index) => (
               <AnimatedSection key={index} animation="scaleUp" delay={index * 150}>
                 <Card className="h-full border-violet-500/20 hover:shadow-xl hover:shadow-violet-500/5 transition-all">
@@ -751,7 +614,7 @@ export function LandingPage() {
             <Link to="/portal/demo">
               <Button variant="outline" className="gap-2 border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10">
                 <Smartphone className="w-4 h-4" />
-                Ver demonstração do Portal do Cliente
+                {t('landing.bizPortalDemo')}
               </Button>
             </Link>
           </AnimatedSection>
@@ -763,10 +626,10 @@ export function LandingPage() {
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Quanto custa <span className="text-primary">perder dinheiro</span> em obra?
+              {t('landing.pricingTitle')} <span className="text-primary">{t('landing.pricingTitleHighlight')}</span> {t('landing.pricingTitleEnd')}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Cada vale sem controle, cada medição no achismo, é dinheiro que sai do seu bolso. Escolha o plano que blinda seu caixa.
+              {t('landing.pricingSubtitle')}
             </p>
           </AnimatedSection>
           
@@ -803,7 +666,7 @@ export function LandingPage() {
                       <span className="text-muted-foreground">{plan.period}</span>
                     </div>
                     {plan.premium && (
-                      <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 mb-2">Preço promocional de lançamento</p>
+                      <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 mb-2">{t('landing.promoLabel')}</p>
                     )}
                     <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
                     
@@ -844,7 +707,7 @@ export function LandingPage() {
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Quem usa, <span className="text-primary">recomenda</span>
+              {t('landing.testimonialsTitle')} <span className="text-primary">{t('landing.testimonialsTitleHighlight')}</span>
             </h2>
           </AnimatedSection>
           
@@ -881,7 +744,7 @@ export function LandingPage() {
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Dúvidas <span className="text-primary">Frequentes</span>
+              {t('landing.faqTitle')} <span className="text-primary">{t('landing.faqTitleHighlight')}</span>
             </h2>
           </AnimatedSection>
           
@@ -911,22 +774,22 @@ export function LandingPage() {
         <div className="container text-center">
           <AnimatedSection animation="scaleUp">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Assuma o controle total do seu estoque e do seu dinheiro
+              {t('landing.ctaTitle')}
             </h2>
             <p className="text-lg opacity-80 mb-8 max-w-xl mx-auto">
-              Chega de planilhas, papéis perdidos e furos de caixa. Comece agora, é grátis.
+              {t('landing.ctaSubtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/auth?mode=signup">
                 <Button size="lg" variant="default" className="gap-2 text-lg px-8 h-14">
-                  Criar Conta Gratuita
+                  {t('landing.ctaButton')}
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
               <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                 <Button size="lg" variant="secondary" className="gap-2 text-lg px-8 h-14 bg-[#25D366] hover:bg-[#20bd5a] text-white border-0">
                   <MessageCircle className="w-5 h-5" />
-                  Falar no WhatsApp
+                  {t('landing.ctaWhatsapp')}
                 </Button>
               </a>
             </div>
@@ -946,15 +809,15 @@ export function LandingPage() {
             </div>
             
             <p className="text-sm opacity-60">
-              © {new Date().getFullYear()} Obra Certa. Todos os direitos reservados.
+              © {new Date().getFullYear()} Obra Certa. {t('landing.footerRights')}
             </p>
             
             <div className="flex gap-6">
               <a href="#" className="text-sm opacity-60 hover:opacity-100 transition-opacity">
-                Termos de Uso
+                {t('landing.footerTerms')}
               </a>
               <a href="#" className="text-sm opacity-60 hover:opacity-100 transition-opacity">
-                Privacidade
+                {t('landing.footerPrivacy')}
               </a>
               <a 
                 href={WHATSAPP_LINK}
@@ -962,7 +825,7 @@ export function LandingPage() {
                 rel="noopener noreferrer"
                 className="text-sm opacity-60 hover:opacity-100 transition-opacity"
               >
-                Suporte WhatsApp
+                {t('landing.footerSupport')}
               </a>
             </div>
           </div>
