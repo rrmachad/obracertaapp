@@ -1,0 +1,120 @@
+{
+  "app": {
+    "name": "Obra Certa",
+    "tagline": "Construction Management Made Simple"
+  },
+  "nav": {
+    "purchases": "Purchases",
+    "profitability": "Profitability",
+    "admin": "Admin",
+    "pin": "PIN",
+    "login": "Log In",
+    "signup": "Start Free",
+    "logout": "Sign Out",
+    "team": "Team"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "searchPlaceholder": "Search projects...",
+    "newWork": "New Project",
+    "noWorksFound": "No projects found",
+    "tryAnotherSearch": "Try a different search term",
+    "noWorksRegistered": "No projects registered",
+    "waitingAccess": "Waiting for access",
+    "askOwner": "Ask the owner to share a project with you",
+    "startAdding": "Start by adding your first project"
+  },
+  "obra": {
+    "notFound": "Project not found",
+    "backToHome": "Back to home",
+    "overallProgress": "Overall progress",
+    "editWork": "Edit Project",
+    "manageAccess": "Manage Access",
+    "clientPortal": "Client Portal",
+    "markPlanning": "Mark as Planning",
+    "markInProgress": "Mark as In Progress",
+    "pauseWork": "Pause Project",
+    "markCompleted": "Mark as Completed",
+    "deleteWork": "Delete Project",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "deleted": "Project deleted",
+    "deleteError": "Error deleting",
+    "tryAgain": "Try again.",
+    "statusUpdated": "Status updated",
+    "updateError": "Error updating"
+  },
+  "tabs": {
+    "schedule": "Schedule",
+    "financial": "Financial",
+    "inventory": "Inventory",
+    "diary": "Daily Log"
+  },
+  "status": {
+    "planning": "Planning",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "paused": "Paused"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "subtitle": "Complete view of your business",
+    "refreshData": "Refresh data",
+    "overview": "Overview",
+    "works": "Projects",
+    "activity": "Activity",
+    "audit": "Audit",
+    "users": "Users",
+    "settings": "Settings"
+  },
+  "purchases": {
+    "title": "Purchasing Module",
+    "exportPdf": "Export PDF",
+    "belowMinimum": "{{count}} material below minimum",
+    "belowMinimum_plural": "{{count}} materials below minimum",
+    "allWorks": "Across all your projects",
+    "searchPlaceholder": "Search material or category...",
+    "stockOk": "Stock is up to date!",
+    "stockOkDesc": "No material is below the minimum stock level.",
+    "needs": "Needs: {{qty}} {{unit}}",
+    "current": "Current: {{current}} / Min: {{min}}",
+    "item": "item",
+    "items": "items",
+    "pdfTitle": "Material Quotation List",
+    "pdfGenerated": "Generated on {{date}} at {{time}}",
+    "pdfItemsNeeded": "{{count}} items needed",
+    "material": "Material",
+    "qtyNeeded": "Qty Needed",
+    "unit": "Unit",
+    "work": "Project"
+  },
+  "profitability": {
+    "title": "Profitability Dashboard",
+    "totalContract": "Total Contracted",
+    "totalProfit": "Total Profit",
+    "overallRoi": "Overall ROI",
+    "profitByWork": "Profit by Project",
+    "noData": "No data available",
+    "noDataDesc": "Add contract values to schedule items to see profitability.",
+    "detailByWork": "Detail by Project",
+    "contract": "Contract",
+    "costs": "Costs",
+    "profit": "Profit"
+  },
+  "breadcrumb": {
+    "dashboard": "Dashboard",
+    "purchases": "Purchases",
+    "profitability": "Profitability"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "noCategory": "No Category"
+  }
+}

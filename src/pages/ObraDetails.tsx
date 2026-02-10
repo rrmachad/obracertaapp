@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users, Home, ChevronRight, DollarSign, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -27,14 +28,8 @@ import { useObraAccess } from '@/hooks/useUserInvites';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { ObraStatus } from '@/types/database';
 
-const statusConfig: Record<ObraStatus, { label: string; className: string }> = {
-  planejamento: { label: 'Planejamento', className: 'bg-muted text-muted-foreground' },
-  em_andamento: { label: 'Em Andamento', className: 'bg-primary text-primary-foreground' },
-  concluida: { label: 'Concluída', className: 'bg-success text-success-foreground' },
-  pausada: { label: 'Pausada', className: 'bg-warning text-warning-foreground' },
-};
-
 export function ObraDetails() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -47,23 +42,23 @@ export function ObraDetails() {
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [portalDialogOpen, setPortalDialogOpen] = useState(false);
 
+  const statusConfig: Record<ObraStatus, { label: string; className: string }> = {
+    planejamento: { label: t('status.planning'), className: 'bg-muted text-muted-foreground' },
+    em_andamento: { label: t('status.inProgress'), className: 'bg-primary text-primary-foreground' },
+    concluida: { label: t('status.completed'), className: 'bg-success text-success-foreground' },
+    pausada: { label: t('status.paused'), className: 'bg-warning text-warning-foreground' },
+  };
+
   const handleDelete = async () => {
     if (!obra) return;
-    if (!confirm(`Tem certeza que deseja excluir "${obra.nome}"? Esta ação não pode ser desfeita.`)) return;
+    if (!confirm(t('obra.deleteConfirm', { name: obra.nome }))) return;
 
     try {
       await deleteObra.mutateAsync(obra.id);
-      toast({
-        title: 'Obra excluída',
-        description: obra.nome,
-      });
+      toast({ title: t('obra.deleted'), description: obra.nome });
       navigate('/dashboard');
     } catch (error) {
-      toast({
-        title: 'Erro ao excluir',
-        description: 'Tente novamente.',
-        variant: 'destructive',
-      });
+      toast({ title: t('obra.deleteError'), description: t('obra.tryAgain'), variant: 'destructive' });
     }
   };
 
@@ -72,16 +67,9 @@ export function ObraDetails() {
     try {
       await updateObra.mutateAsync({ id: obra.id, status });
       refetch();
-      toast({
-        title: 'Status atualizado',
-        description: statusConfig[status].label,
-      });
+      toast({ title: t('obra.statusUpdated'), description: statusConfig[status].label });
     } catch (error) {
-      toast({
-        title: 'Erro ao atualizar',
-        description: 'Tente novamente.',
-        variant: 'destructive',
-      });
+      toast({ title: t('obra.updateError'), description: t('obra.tryAgain'), variant: 'destructive' });
     }
   };
 
@@ -96,8 +84,8 @@ export function ObraDetails() {
   if (!obra) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <p className="text-lg text-muted-foreground mb-4">Obra não encontrada</p>
-        <Button onClick={() => navigate('/dashboard')}>Voltar ao início</Button>
+        <p className="text-lg text-muted-foreground mb-4">{t('obra.notFound')}</p>
+        <Button onClick={() => navigate('/dashboard')}>{t('obra.backToHome')}</Button>
       </div>
     );
   }
@@ -108,83 +96,52 @@ export function ObraDetails() {
     <div className="min-h-screen bg-background">
       {/* Header com foto */}
       <header className="relative">
-        {/* Foto de capa */}
         <div className="h-40 bg-muted">
           {obra.foto_capa ? (
-            <img 
-              src={obra.foto_capa} 
-              alt={obra.nome}
-              className="w-full h-full object-cover"
-            />
+            <img src={obra.foto_capa} alt={obra.nome} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/30 to-secondary/30" />
           )}
         </div>
 
-        {/* Botões sobre a foto */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-          <Button
-            variant="default"
-            size="icon"
-            onClick={() => navigate('/dashboard')}
-            className="bg-primary shadow-lg hover:bg-primary/90"
-          >
+          <Button variant="default" size="icon" onClick={() => navigate('/dashboard')} className="bg-primary shadow-lg hover:bg-primary/90">
             <ArrowLeft className="w-5 h-5 text-primary-foreground" />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="default"
-                size="icon"
-                className="bg-primary shadow-lg hover:bg-primary/90"
-              >
+              <Button variant="default" size="icon" className="bg-primary shadow-lg hover:bg-primary/90">
                 <MoreVertical className="w-5 h-5 text-primary-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                <Pencil className="w-4 h-4 mr-2" />
-                Editar Obra
+                <Pencil className="w-4 h-4 mr-2" /> {t('obra.editWork')}
               </DropdownMenuItem>
               {canManageUsers && (
                 <DropdownMenuItem onClick={() => setAcessosDialogOpen(true)}>
-                  <Users className="w-4 h-4 mr-2" />
-                  Gerenciar Acessos
+                  <Users className="w-4 h-4 mr-2" /> {t('obra.manageAccess')}
                 </DropdownMenuItem>
               )}
               {limits.canAccessPortal && (
                 <DropdownMenuItem onClick={() => setPortalDialogOpen(true)}>
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Portal do Cliente
+                  <Share2 className="w-4 h-4 mr-2" /> {t('obra.clientPortal')}
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleStatusChange('planejamento')}>
-                Marcar como Planejamento
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusChange('em_andamento')}>
-                Marcar como Em Andamento
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusChange('pausada')}>
-                Pausar Obra
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusChange('concluida')}>
-                Marcar como Concluída
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusChange('planejamento')}>{t('obra.markPlanning')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusChange('em_andamento')}>{t('obra.markInProgress')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusChange('pausada')}>{t('obra.pauseWork')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleStatusChange('concluida')}>{t('obra.markCompleted')}</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={handleDelete}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Excluir Obra
+              <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                <Trash2 className="w-4 h-4 mr-2" /> {t('obra.deleteWork')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
-        {/* Info da obra */}
         <div className="container -mt-8 relative z-10">
           <div className="bg-card rounded-lg shadow-lg p-4 border">
             <div className="flex items-start justify-between mb-2">
@@ -194,7 +151,7 @@ export function ObraDetails() {
             <p className="text-sm text-muted-foreground mb-3">{obra.endereco}</p>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Progresso geral</span>
+                <span className="text-muted-foreground">{t('obra.overallProgress')}</span>
                 <span className="font-bold text-primary">{obra.progresso}%</span>
               </div>
               <Progress value={obra.progresso} className="h-3" />
@@ -207,18 +164,13 @@ export function ObraDetails() {
       <nav className="container py-3">
         <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <li>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-1 hover:text-foreground transition-colors"
-            >
+            <button onClick={() => navigate('/dashboard')} className="flex items-center gap-1 hover:text-foreground transition-colors">
               <Home className="w-3.5 h-3.5" />
-              <span>Dashboard</span>
+              <span>{t('breadcrumb.dashboard')}</span>
             </button>
           </li>
           <li><ChevronRight className="w-3.5 h-3.5" /></li>
-          <li className="text-foreground font-medium truncate max-w-[200px]">
-            {obra.nome}
-          </li>
+          <li className="text-foreground font-medium truncate max-w-[200px]">{obra.nome}</li>
         </ol>
       </nav>
 
@@ -228,26 +180,25 @@ export function ObraDetails() {
           <TabsList className="grid w-full grid-cols-4 h-14">
             <TabsTrigger value="cronograma" className="flex flex-col gap-0.5 h-full">
               <ClipboardList className="w-5 h-5" />
-              <span className="text-xs">Cronograma</span>
+              <span className="text-xs">{t('tabs.schedule')}</span>
             </TabsTrigger>
             <TabsTrigger value="financeiro" className="flex flex-col gap-0.5 h-full">
               <DollarSign className="w-5 h-5" />
-              <span className="text-xs">Financeiro</span>
+              <span className="text-xs">{t('tabs.financial')}</span>
             </TabsTrigger>
             <TabsTrigger value="estoque" className="flex flex-col gap-0.5 h-full">
               <Package className="w-5 h-5" />
-              <span className="text-xs">Estoque</span>
+              <span className="text-xs">{t('tabs.inventory')}</span>
             </TabsTrigger>
             <TabsTrigger value="diario" className="flex flex-col gap-0.5 h-full">
               <Calendar className="w-5 h-5" />
-              <span className="text-xs">Diário</span>
+              <span className="text-xs">{t('tabs.diary')}</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="cronograma" className="mt-4">
             <CronogramaTab obraId={obra.id} />
           </TabsContent>
-
           <TabsContent value="financeiro" className="mt-4">
             {limits.canAccessFinanceiro ? (
               <FinanceiroTab obraId={obra.id} retencaoPercentual={obra.retencao_tecnica_percentual ?? 5} obraNome={obra.nome} isAdmin={isAdmin} />
@@ -255,36 +206,20 @@ export function ObraDetails() {
               <FeatureBlockedOverlay featureKey="financeiro" onUpgradeClick={() => setUpgradeDialogOpen(true)} />
             )}
           </TabsContent>
-
           <TabsContent value="estoque" className="mt-4">
             <EstoqueTab obraId={obra.id} onUpgradeClick={() => setUpgradeDialogOpen(true)} />
           </TabsContent>
-
           <TabsContent value="diario" className="mt-4">
             <DiarioTab obraId={obra.id} onUpgradeClick={() => setUpgradeDialogOpen(true)} />
           </TabsContent>
         </Tabs>
       </main>
 
-      {/* Dialog de edição */}
       {obra && (
         <>
-          <EditarObraDialog
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
-            obra={obra}
-            onSuccess={refetch}
-          />
-          <GerenciarAcessosDialog
-            open={acessosDialogOpen}
-            onOpenChange={setAcessosDialogOpen}
-            obraId={obra.id}
-            obraNome={obra.nome}
-          />
-          <UpgradePlanoDialog
-            open={upgradeDialogOpen}
-            onOpenChange={setUpgradeDialogOpen}
-          />
+          <EditarObraDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} obra={obra} onSuccess={refetch} />
+          <GerenciarAcessosDialog open={acessosDialogOpen} onOpenChange={setAcessosDialogOpen} obraId={obra.id} obraNome={obra.nome} />
+          <UpgradePlanoDialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen} />
           <PortalClienteDialog
             open={portalDialogOpen}
             onOpenChange={setPortalDialogOpen}
