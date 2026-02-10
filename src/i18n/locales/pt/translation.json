@@ -1,0 +1,120 @@
+{
+  "app": {
+    "name": "Obra Certa",
+    "tagline": "Gestão de Obras Descomplicada"
+  },
+  "nav": {
+    "purchases": "Compras",
+    "profitability": "Lucratividade",
+    "admin": "Admin",
+    "pin": "PIN",
+    "login": "Entrar",
+    "signup": "Começar Grátis",
+    "logout": "Sair",
+    "team": "Equipe"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "searchPlaceholder": "Buscar obras...",
+    "newWork": "Nova Obra",
+    "noWorksFound": "Nenhuma obra encontrada",
+    "tryAnotherSearch": "Tente outro termo de busca",
+    "noWorksRegistered": "Nenhuma obra cadastrada",
+    "waitingAccess": "Aguardando acesso",
+    "askOwner": "Peça ao responsável para compartilhar uma obra com você",
+    "startAdding": "Comece adicionando sua primeira obra"
+  },
+  "obra": {
+    "notFound": "Obra não encontrada",
+    "backToHome": "Voltar ao início",
+    "overallProgress": "Progresso geral",
+    "editWork": "Editar Obra",
+    "manageAccess": "Gerenciar Acessos",
+    "clientPortal": "Portal do Cliente",
+    "markPlanning": "Marcar como Planejamento",
+    "markInProgress": "Marcar como Em Andamento",
+    "pauseWork": "Pausar Obra",
+    "markCompleted": "Marcar como Concluída",
+    "deleteWork": "Excluir Obra",
+    "deleteConfirm": "Tem certeza que deseja excluir \"{{name}}\"? Esta ação não pode ser desfeita.",
+    "deleted": "Obra excluída",
+    "deleteError": "Erro ao excluir",
+    "tryAgain": "Tente novamente.",
+    "statusUpdated": "Status atualizado",
+    "updateError": "Erro ao atualizar"
+  },
+  "tabs": {
+    "schedule": "Cronograma",
+    "financial": "Financeiro",
+    "inventory": "Estoque",
+    "diary": "Diário"
+  },
+  "status": {
+    "planning": "Planejamento",
+    "inProgress": "Em Andamento",
+    "completed": "Concluída",
+    "paused": "Pausada"
+  },
+  "admin": {
+    "title": "Painel Admin",
+    "subtitle": "Visão completa do seu negócio",
+    "refreshData": "Atualizar dados",
+    "overview": "Visão Geral",
+    "works": "Obras",
+    "activity": "Atividade",
+    "audit": "Auditoria",
+    "users": "Usuários",
+    "settings": "Configurações"
+  },
+  "purchases": {
+    "title": "Módulo de Compras",
+    "exportPdf": "Exportar PDF",
+    "belowMinimum": "{{count}} material abaixo do mínimo",
+    "belowMinimum_plural": "{{count}} materiais abaixo do mínimo",
+    "allWorks": "Em todas as suas obras",
+    "searchPlaceholder": "Buscar material ou categoria...",
+    "stockOk": "Estoque em dia!",
+    "stockOkDesc": "Nenhum material está abaixo do estoque mínimo.",
+    "needs": "Precisa: {{qty}} {{unit}}",
+    "current": "Atual: {{current}} / Min: {{min}}",
+    "item": "item",
+    "items": "itens",
+    "pdfTitle": "Lista de Cotação de Materiais",
+    "pdfGenerated": "Gerado em {{date}} às {{time}}",
+    "pdfItemsNeeded": "{{count}} itens necessários",
+    "material": "Material",
+    "qtyNeeded": "Qtd Necessária",
+    "unit": "Unidade",
+    "work": "Obra"
+  },
+  "profitability": {
+    "title": "Dashboard de Lucratividade",
+    "totalContract": "Total Contratado",
+    "totalProfit": "Lucro Total",
+    "overallRoi": "ROI Geral",
+    "profitByWork": "Lucro por Obra",
+    "noData": "Nenhum dado disponível",
+    "noDataDesc": "Cadastre valores de contrato nos itens do cronograma para ver a lucratividade.",
+    "detailByWork": "Detalhamento por Obra",
+    "contract": "Contrato",
+    "costs": "Custos",
+    "profit": "Lucro"
+  },
+  "breadcrumb": {
+    "dashboard": "Dashboard",
+    "purchases": "Compras",
+    "profitability": "Lucratividade"
+  },
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "close": "Fechar",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "noCategory": "Sem Categoria"
+  }
+}

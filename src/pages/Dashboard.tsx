@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
 import { EntrarComPinDialog } from '@/components/admin/EntrarComPinDialog';
 import { PlanoResumoCard } from '@/components/admin/PlanoResumoCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { SuporteVipButton } from '@/components/SuporteVipButton';
 import { useObras } from '@/hooks/useObras';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,6 +19,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 
 export function Dashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { obras, isLoading, isInvitedUser, ownerUserId } = useObras();
   const { signOut, user } = useAuth();
@@ -44,8 +47,8 @@ export function Dashboard() {
                 <HardHat className="w-5 h-5 text-primary-foreground" />
               </div>
               <div className="min-w-0">
-                <h1 className="font-bold text-base leading-tight">Obra Certa</h1>
-                <p className="text-[10px] text-secondary-foreground/70 hidden sm:block">Gestão de Obras Descomplicada</p>
+                <h1 className="font-bold text-base leading-tight">{t('app.name')}</h1>
+                <p className="text-[10px] text-secondary-foreground/70 hidden sm:block">{t('app.tagline')}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -64,9 +67,10 @@ export function Dashboard() {
               )}
               {isInvitedUser && (
                 <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground text-[10px] px-1.5">
-                  Equipe · {planName}
+                  {t('nav.team')} · {planName}
                 </Badge>
               )}
+              <LanguageSwitcher variant="ghost" className="text-secondary-foreground hover:bg-secondary-foreground/10" />
               <ThemeToggle />
               <Button
                 variant="ghost"
@@ -88,7 +92,7 @@ export function Dashboard() {
                 className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5 h-8 px-2 shrink-0 text-xs"
               >
                 <ShoppingCart className="w-4 h-4" />
-                <span className="hidden xs:inline">Compras</span>
+                <span className="hidden xs:inline">{t('nav.purchases')}</span>
               </Button>
             )}
             {!isInvitedUser && limits.canAccessDashboardLucratividade && (
@@ -99,7 +103,7 @@ export function Dashboard() {
                 className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5 h-8 px-2 shrink-0 text-xs"
               >
                 <TrendingUp className="w-4 h-4" />
-                <span className="hidden xs:inline">Lucratividade</span>
+                <span className="hidden xs:inline">{t('nav.profitability')}</span>
               </Button>
             )}
             {!isInvitedUser && (
@@ -110,7 +114,7 @@ export function Dashboard() {
                 className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5 h-8 px-2 shrink-0 text-xs"
               >
                 <LayoutDashboard className="w-4 h-4" />
-                <span className="hidden xs:inline">Admin</span>
+                <span className="hidden xs:inline">{t('nav.admin')}</span>
               </Button>
             )}
             <Button
@@ -120,7 +124,7 @@ export function Dashboard() {
               className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5 h-8 px-2 shrink-0 text-xs"
             >
               <Key className="w-4 h-4" />
-              <span className="hidden xs:inline">PIN</span>
+              <span className="hidden xs:inline">{t('nav.pin')}</span>
             </Button>
           </div>
         </div>
@@ -135,7 +139,7 @@ export function Dashboard() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Buscar obras..."
+            placeholder={t('dashboard.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 h-12 text-base"
@@ -153,15 +157,15 @@ export function Dashboard() {
               <HardHat className="w-10 h-10 text-muted-foreground" />
             </div>
             <h2 className="text-xl font-semibold mb-2">
-              {searchTerm ? 'Nenhuma obra encontrada' : isInvitedUser ? 'Aguardando acesso' : 'Nenhuma obra cadastrada'}
+              {searchTerm ? t('dashboard.noWorksFound') : isInvitedUser ? t('dashboard.waitingAccess') : t('dashboard.noWorksRegistered')}
             </h2>
             <p className="text-muted-foreground mb-6">
-              {searchTerm ? 'Tente outro termo de busca' : isInvitedUser ? 'Peça ao responsável para compartilhar uma obra com você' : 'Comece adicionando sua primeira obra'}
+              {searchTerm ? t('dashboard.tryAnotherSearch') : isInvitedUser ? t('dashboard.askOwner') : t('dashboard.startAdding')}
             </p>
             {!searchTerm && !isInvitedUser && (
               <Button onClick={() => setDialogOpen(true)} size="lg">
                 <Plus className="w-5 h-5 mr-2" />
-                Nova Obra
+                {t('dashboard.newWork')}
               </Button>
             )}
           </div>
