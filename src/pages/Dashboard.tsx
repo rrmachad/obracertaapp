@@ -36,88 +36,92 @@ export function Dashboard() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-secondary text-secondary-foreground shadow-md">
-        <div className="container py-4">
+        <div className="container py-3">
+          {/* Linha 1: Logo + ações principais */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <HardHat className="w-6 h-6 text-primary-foreground" />
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center shrink-0">
+                <HardHat className="w-5 h-5 text-primary-foreground" />
               </div>
-              <div>
-                <h1 className="font-bold text-lg">Obra Certa</h1>
-                <p className="text-xs text-secondary-foreground/70">Gestão de Obras Descomplicada</p>
+              <div className="min-w-0">
+                <h1 className="font-bold text-base leading-tight">Obra Certa</h1>
+                <p className="text-[10px] text-secondary-foreground/70 hidden sm:block">Gestão de Obras Descomplicada</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {!isInvitedUser && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setUpgradeDialogOpen(true)}
-                  className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5"
+                  className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1 px-1.5 h-8"
                 >
-                  <Crown className="w-4 h-4" />
-                  <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground">
+                  <Crown className="w-4 h-4 shrink-0" />
+                  <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground text-[10px] px-1.5">
                     {planName}
                   </Badge>
                 </Button>
               )}
               {isInvitedUser && (
-                <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground">
+                <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground text-[10px] px-1.5">
                   Equipe · {planName}
                 </Badge>
-              )}
-              {!isInvitedUser && limits.canAccessCompras && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/compras')}
-                  className="text-secondary-foreground hover:bg-secondary-foreground/10"
-                  title="Módulo de Compras"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                </Button>
-              )}
-              {!isInvitedUser && limits.canAccessDashboardLucratividade && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/lucratividade')}
-                  className="text-secondary-foreground hover:bg-secondary-foreground/10"
-                  title="Dashboard de Lucratividade"
-                >
-                  <TrendingUp className="w-5 h-5" />
-                </Button>
-              )}
-              {!isInvitedUser && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/admin')}
-                  className="text-secondary-foreground hover:bg-secondary-foreground/10"
-                  title="Painel Admin"
-                >
-                  <LayoutDashboard className="w-5 h-5" />
-                </Button>
               )}
               <ThemeToggle />
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setPinDialogOpen(true)}
-                className="text-secondary-foreground hover:bg-secondary-foreground/10"
-                title="Entrar com PIN"
-              >
-                <Key className="w-5 h-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
                 onClick={signOut}
-                className="text-secondary-foreground hover:bg-secondary-foreground/10"
+                className="text-secondary-foreground hover:bg-secondary-foreground/10 w-8 h-8"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4" />
               </Button>
             </div>
+          </div>
+          {/* Linha 2: Ícones de navegação */}
+          <div className="flex items-center gap-1 mt-2 -mb-1 overflow-x-auto">
+            {!isInvitedUser && limits.canAccessCompras && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/compras')}
+                className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5 h-8 px-2 shrink-0 text-xs"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                <span className="hidden xs:inline">Compras</span>
+              </Button>
+            )}
+            {!isInvitedUser && limits.canAccessDashboardLucratividade && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/lucratividade')}
+                className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5 h-8 px-2 shrink-0 text-xs"
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span className="hidden xs:inline">Lucratividade</span>
+              </Button>
+            )}
+            {!isInvitedUser && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/admin')}
+                className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5 h-8 px-2 shrink-0 text-xs"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span className="hidden xs:inline">Admin</span>
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPinDialogOpen(true)}
+              className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5 h-8 px-2 shrink-0 text-xs"
+            >
+              <Key className="w-4 h-4" />
+              <span className="hidden xs:inline">PIN</span>
+            </Button>
           </div>
         </div>
       </header>
