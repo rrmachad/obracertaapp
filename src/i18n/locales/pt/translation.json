@@ -116,5 +116,26 @@
     "confirm": "Confirmar",
     "back": "Voltar",
     "noCategory": "Sem Categoria"
+  },
+  "novaObra": {
+    "title": "Nova Obra",
+    "description": "Cadastre uma nova obra para acompanhar seu progresso.",
+    "requiredFields": "Campos obrigatórios",
+    "fillNameAddress": "Preencha o nome e endereço da obra.",
+    "created": "Obra criada!",
+    "createdDesc": "\"{{name}}\" foi adicionada com sucesso.",
+    "error": "Erro ao criar obra",
+    "errorDesc": "Tente novamente mais tarde.",
+    "limitReached": "Limite do plano Free atingido!",
+    "limitDesc": "Você já criou {{used}} de {{max}} obra(s) permitida(s).",
+    "photoLabel": "Foto do terreno/obra",
+    "addPhoto": "Toque para adicionar foto",
+    "nameLabel": "Nome da obra",
+    "namePlaceholder": "Ex: Casa Residencial Silva",
+    "addressLabel": "Endereço",
+    "addressPlaceholder": "Rua, número, bairro",
+    "creating": "Criando...",
+    "create": "Criar Obra",
+    "upgrade": "Fazer Upgrade"
   }
 }

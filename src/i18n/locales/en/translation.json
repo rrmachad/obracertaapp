@@ -116,5 +116,26 @@
     "confirm": "Confirm",
     "back": "Back",
     "noCategory": "No Category"
+  },
+  "novaObra": {
+    "title": "New Project",
+    "description": "Register a new project to track its progress.",
+    "requiredFields": "Required fields",
+    "fillNameAddress": "Please fill in the project name and address.",
+    "created": "Project created!",
+    "createdDesc": "\"{{name}}\" was added successfully.",
+    "error": "Error creating project",
+    "errorDesc": "Please try again later.",
+    "limitReached": "Free plan limit reached!",
+    "limitDesc": "You have created {{used}} of {{max}} allowed project(s).",
+    "photoLabel": "Site/project photo",
+    "addPhoto": "Tap to add photo",
+    "nameLabel": "Project name",
+    "namePlaceholder": "e.g. Smith Residential Home",
+    "addressLabel": "Address",
+    "addressPlaceholder": "Street, number, neighborhood",
+    "creating": "Creating...",
+    "create": "Create Project",
+    "upgrade": "Upgrade Plan"
   }
 }
