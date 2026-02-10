@@ -451,18 +451,18 @@ export function LandingPage() {
               </p>
 
               {/* Bullet Points */}
-              <div className="flex flex-col gap-3 mb-8 max-w-md mx-auto lg:mx-0">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  Cronograma e Estoque Integrados
+              <div className="flex flex-col gap-3 mb-8 max-w-sm sm:max-w-md mx-auto lg:mx-0">
+                <div className="flex items-start gap-2 text-sm font-medium">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Cronograma e Estoque Integrados</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  Gestão Financeira com Medição
+                <div className="flex items-start gap-2 text-sm font-medium">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Gestão Financeira com Medição</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <CheckCircle className="w-5 h-5 text-violet-600 dark:text-violet-400 flex-shrink-0" />
-                  <span><strong>NOVO:</strong> Portal do Cliente & Módulo de Compras</span>
+                <div className="flex items-start gap-2 text-sm font-medium">
+                  <CheckCircle className="w-5 h-5 text-violet-600 dark:text-violet-400 flex-shrink-0 mt-0.5" />
+                  <span><strong>NOVO:</strong> Portal do Cliente &amp; Compras</span>
                 </div>
               </div>
 
