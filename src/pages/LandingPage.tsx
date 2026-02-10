@@ -22,7 +22,12 @@ import {
   ShieldCheck,
   FileText,
   Calculator,
-  Receipt
+  Receipt,
+  Smartphone,
+  ShoppingCart,
+  PieChart,
+  TrendingUp,
+  Share2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -247,6 +252,123 @@ function CountUp({ target, active }: { target: number; active: boolean }) {
   return <>{value}</>;
 }
 
+/* ─── Business Phone Mockup ─── */
+function PhoneMockup() {
+  return (
+    <div className="relative w-72 h-[600px] mx-auto animate-[float_6s_ease-in-out_infinite]">
+      {/* Float animation defined inline via style */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-12px); }
+        }
+      `}</style>
+
+      {/* Phone Frame */}
+      <div className="absolute inset-0 bg-foreground/90 rounded-[3rem] shadow-2xl ring-1 ring-foreground/20" />
+      {/* Glass reflection */}
+      <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
+
+      {/* Screen */}
+      <div className="absolute inset-[6px] bg-background rounded-[2.6rem] overflow-hidden">
+        <div className="p-4 pt-14 h-full flex flex-col gap-3">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-muted-foreground">Bom dia 👋</p>
+              <p className="text-sm font-bold">Construtora Silva</p>
+            </div>
+            <div className="relative">
+              <Bell className="w-5 h-5 text-muted-foreground" />
+              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-background" />
+            </div>
+          </div>
+
+          {/* Lucro Card */}
+          <div className="bg-primary/10 rounded-xl p-3 border border-primary/20">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[10px] font-medium text-muted-foreground">Lucratividade</p>
+              <Badge className="text-[9px] px-1.5 py-0 h-4 bg-primary/20 text-primary border-0">
+                +22%
+              </Badge>
+            </div>
+            {/* Mini chart */}
+            <div className="flex items-end gap-[3px] h-10">
+              {[30, 45, 35, 55, 50, 65, 60, 75, 70, 85, 80, 92].map((h, i) => (
+                <div
+                  key={i}
+                  className="flex-1 bg-primary/60 rounded-t-sm"
+                  style={{ height: `${h}%` }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Obra Card */}
+          <div className="bg-card border rounded-xl p-3">
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <p className="font-semibold text-xs">Residencial Lote 14</p>
+                <p className="text-[10px] text-muted-foreground">Fase: Acabamento</p>
+              </div>
+              <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-0">
+                No Prazo
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-2 flex-1 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-primary rounded-full transition-all" style={{ width: '65%' }} />
+              </div>
+              <span className="text-[10px] font-bold text-primary">65%</span>
+            </div>
+          </div>
+
+          {/* Portal do Cliente card */}
+          <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                <Smartphone className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-[10px] font-semibold">Portal do Cliente</p>
+                <p className="text-[9px] text-muted-foreground">Visitado há 5min</p>
+              </div>
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+            </div>
+          </div>
+
+          {/* Quick stats row */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-muted/50 rounded-lg p-2 text-center">
+              <p className="text-lg font-bold text-foreground">5</p>
+              <p className="text-[9px] text-muted-foreground">Obras ativas</p>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-2 text-center">
+              <p className="text-lg font-bold text-foreground">12</p>
+              <p className="text-[9px] text-muted-foreground">Colaboradores</p>
+            </div>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+        </div>
+
+        {/* FAB */}
+        <div className="absolute bottom-6 right-6 w-12 h-12 rounded-full bg-primary shadow-lg flex items-center justify-center">
+          <span className="text-primary-foreground text-2xl font-light">+</span>
+        </div>
+      </div>
+
+      {/* Dynamic Island */}
+      <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-foreground/90 rounded-full" />
+
+      {/* Decorative Elements */}
+      <div className="absolute -top-8 -right-8 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
+      <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-violet-500/10 rounded-full blur-2xl" />
+    </div>
+  );
+}
+
 export function LandingPage() {
   const counterRef = useRef<HTMLDivElement>(null);
   const [countersVisible, setCountersVisible] = useState(false);
@@ -309,7 +431,7 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* ═══════ HERO SECTION ═══════ */}
       <section className="py-16 md:py-24 overflow-hidden">
         <div className="container">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -319,13 +441,31 @@ export function LandingPage() {
                 +500 obras gerenciadas
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
-                Pare de Jogar Dinheiro Fora no{' '}
-                <span className="text-primary">Canteiro de Obras</span>
+                A única plataforma que{' '}
+                <span className="text-primary">Gerencia sua Obra</span>,{' '}
+                <span className="text-primary">Blinda seu Caixa</span> e{' '}
+                <span className="text-violet-600 dark:text-violet-400">Vende para seu Cliente</span>.
               </h1>
               <p className="text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
-                A ferramenta definitiva para gerenciar estoque, <strong>controlar pagamentos por medição</strong> e 
-                profissionalizar sua construtora. Elimine furos de caixa com adiantamentos e retenções automáticas.
+                Do controle de estoque ao Portal do Cliente exclusivo. O sistema completo para construtores que querem escalar sem perder o controle.
               </p>
+
+              {/* Bullet Points */}
+              <div className="flex flex-col gap-3 mb-8 max-w-md mx-auto lg:mx-0">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  Cronograma e Estoque Integrados
+                </div>
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  Gestão Financeira com Medição
+                </div>
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <CheckCircle className="w-5 h-5 text-violet-600 dark:text-violet-400 flex-shrink-0" />
+                  <span><strong>NOVO:</strong> Portal do Cliente & Módulo de Compras</span>
+                </div>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link to="/auth?mode=signup">
                   <Button size="lg" className="gap-2 text-lg px-8 h-14 w-full sm:w-auto">
@@ -346,69 +486,9 @@ export function LandingPage() {
               </p>
             </AnimatedSection>
             
-            {/* App Mockup */}
+            {/* App Mockup - Business Dashboard */}
             <AnimatedSection animation="fadeLeft" delay={200} className="relative mx-auto lg:mx-0">
-              <div className="relative w-72 h-[580px] mx-auto">
-                {/* Phone Frame */}
-                <div className="absolute inset-0 bg-secondary rounded-[3rem] shadow-2xl" />
-                <div className="absolute inset-2 bg-background rounded-[2.5rem] overflow-hidden">
-                  {/* Screen Content */}
-                  <div className="p-4 pt-12">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Bom dia, João</p>
-                        <p className="font-bold">Suas Obras</p>
-                      </div>
-                      <div className="w-10 h-10 rounded-full bg-primary/10" />
-                    </div>
-                    
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-2 gap-2 mb-4">
-                      <div className="bg-primary/10 rounded-xl p-3">
-                        <p className="text-xs text-muted-foreground">Em andamento</p>
-                        <p className="text-2xl font-bold text-primary">3</p>
-                      </div>
-                      <div className="bg-accent/20 rounded-xl p-3">
-                        <p className="text-xs text-muted-foreground">Progresso médio</p>
-                        <p className="text-2xl font-bold text-accent-foreground">67%</p>
-                      </div>
-                    </div>
-                    
-                    {/* Obra Card */}
-                    <div className="bg-card border rounded-xl p-3 mb-3">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-semibold text-sm">Residencial Aurora</p>
-                          <p className="text-xs text-muted-foreground">Fase: Acabamento</p>
-                        </div>
-                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">85%</Badge>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full bg-primary rounded-full" style={{ width: '85%' }} />
-                      </div>
-                    </div>
-                    
-                    <div className="bg-card border rounded-xl p-3">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-semibold text-sm">Casa João Paulo</p>
-                          <p className="text-xs text-muted-foreground">Fase: Estrutura</p>
-                        </div>
-                        <Badge variant="secondary" className="text-xs bg-accent/20 text-accent-foreground">45%</Badge>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full bg-accent rounded-full" style={{ width: '45%' }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* Notch */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-6 bg-secondary rounded-full" />
-              </div>
-              
-              {/* Decorative Elements */}
-              <div className="absolute -top-8 -right-8 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
-              <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-accent/10 rounded-full blur-2xl" />
+              <PhoneMockup />
             </AnimatedSection>
           </div>
         </div>
@@ -485,13 +565,11 @@ export function LandingPage() {
           
           <AnimatedSection animation="scaleUp" delay={200} className="max-w-4xl mx-auto">
             <div className="relative aspect-video bg-muted rounded-2xl overflow-hidden shadow-2xl border">
-              {/* Video Placeholder - Replace with actual video embed */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                 <div className="text-center">
                   <button 
                     className="w-20 h-20 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 mx-auto shadow-lg hover:scale-110 transition-transform"
                     onClick={() => {
-                      // TODO: Implement video modal or replace with YouTube embed
                       window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank');
                     }}
                   >
@@ -502,7 +580,6 @@ export function LandingPage() {
                 </div>
               </div>
               
-              {/* Decorative app screenshots */}
               <div className="absolute top-4 left-4 w-32 h-48 bg-card rounded-xl shadow-lg opacity-30 -rotate-6" />
               <div className="absolute bottom-4 right-4 w-32 h-48 bg-card rounded-xl shadow-lg opacity-30 rotate-6" />
             </div>
@@ -619,6 +696,65 @@ export function LandingPage() {
               </AnimatedSection>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ═══════ DIFERENCIAIS BUSINESS SECTION ═══════ */}
+      <section className="py-16 bg-violet-500/5 border-y border-violet-500/10">
+        <div className="container">
+          <AnimatedSection animation="fadeUp" className="text-center mb-12">
+            <Badge className="mb-4 bg-violet-600 text-white border-0 px-4 py-1.5">
+              👑 Plano Business
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Por que Construtoras que Crescem usam o{' '}
+              <span className="text-violet-600 dark:text-violet-400">Plano Business</span>?
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Funcionalidades exclusivas para quem quer escalar sem perder o controle.
+            </p>
+          </AnimatedSection>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {[
+              {
+                icon: Share2,
+                title: 'O Fim do "Como está a obra?"',
+                description: 'Entregue um Portal do Cliente exclusivo. Seu cliente acompanha fotos e evolução pelo celular, sem ver os custos. Você ganha confiança e paz.',
+              },
+              {
+                icon: ShoppingCart,
+                title: 'Compras Inteligentes',
+                description: 'Tem 5 obras? O sistema unifica a lista de materiais de todas elas. Cote 500 sacos de cimento de uma vez e aumente sua margem de lucro.',
+              },
+              {
+                icon: PieChart,
+                title: 'Lucro em Tempo Real',
+                description: 'Dashboard de Lucratividade. Saiba exatamente qual obra está dando dinheiro e qual está consumindo seu caixa.',
+              },
+            ].map((item, index) => (
+              <AnimatedSection key={index} animation="scaleUp" delay={index * 150}>
+                <Card className="h-full border-violet-500/20 hover:shadow-xl hover:shadow-violet-500/5 transition-all">
+                  <CardContent className="p-8 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-6">
+                      <item.icon className="w-8 h-8 text-violet-600 dark:text-violet-400" />
+                    </div>
+                    <h3 className="text-lg font-bold mb-3">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                  </CardContent>
+                </Card>
+              </AnimatedSection>
+            ))}
+          </div>
+
+          <AnimatedSection animation="fadeUp" delay={500} className="text-center mt-10">
+            <Link to="/portal/demo">
+              <Button variant="outline" className="gap-2 border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10">
+                <Smartphone className="w-4 h-4" />
+                Ver demonstração do Portal do Cliente
+              </Button>
+            </Link>
+          </AnimatedSection>
         </div>
       </section>
 
