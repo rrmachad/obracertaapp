@@ -67,6 +67,13 @@ export type Database = {
             referencedRelation: "obras_portal"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "adiantamentos_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
+          },
         ]
       }
       admin_action_logs: {
@@ -204,6 +211,13 @@ export type Database = {
             referencedRelation: "obras_portal"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cronograma_itens_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
+          },
         ]
       }
       diario_log: {
@@ -257,6 +271,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "obras_portal"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diario_log_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
           },
         ]
       }
@@ -387,6 +408,13 @@ export type Database = {
             referencedRelation: "obras_portal"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "materiais_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
+          },
         ]
       }
       medicoes: {
@@ -486,6 +514,13 @@ export type Database = {
             referencedRelation: "obras_portal"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "medicoes_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
+          },
         ]
       }
       movimentacao_estoque: {
@@ -566,6 +601,13 @@ export type Database = {
             referencedRelation: "obras_portal"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "obra_access_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
+          },
         ]
       }
       obra_pin: {
@@ -604,6 +646,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "obras_portal"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "obra_pin_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: true
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
           },
         ]
       }
@@ -773,6 +822,13 @@ export type Database = {
             referencedRelation: "obras_portal"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_invites_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
+          },
         ]
       }
       user_roles: {
@@ -804,6 +860,7 @@ export type Database = {
           id: string
           updated_at: string
           user_id: string
+          whatsapp: string | null
         }
         Insert: {
           created_at?: string
@@ -812,6 +869,7 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id: string
+          whatsapp?: string | null
         }
         Update: {
           created_at?: string
@@ -820,6 +878,7 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -860,6 +919,13 @@ export type Database = {
             referencedRelation: "obras_portal"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cronograma_itens_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
+          },
         ]
       }
       fotos_portal: {
@@ -884,6 +950,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "obras_portal"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diario_log_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
           },
         ]
       }
@@ -917,6 +990,16 @@ export type Database = {
           progresso?: number | null
           status?: Database["public"]["Enums"]["obra_status"] | null
           token_portal?: string | null
+        }
+        Relationships: []
+      }
+      portal_branding: {
+        Row: {
+          empresa_logo_url: string | null
+          empresa_nome: string | null
+          obra_id: string | null
+          token_portal: string | null
+          whatsapp: string | null
         }
         Relationships: []
       }
