@@ -7,6 +7,7 @@ export interface UserSettings {
   user_id: string;
   empresa_logo_url?: string;
   empresa_nome?: string;
+  whatsapp?: string;
   created_at: string;
   updated_at: string;
 }
@@ -31,7 +32,7 @@ export function useUserSettings() {
   });
 
   const updateSettings = useMutation({
-    mutationFn: async (updates: { empresa_logo_url?: string; empresa_nome?: string }) => {
+    mutationFn: async (updates: { empresa_logo_url?: string; empresa_nome?: string; whatsapp?: string }) => {
       // First try to update existing settings
       const { data: existing } = await supabase
         .from('user_settings')

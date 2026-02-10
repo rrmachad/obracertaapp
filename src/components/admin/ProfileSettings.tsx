@@ -6,7 +6,8 @@ import {
   Building, 
   Camera,
   Save,
-  Loader2
+  Loader2,
+  MessageCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,13 +24,13 @@ export function ProfileSettings() {
   const { toast } = useToast();
   
   const [empresaNome, setEmpresaNome] = useState(settings?.empresa_nome || '');
+  const [whatsapp, setWhatsapp] = useState(settings?.whatsapp || '');
   const [saving, setSaving] = useState(false);
 
   // Update local state when settings load
   useState(() => {
-    if (settings?.empresa_nome) {
-      setEmpresaNome(settings.empresa_nome);
-    }
+    if (settings?.empresa_nome) setEmpresaNome(settings.empresa_nome);
+    if (settings?.whatsapp) setWhatsapp(settings.whatsapp);
   });
 
   const handleSave = async () => {
@@ -37,6 +38,7 @@ export function ProfileSettings() {
     try {
       await updateSettings.mutateAsync({
         empresa_nome: empresaNome,
+        whatsapp: whatsapp,
       });
       toast({
         title: 'Configurações salvas!',
@@ -116,6 +118,22 @@ export function ProfileSettings() {
               onChange={(e) => setEmpresaNome(e.target.value)}
               placeholder="Sua construtora ou empresa"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp" className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-muted-foreground" />
+              WhatsApp (Portal do Cliente)
+            </Label>
+            <Input
+              id="whatsapp"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              placeholder="5511999999999"
+            />
+            <p className="text-xs text-muted-foreground">
+              Número com código do país (ex: 5511999999999). Aparece como botão no Portal do Cliente.
+            </p>
           </div>
         </div>
 

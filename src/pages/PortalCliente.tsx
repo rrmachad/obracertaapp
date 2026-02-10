@@ -24,9 +24,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-const WHATSAPP_NUMBER = '5511999999999';
-const WHATSAPP_MESSAGE = encodeURIComponent('Olá! Vim pelo Portal da Obra e gostaria de mais informações.');
-const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`;
+const DEFAULT_WHATSAPP_MESSAGE = 'Olá! Vim pelo Portal da Obra e gostaria de mais informações.';
 
 const statusIcons: Record<string, React.ReactNode> = {
   concluido: <CheckCircle className="w-5 h-5 text-emerald-500" />,
@@ -59,6 +57,21 @@ export function PortalCliente() {
         .select('*')
         .eq('token_portal', token)
         .eq('portal_ativo', true)
+        .maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+    enabled: !!token,
+  });
+
+  // Fetch branding (logo, empresa, whatsapp)
+  const brandingQuery = useQuery({
+    queryKey: ['portal-branding', token],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('portal_branding' as any)
+        .select('*')
+        .eq('token_portal', token)
         .maybeSingle();
       if (error) throw error;
       return data as any;
@@ -171,22 +184,31 @@ export function PortalCliente() {
   const totalFases = fases.length;
   const fasesConcluidas = fases.filter((f: any) => f.itens.every((i: any) => i.status === 'concluido')).length;
 
+  // Branding
+  const branding = brandingQuery.data;
+  const whatsappNumber = branding?.whatsapp?.replace(/\D/g, '') || '';
+  const whatsappLink = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(DEFAULT_WHATSAPP_MESSAGE)}`
+    : '';
+
   return (
     <div className="min-h-screen bg-background">
       {/* WhatsApp FAB */}
-      <a
-        href={WHATSAPP_LINK}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#20bd5a] rounded-full flex items-center justify-center shadow-xl transition-all hover:scale-110 group"
-        aria-label="Falar com o Engenheiro"
-        title="Falar com o Engenheiro"
-      >
-        <MessageCircle className="w-7 h-7 text-white" />
-        <span className="absolute right-full mr-3 bg-card text-foreground text-xs px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border">
-          Falar com o Engenheiro
-        </span>
-      </a>
+      {whatsappLink && (
+        <a
+          href={whatsappLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#20bd5a] rounded-full flex items-center justify-center shadow-xl transition-all hover:scale-110 group"
+          aria-label="Falar com o Engenheiro"
+          title="Falar com o Engenheiro"
+        >
+          <MessageCircle className="w-7 h-7 text-white" />
+          <span className="absolute right-full mr-3 bg-card text-foreground text-xs px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border">
+            Falar com o Engenheiro
+          </span>
+        </a>
+      )}
 
       {/* Hero Header */}
       <header className="relative">
@@ -196,9 +218,13 @@ export function PortalCliente() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
               <div className="container">
-                <div className="flex items-center gap-2 mb-1 text-white/80 text-sm">
-                  <Building2 className="w-4 h-4" />
-                  <span>Portal do Cliente</span>
+                <div className="flex items-center gap-3 mb-1">
+                  {branding?.empresa_logo_url ? (
+                    <img src={branding.empresa_logo_url} alt={branding.empresa_nome || 'Logo'} className="h-8 max-w-[120px] object-contain" />
+                  ) : (
+                    <Building2 className="w-4 h-4 text-white/80" />
+                  )}
+                  <span className="text-white/80 text-sm">{branding?.empresa_nome || 'Portal do Cliente'}</span>
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold">{obra.nome}</h1>
                 <div className="flex items-center gap-2 mt-1 text-white/70 text-sm">
@@ -211,9 +237,13 @@ export function PortalCliente() {
         ) : (
           <div className="bg-primary/10 border-b">
             <div className="container py-8">
-              <div className="flex items-center gap-2 mb-1 text-muted-foreground text-sm">
-                <Building2 className="w-4 h-4" />
-                <span>Portal do Cliente</span>
+              <div className="flex items-center gap-3 mb-1">
+                {branding?.empresa_logo_url ? (
+                  <img src={branding.empresa_logo_url} alt={branding.empresa_nome || 'Logo'} className="h-8 max-w-[120px] object-contain" />
+                ) : (
+                  <Building2 className="w-4 h-4 text-muted-foreground" />
+                )}
+                <span className="text-muted-foreground text-sm">{branding?.empresa_nome || 'Portal do Cliente'}</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-bold">{obra.nome}</h1>
               <div className="flex items-center gap-2 mt-1 text-muted-foreground text-sm">
@@ -467,9 +497,15 @@ export function PortalCliente() {
 
       {/* Footer */}
       <footer className="border-t py-6 text-center text-sm text-muted-foreground">
+        {branding?.empresa_logo_url && (
+          <img src={branding.empresa_logo_url} alt={branding.empresa_nome || 'Logo'} className="h-6 mx-auto mb-2 object-contain opacity-60" />
+        )}
         <p>
-          Acompanhamento de obra fornecido por{' '}
-          <strong className="text-foreground">Obra Certa</strong>
+          {branding?.empresa_nome ? (
+            <>Acompanhamento de obra por <strong className="text-foreground">{branding.empresa_nome}</strong></>
+          ) : (
+            <>Acompanhamento de obra fornecido por <strong className="text-foreground">Obra Certa</strong></>
+          )}
         </p>
       </footer>
     </div>
