@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Building2, Camera, Loader2, Crown, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useObras } from '@/hooks/useObras';
-import { useFases, useCronogramaItens, defaultItemsByFase } from '@/hooks/useCronograma';
+import { useFases, getDefaultItemsForFase } from '@/hooks/useCronograma';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -24,6 +25,7 @@ interface NovaObraDialogProps {
 }
 
 export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraDialogProps) {
+  const { t, i18n } = useTranslation();
   const [nome, setNome] = useState('');
   const [endereco, setEndereco] = useState('');
   const [fotoCapa, setFotoCapa] = useState<File | null>(null);
@@ -49,8 +51,8 @@ export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraD
     e.preventDefault();
     if (!nome.trim() || !endereco.trim()) {
       toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha o nome e endereço da obra.',
+        title: t('novaObra.requiredFields'),
+        description: t('novaObra.fillNameAddress'),
         variant: 'destructive',
       });
       return;
@@ -61,35 +63,26 @@ export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraD
     try {
       let fotoUrl: string | undefined;
 
-      // Upload da foto se houver
       if (fotoCapa) {
         const fileExt = fotoCapa.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError, data } = await supabase.storage
-          .from('obras-fotos')
-          .upload(fileName, fotoCapa);
-
+        const { error: uploadError } = await supabase.storage.from('obras-fotos').upload(fileName, fotoCapa);
         if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('obras-fotos')
-          .getPublicUrl(fileName);
-        
+        const { data: { publicUrl } } = supabase.storage.from('obras-fotos').getPublicUrl(fileName);
         fotoUrl = publicUrl;
       }
 
-      // Criar a obra
       const novaObra = await createObra.mutateAsync({
         nome: nome.trim(),
         endereco: endereco.trim(),
         foto_capa: fotoUrl,
       });
 
-      // Criar itens do cronograma padrão para cada fase
+      // Create default schedule items using the current language
       if (fases && novaObra) {
+        const lang = i18n.language;
         for (const fase of fases) {
-          const itensDefault = defaultItemsByFase[fase.nome] || [];
+          const itensDefault = getDefaultItemsForFase(fase.nome, lang);
           for (let i = 0; i < itensDefault.length; i++) {
             await supabase.from('cronograma_itens').insert({
               obra_id: novaObra.id,
@@ -102,21 +95,20 @@ export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraD
       }
 
       toast({
-        title: 'Obra criada!',
-        description: `"${nome}" foi adicionada com sucesso.`,
+        title: t('novaObra.created'),
+        description: t('novaObra.createdDesc', { name: nome }),
       });
 
-      // Limpar form e fechar
       setNome('');
       setEndereco('');
       setFotoCapa(null);
       setPreviewUrl(null);
       onOpenChange(false);
     } catch (error) {
-      console.error('Erro ao criar obra:', error);
+      console.error('Error creating obra:', error);
       toast({
-        title: 'Erro ao criar obra',
-        description: 'Tente novamente mais tarde.',
+        title: t('novaObra.error'),
+        description: t('novaObra.errorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -130,30 +122,28 @@ export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraD
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Building2 className="w-6 h-6 text-primary" />
-            Nova Obra
+            {t('novaObra.title')}
           </DialogTitle>
           <DialogDescription>
-            Cadastre uma nova obra para acompanhar seu progresso.
+            {t('novaObra.description')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Alerta de limite atingido */}
           {!canCreate && (
             <Alert variant="destructive" className="bg-destructive/10 border-destructive/30">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="ml-2">
-                <span className="font-semibold">Limite do plano Free atingido!</span>
+                <span className="font-semibold">{t('novaObra.limitReached')}</span>
                 <span className="block text-sm mt-0.5">
-                  Você já criou {usage.obrasUsed} de {limits.maxObras} obra(s) permitida(s).
+                  {t('novaObra.limitDesc', { used: usage.obrasUsed, max: limits.maxObras })}
                 </span>
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Foto de capa */}
           <div className="space-y-2">
-            <Label className="text-base font-medium">Foto do terreno/obra</Label>
+            <Label className="text-base font-medium">{t('novaObra.photoLabel')}</Label>
             <div 
               className="relative h-32 border-2 border-dashed rounded-lg overflow-hidden cursor-pointer hover:border-primary transition-colors"
               onClick={() => document.getElementById('foto-input')?.click()}
@@ -163,90 +153,45 @@ export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraD
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                   <Camera className="w-8 h-8 mb-2" />
-                  <span className="text-sm">Toque para adicionar foto</span>
+                  <span className="text-sm">{t('novaObra.addPhoto')}</span>
                 </div>
               )}
-              <input
-                id="foto-input"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-                disabled={!canCreate}
-              />
+              <input id="foto-input" type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={!canCreate} />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="nome" className="text-base font-medium">
-              Nome da obra
-            </Label>
+            <Label htmlFor="nome" className="text-base font-medium">{t('novaObra.nameLabel')}</Label>
             <div className="relative">
               <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                id="nome"
-                type="text"
-                placeholder="Ex: Casa Residencial Silva"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                className="pl-10 h-12 text-base"
-              />
+              <Input id="nome" type="text" placeholder={t('novaObra.namePlaceholder')} value={nome} onChange={(e) => setNome(e.target.value)} className="pl-10 h-12 text-base" />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="endereco" className="text-base font-medium">
-              Endereço
-            </Label>
+            <Label htmlFor="endereco" className="text-base font-medium">{t('novaObra.addressLabel')}</Label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                id="endereco"
-                type="text"
-                placeholder="Rua, número, bairro"
-                value={endereco}
-                onChange={(e) => setEndereco(e.target.value)}
-                className="pl-10 h-12 text-base"
-              />
+              <Input id="endereco" type="text" placeholder={t('novaObra.addressPlaceholder')} value={endereco} onChange={(e) => setEndereco(e.target.value)} className="pl-10 h-12 text-base" />
             </div>
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 h-12"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancelar
+            <Button type="button" variant="outline" className="flex-1 h-12" onClick={() => onOpenChange(false)} disabled={loading}>
+              {t('common.cancel')}
             </Button>
             {canCreate ? (
-              <Button
-                type="submit"
-                className="flex-1 h-12"
-                disabled={loading}
-              >
+              <Button type="submit" className="flex-1 h-12" disabled={loading}>
                 {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Criando...
-                  </>
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('novaObra.creating')}</>
                 ) : (
-                  'Criar Obra'
+                  t('novaObra.create')
                 )}
               </Button>
             ) : (
-              <Button
-                type="button"
-                className="flex-1 h-12"
-                onClick={() => {
-                  onOpenChange(false);
-                  onUpgradeClick?.();
-                }}
-              >
+              <Button type="button" className="flex-1 h-12" onClick={() => { onOpenChange(false); onUpgradeClick?.(); }}>
                 <Crown className="w-4 h-4 mr-2" />
-                Fazer Upgrade
+                {t('novaObra.upgrade')}
               </Button>
             )}
           </div>
