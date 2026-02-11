@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Check, Circle, Clock, Plus, ChevronDown, Shovel, Hammer, Building2, Home, Zap, Paintbrush, LucideIcon, DollarSign } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { CronogramaItem, ItemStatus } from '@/types/database';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface CronogramaTabProps {
   obraId: string;
@@ -30,6 +32,8 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
   const { data: fases, isLoading: fasesLoading } = useFases();
   const { itens, isLoading: itensLoading, updateItem, createItem } = useCronogramaItens(obraId);
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const { formatCurrency: fmtCurrency } = useCurrency();
   
   const [novoItemFaseId, setNovoItemFaseId] = useState<string | null>(null);
   const [novoItemDescricao, setNovoItemDescricao] = useState('');
@@ -75,11 +79,9 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
           await updateItem.mutateAsync({ id: itensFase[i].id, valor_contrato_mao_de_obra: val as any });
         }
       } else {
-        // Proporcional: items with existing values keep their weight ratio, items without value get equal share
         const existingTotal = itensFase.reduce((s, i) => s + (Number(i.valor_contrato_mao_de_obra) || 0), 0);
         
         if (existingTotal > 0) {
-          // Distribute proportionally based on existing values
           for (let i = 0; i < itensFase.length; i++) {
             const currentVal = Number(itensFase[i].valor_contrato_mao_de_obra) || 0;
             const proportion = currentVal / existingTotal;
@@ -87,7 +89,6 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
             await updateItem.mutateAsync({ id: itensFase[i].id, valor_contrato_mao_de_obra: newVal as any });
           }
         } else {
-          // No existing values, fallback to equal distribution
           const valorPorItem = Math.round((valorTotal / itensFase.length) * 100) / 100;
           const valorUltimoItem = Math.round((valorTotal - valorPorItem * (itensFase.length - 1)) * 100) / 100;
           for (let i = 0; i < itensFase.length; i++) {
@@ -96,9 +97,9 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
           }
         }
       }
-      toast({ title: modo === 'igual' ? 'Valor distribuído igualmente!' : 'Valor distribuído proporcionalmente!' });
+      toast({ title: modo === 'igual' ? t('schedule.distributedEqually') : t('schedule.distributedProportionally') });
     } catch {
-      toast({ title: 'Erro ao distribuir valor', variant: 'destructive' });
+      toast({ title: t('schedule.errorDistributing'), variant: 'destructive' });
     }
   };
 
@@ -108,13 +109,13 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
     try {
       await updateItem.mutateAsync({ id: item.id, status: novoStatus });
       toast({
-        title: novoStatus === 'concluido' ? '✓ Item concluído!' : 'Item reaberto',
+        title: novoStatus === 'concluido' ? t('schedule.itemCompleted') : t('schedule.itemReopened'),
         description: item.descricao,
       });
     } catch (error) {
       toast({
-        title: 'Erro ao atualizar',
-        description: 'Tente novamente.',
+        title: t('schedule.errorUpdating'),
+        description: t('common.tryAgain'),
         variant: 'destructive',
       });
     }
@@ -130,22 +131,22 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
         descricao: novoItemDescricao.trim(),
       });
       toast({
-        title: 'Item adicionado!',
+        title: t('schedule.itemAdded'),
         description: novoItemDescricao,
       });
       setNovoItemDescricao('');
       setNovoItemFaseId(null);
     } catch (error) {
       toast({
-        title: 'Erro ao adicionar',
-        description: 'Tente novamente.',
+        title: t('schedule.errorAdding'),
+        description: t('common.tryAgain'),
         variant: 'destructive',
       });
     }
   };
 
   const formatCurrency = (v: number) =>
-    v > 0 ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '';
+    v > 0 ? fmtCurrency(v) : '';
 
   if (fasesLoading || itensLoading) {
     return (
@@ -194,7 +195,7 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                         </span>
                         {valorConcluido > 0 && (
                           <span className="text-xs text-success">
-                            (concluído: {formatCurrency(valorConcluido)})
+                            ({t('schedule.completed')}: {formatCurrency(valorConcluido)})
                           </span>
                         )}
                       </div>
@@ -232,7 +233,7 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                       </span>
                       {item.valor_contrato_mao_de_obra && item.valor_contrato_mao_de_obra > 0 && (
                         <Badge variant="outline" className="text-xs text-primary border-primary/30">
-                          R$ {Number(item.valor_contrato_mao_de_obra).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {fmtCurrency(Number(item.valor_contrato_mao_de_obra))}
                         </Badge>
                       )}
                       <Popover>
@@ -243,7 +244,7 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                         </PopoverTrigger>
                         <PopoverContent className="w-64" align="end">
                           <div className="space-y-2">
-                            <Label className="text-xs">Valor do Contrato (Mão de Obra)</Label>
+                            <Label className="text-xs">{t('schedule.contractValue')}</Label>
                             <Input
                               type="number"
                               step="0.01"
@@ -254,19 +255,19 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                                 const val = parseFloat(e.target.value) || null;
                                 try {
                                   await updateItem.mutateAsync({ id: item.id, valor_contrato_mao_de_obra: val as any });
-                                  toast({ title: 'Valor atualizado!' });
+                                  toast({ title: t('schedule.valueUpdated') });
                                 } catch {
-                                  toast({ title: 'Erro ao atualizar', variant: 'destructive' });
+                                  toast({ title: t('schedule.errorUpdating'), variant: 'destructive' });
                                 }
                               }}
                             />
-                            <p className="text-xs text-muted-foreground">Usado no cálculo das medições.</p>
+                            <p className="text-xs text-muted-foreground">{t('schedule.usedInBilling')}</p>
                           </div>
                         </PopoverContent>
                       </Popover>
                       {item.status === 'concluido' && item.data_conclusao && (
                         <span className="text-xs text-muted-foreground">
-                          {new Date(item.data_conclusao).toLocaleDateString('pt-BR')}
+                          {new Date(item.data_conclusao).toLocaleDateString()}
                         </span>
                       )}
                     </div>
@@ -278,7 +279,7 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                       <Input
                         value={novoItemDescricao}
                         onChange={(e) => setNovoItemDescricao(e.target.value)}
-                        placeholder="Descrição do item"
+                        placeholder={t('schedule.itemDescription')}
                         className="flex-1 h-10"
                         autoFocus
                         onKeyDown={(e) => e.key === 'Enter' && handleAddItem(fase.id)}
@@ -288,7 +289,7 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                         onClick={() => handleAddItem(fase.id)}
                         disabled={!novoItemDescricao.trim()}
                       >
-                        Adicionar
+                        {t('common.add')}
                       </Button>
                       <Button 
                         size="sm" 
@@ -298,7 +299,7 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                           setNovoItemDescricao('');
                         }}
                       >
-                        Cancelar
+                        {t('common.cancel')}
                       </Button>
                     </div>
                   ) : (
@@ -308,7 +309,7 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                       onClick={() => setNovoItemFaseId(fase.id)}
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Adicionar item
+                      {t('schedule.addItem')}
                     </Button>
                   )}
                 </div>
@@ -329,23 +330,25 @@ function FaseValorEditor({ faseId, valorFase, qtdItens, onDistribuir }: {
   onDistribuir: (faseId: string, valor: number, modo: 'igual' | 'proporcional') => Promise<void>;
 }) {
   const [modo, setModo] = useState<'igual' | 'proporcional'>('igual');
+  const { t } = useTranslation();
+  const { formatCurrency } = useCurrency();
 
   return (
     <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
       <DollarSign className="w-4 h-4 text-primary shrink-0" />
-      <Label className="text-xs text-primary whitespace-nowrap">Valor da Fase:</Label>
+      <Label className="text-xs text-primary whitespace-nowrap">{t('schedule.phaseValue')}</Label>
       <span className="text-sm font-semibold text-primary flex-1">
-        {valorFase > 0 ? `R$ ${valorFase.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Não definido'}
+        {valorFase > 0 ? formatCurrency(valorFase) : t('schedule.notDefined')}
       </span>
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" className="h-7 text-xs">
-            Definir Total
+            {t('schedule.setTotal')}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-80" align="end">
           <div className="space-y-3">
-            <Label className="text-xs font-medium">Valor Total da Fase</Label>
+            <Label className="text-xs font-medium">{t('schedule.totalPhaseValue')}</Label>
             <Input
               type="number"
               step="0.01"
@@ -355,20 +358,20 @@ function FaseValorEditor({ faseId, valorFase, qtdItens, onDistribuir }: {
               id={`fase-valor-${faseId}`}
             />
             <div className="space-y-1.5">
-              <Label className="text-xs">Modo de distribuição</Label>
+              <Label className="text-xs">{t('schedule.distributionMode')}</Label>
               <Select value={modo} onValueChange={(v) => setModo(v as 'igual' | 'proporcional')}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="igual">Igual entre itens</SelectItem>
-                  <SelectItem value="proporcional">Proporcional ao peso atual</SelectItem>
+                  <SelectItem value="igual">{t('schedule.equalAmongItems')}</SelectItem>
+                  <SelectItem value="proporcional">{t('schedule.proportionalToWeight')}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">
                 {modo === 'igual'
-                  ? `O valor será dividido igualmente entre os ${qtdItens} itens.`
-                  : 'O valor será distribuído mantendo a proporção dos valores existentes.'}
+                  ? t('schedule.equalDistributionDesc', { count: qtdItens })
+                  : t('schedule.proportionalDistributionDesc')}
               </p>
             </div>
             <Button
@@ -380,7 +383,7 @@ function FaseValorEditor({ faseId, valorFase, qtdItens, onDistribuir }: {
                 if (val > 0) onDistribuir(faseId, val, modo);
               }}
             >
-              Distribuir entre itens
+              {t('schedule.distributeAmongItems')}
             </Button>
           </div>
         </PopoverContent>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText, Share2, Building2, Crown, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -43,13 +44,6 @@ interface DiarioTabProps {
   onUpgradeClick?: () => void;
 }
 
-const climaOptions: { value: ClimaTipo; label: string; icon: React.ReactNode }[] = [
-  { value: 'ensolarado', label: 'Ensolarado', icon: <Sun className="w-6 h-6" /> },
-  { value: 'parcialmente_nublado', label: 'Parcialmente nublado', icon: <CloudSun className="w-6 h-6" /> },
-  { value: 'nublado', label: 'Nublado', icon: <Cloud className="w-6 h-6" /> },
-  { value: 'chuvoso', label: 'Chuvoso', icon: <CloudRain className="w-6 h-6" /> },
-];
-
 function parseDateOnlyAsLocal(dateStr: string) {
   const safe = dateStr?.split('T')[0] ?? '';
   const [y, m, d] = safe.split('-').map((v) => Number(v));
@@ -68,9 +62,17 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
   const { settings } = useUserSettings();
   const { canCreateDiario, getDiarioCount, limits } = usePlanLimits();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const canCreate = canCreateDiario(obraId);
   const diarioCount = getDiarioCount(obraId);
+
+  const climaOptions: { value: ClimaTipo; label: string; icon: React.ReactNode }[] = [
+    { value: 'ensolarado', label: t('diary.sunny'), icon: <Sun className="w-6 h-6" /> },
+    { value: 'parcialmente_nublado', label: t('diary.partlyCloudy'), icon: <CloudSun className="w-6 h-6" /> },
+    { value: 'nublado', label: t('diary.cloudy'), icon: <Cloud className="w-6 h-6" /> },
+    { value: 'chuvoso', label: t('diary.rainy'), icon: <CloudRain className="w-6 h-6" /> },
+  ];
 
   const [clima, setClima] = useState<ClimaTipo>('ensolarado');
   const [atividades, setAtividades] = useState('');
@@ -84,13 +86,11 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
   const [selecionarFotosOpen, setSelecionarFotosOpen] = useState(false);
   const [registroParaExportar, setRegistroParaExportar] = useState<DiarioLog | null>(null);
   
-  // Estado para compartilhar PDF do diário individual
   const [compartilharPDFOpen, setCompartilharPDFOpen] = useState(false);
   const [diarioPDF, setDiarioPDF] = useState<jsPDF | null>(null);
   const [diarioPDFFilename, setDiarioPDFFilename] = useState('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Estado para diálogos
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [pinDialogMode, setPinDialogMode] = useState<'validate' | 'create' | 'change'>('validate');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -99,36 +99,32 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
 
   // Gerar resumo automático das atividades do dia anterior
   useEffect(() => {
-    if (atividades) return; // Não sobrescrever se já tem conteúdo
+    if (atividades) return;
 
     const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
     const today = format(new Date(), 'yyyy-MM-dd');
 
-    // Itens do cronograma concluídos ontem
     const itensConcluidos = cronogramaItens.filter(
       item => item.status === 'concluido' && item.data_conclusao === yesterday
     );
 
-    // Movimentações de estoque de ontem ou hoje
     const movsRecentes = movimentacoes.filter(
       m => m.data === yesterday || m.data === today
     );
 
     const linhas: string[] = [];
 
-    // Adicionar itens concluídos
     if (itensConcluidos.length > 0) {
-      linhas.push('📋 ATIVIDADES CONCLUÍDAS:');
+      linhas.push(t('diary.completedActivities'));
       itensConcluidos.forEach(item => {
         const fase = fases?.find(f => f.id === item.fase_id);
         linhas.push(`• ${item.descricao}${fase ? ` (${fase.nome})` : ''}`);
       });
     }
 
-    // Adicionar movimentações de estoque
     if (movsRecentes.length > 0) {
       if (linhas.length > 0) linhas.push('');
-      linhas.push('📦 MOVIMENTAÇÃO DE MATERIAIS:');
+      linhas.push(t('diary.materialMovements'));
       movsRecentes.forEach(mov => {
         const material = materiais.find(m => m.id === mov.material_id);
         if (material) {
@@ -146,8 +142,8 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
   const handleSave = async () => {
     if (!atividades.trim()) {
       toast({
-        title: 'Campo obrigatório',
-        description: 'Descreva as atividades realizadas hoje.',
+        title: t('diary.requiredField'),
+        description: t('diary.describeActivities'),
         variant: 'destructive',
       });
       return;
@@ -166,8 +162,8 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
       });
 
       toast({
-        title: 'Relatório salvo!',
-        description: `Diário de ${new Date().toLocaleDateString('pt-BR')} registrado.`,
+        title: t('diary.reportSaved'),
+        description: t('diary.diaryOfDate', { date: new Date().toLocaleDateString() }),
       });
 
       setAtividades('');
@@ -177,8 +173,8 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
       setClima('ensolarado');
     } catch (error) {
       toast({
-        title: 'Erro ao salvar',
-        description: 'Tente novamente.',
+        title: t('diary.errorSaving'),
+        description: t('common.tryAgain'),
         variant: 'destructive',
       });
     } finally {
@@ -190,14 +186,12 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
     setSelectedRegistro(registro);
     
     if (!hasPin) {
-      // Se não tem PIN configurado, pedir para criar
       setPinDialogMode('create');
       setPendingAction(() => () => {
         setEditDialogOpen(true);
       });
       setPinDialogOpen(true);
     } else {
-      // Validar PIN antes de editar
       setPinDialogMode('validate');
       setPendingAction(() => () => {
         setEditDialogOpen(true);
@@ -220,10 +214,9 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
       await createPin.mutateAsync(pin);
     }
     toast({
-      title: 'PIN configurado!',
-      description: 'PIN de segurança salvo com sucesso.',
+      title: t('diary.pinConfigured'),
+      description: t('diary.pinSavedSuccess'),
     });
-    // Executar ação pendente após criar PIN
     if (pendingAction) {
       pendingAction();
       setPendingAction(null);
@@ -243,10 +236,8 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
     if (!selectedRegistro) return;
 
     try {
-      // Registrar alterações no log (exceto profissionais que é JSON)
       for (const [campo, valorNovo] of Object.entries(updates)) {
         if (campo === 'profissionais') {
-          // Para profissionais, registrar como JSON string
           const valorAnterior = JSON.stringify(selectedRegistro.profissionais || []);
           const valorNovoStr = JSON.stringify(valorNovo || []);
           if (valorAnterior !== valorNovoStr) {
@@ -270,20 +261,19 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
         }
       }
 
-      // Atualizar o registro
       await updateDiario.mutateAsync({
         id: selectedRegistro.id,
         ...updates,
       });
 
       toast({
-        title: 'Registro atualizado',
-        description: 'As alterações foram salvas e registradas no log.',
+        title: t('diary.recordUpdated'),
+        description: t('diary.changesSavedToLog'),
       });
     } catch (error) {
       toast({
-        title: 'Erro ao atualizar',
-        description: 'Não foi possível salvar as alterações.',
+        title: t('diary.errorUpdating'),
+        description: t('diary.couldNotSaveChanges'),
         variant: 'destructive',
       });
       throw error;
@@ -306,9 +296,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
     return option?.label;
   };
 
-  // Export and share functions for daily reports
   const handleExportarPDFClick = (registro: DiarioLog) => {
-    // Sempre abre o dialog de seleção de fotos (mesmo sem fotos, permite o usuário ver a opção)
     setRegistroParaExportar(registro);
     setSelecionarFotosOpen(true);
   };
@@ -328,15 +316,14 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
       const doc = await generateDailyReportPDF(registroComFotos, 'Obra', pdfOptions);
       const filename = `diario-${format(parseDateOnlyAsLocal(registro.data), 'dd-MM-yyyy')}.pdf`;
       
-      // Abrir dialog de compartilhamento com as 3 opções
       setDiarioPDF(doc);
       setDiarioPDFFilename(filename);
       setCompartilharPDFOpen(true);
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
       toast({
-        title: "Erro ao gerar PDF",
-        description: "Não foi possível gerar o relatório. Tente novamente.",
+        title: t('diary.errorGeneratingPDF'),
+        description: t('diary.couldNotGeneratePDF'),
         variant: "destructive",
       });
     } finally {
@@ -366,7 +353,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
         <div className="flex items-center gap-2">
           <Badge variant={hasPin ? 'default' : 'secondary'} className="gap-1">
             <Settings className="w-3 h-3" />
-            {hasPin ? 'PIN Ativo' : 'Sem PIN'}
+            {hasPin ? t('diary.pinActive') : t('diary.noPin')}
           </Badge>
           {settings?.empresa_nome && (
             <Badge variant="outline" className="gap-1">
@@ -382,7 +369,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
             onClick={() => setRelatorioSemanalOpen(true)}
           >
             <FileText className="w-4 h-4 mr-1" />
-            Semanal
+            {t('diary.weekly')}
           </Button>
           <Button 
             variant="outline" 
@@ -390,23 +377,23 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
             onClick={() => setRelatorioMensalOpen(true)}
           >
             <Calendar className="w-4 h-4 mr-1" />
-            Mensal
+            {t('diary.monthly')}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
                 <Settings className="w-4 h-4 mr-1" />
-                Configurações
+                {t('diary.settings')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleConfigurePin}>
                 <Settings className="w-4 h-4 mr-2" />
-                {hasPin ? 'Alterar PIN' : 'Configurar PIN'}
+                {hasPin ? t('diary.changePin') : t('diary.configurePin')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setEmpresaConfigOpen(true)}>
                 <Building2 className="w-4 h-4 mr-2" />
-                Configurar Empresa
+                {t('diary.configureCompany')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -418,7 +405,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Calendar className="w-5 h-5 text-primary" />
-            Registro de Hoje - {new Date().toLocaleDateString('pt-BR')}
+            {t('diary.todayRecord')} - {new Date().toLocaleDateString()}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -427,9 +414,9 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
             <Alert variant="destructive" className="bg-destructive/10 border-destructive/30">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="ml-2">
-                <span className="font-semibold">Limite do plano Free atingido!</span>
+                <span className="font-semibold">{t('diary.freeLimitReached')}</span>
                 <span className="block text-sm mt-0.5">
-                  Você já criou {diarioCount} de {limits.maxDiariosPerObra} diário(s) nesta obra.
+                  {t('diary.diaryLimitDesc', { used: diarioCount, max: limits.maxDiariosPerObra })}
                 </span>
               </AlertDescription>
             </Alert>
@@ -438,7 +425,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
           {/* Contador de diários */}
           {limits.maxDiariosPerObra !== -1 && (
             <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-              <span className="text-sm text-muted-foreground">Diários usados nesta obra:</span>
+              <span className="text-sm text-muted-foreground">{t('diary.diariesUsed')}</span>
               <Badge variant={canCreate ? "outline" : "destructive"}>
                 {diarioCount}/{limits.maxDiariosPerObra}
               </Badge>
@@ -447,7 +434,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
 
           {/* Seletor de clima */}
           <div className="space-y-2">
-            <Label className="text-base font-medium">Clima</Label>
+            <Label className="text-base font-medium">{t('diary.weather')}</Label>
             <div className="grid grid-cols-2 gap-2">
               {climaOptions.map((option) => (
                 <Button
@@ -467,40 +454,40 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
             </div>
           </div>
 
-          {/* Atividades - com pré-preenchimento */}
+          {/* Atividades */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="atividades" className="text-base font-medium">
-                O que foi feito hoje?
+                {t('diary.whatWasDone')}
               </Label>
               {atividades && (
                 <Badge variant="outline" className="gap-1 text-xs">
                   <ArrowUpDown className="w-3 h-3" />
-                  Pré-preenchido
+                  {t('diary.preFilled')}
                 </Badge>
               )}
             </div>
             <Textarea
               id="atividades"
-              placeholder="Descreva as atividades realizadas..."
+              placeholder={t('diary.activitiesPlaceholder')}
               value={atividades}
               onChange={(e) => setAtividades(e.target.value)}
               className="min-h-28 text-base"
               disabled={!canCreate}
             />
             <p className="text-xs text-muted-foreground">
-              💡 Atividades do cronograma e movimentações de estoque são preenchidas automaticamente.
+              {t('diary.autoFillHint')}
             </p>
           </div>
 
           {/* Observações */}
           <div className="space-y-2">
             <Label htmlFor="observacoes" className="text-base font-medium">
-              Observações (opcional)
+              {t('diary.observationsOptional')}
             </Label>
             <Textarea
               id="observacoes"
-              placeholder="Problemas, pendências, materiais utilizados..."
+              placeholder={t('diary.observationsPlaceholder')}
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
               className="min-h-20 text-base"
@@ -517,7 +504,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
 
           {/* Upload de fotos */}
           <div className="space-y-2">
-            <Label className="text-base font-medium">Fotos da Obra</Label>
+            <Label className="text-base font-medium">{t('diary.sitePhotos')}</Label>
             <FotoUpload
               fotos={fotos}
               onFotosChange={setFotos}
@@ -536,12 +523,12 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
               {saving ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Salvando...
+                  {t('common.saving')}
                 </>
               ) : (
                 <>
                   <Save className="w-5 h-5 mr-2" />
-                  Salvar Relatório
+                  {t('diary.saveReport')}
                 </>
               )}
             </Button>
@@ -551,7 +538,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
               className="w-full h-14 text-lg font-semibold"
             >
               <Crown className="w-5 h-5 mr-2" />
-              Fazer Upgrade para Continuar
+              {t('diary.upgradeToContine')}
             </Button>
           )}
         </CardContent>
@@ -562,7 +549,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
         <div className="space-y-3">
           <h3 className="font-semibold text-lg flex items-center gap-2">
             <History className="w-5 h-5" />
-            Histórico
+            {t('diary.history')}
           </h3>
           {registros.map((registro) => (
             <Collapsible key={registro.id}>
@@ -576,7 +563,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
                         </div>
                         <div>
                           <p className="font-medium">
-                            {parseDateOnlyAsLocal(registro.data).toLocaleDateString('pt-BR', {
+                            {parseDateOnlyAsLocal(registro.data).toLocaleDateString(undefined, {
                               weekday: 'long',
                               day: 'numeric',
                               month: 'long',
@@ -588,7 +575,6 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        {/* Share button - opens PDF dialog directly */}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -619,14 +605,14 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
                 <CollapsibleContent>
                   <CardContent className="pt-0 space-y-3">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Atividades:</p>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">{t('diary.activities')}</p>
                       <p className="whitespace-pre-wrap">{registro.atividades_realizadas}</p>
                     </div>
                     {registro.profissionais && registro.profissionais.length > 0 && (
                       <div>
                         <p className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
                           <Users className="w-4 h-4" />
-                          Profissionais ({registro.profissionais.reduce((sum, p) => sum + p.quantidade, 0)})
+                          {t('diary.professionals')} ({registro.profissionais.reduce((sum, p) => sum + p.quantidade, 0)})
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {registro.profissionais.map((prof, index) => (
@@ -639,7 +625,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
                     )}
                     {registro.observacoes && (
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">Observações:</p>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">{t('diary.observations')}</p>
                         <p className="whitespace-pre-wrap">{registro.observacoes}</p>
                       </div>
                     )}
@@ -647,7 +633,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
                           <ImageIcon className="w-4 h-4" />
-                          Fotos ({registro.fotos.length})
+                          {t('diary.photos')} ({registro.fotos.length})
                         </p>
                         <div className="grid grid-cols-3 gap-2">
                           {registro.fotos.map((foto, index) => (
@@ -660,7 +646,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
                             >
                               <img
                                 src={foto.url}
-                                alt={foto.legenda || `Foto ${index + 1}`}
+                                alt={foto.legenda || `${t('diary.photo')} ${index + 1}`}
                                 className="w-full h-full object-cover"
                               />
                               {foto.legenda && (
@@ -750,7 +736,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
         onOpenChange={setCompartilharPDFOpen}
         pdfDoc={diarioPDF}
         filename={diarioPDFFilename}
-        titulo="Diário de Obra"
+        titulo={t('diary.diaryReport')}
       />
     </div>
   );
