@@ -354,5 +354,14 @@
     "backToLogin": "Voltar ao login",
     "noAccount": "Não tem conta? Cadastre-se",
     "hasAccount": "Já tem conta? Entre"
+  },
+  "measurementSystem": {
+    "title": "Sistema de Medidas",
+    "metric": "Métrico",
+    "imperial": "Imperial",
+    "metricUnits": "m, kg, L, m²",
+    "imperialUnits": "ft, lbs, gal, ft²",
+    "description": "Altera as unidades dos materiais sugeridos",
+    "indicator": "Sistema: {{system}}"
   }
 }
