@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Building2, Camera, Loader2, Pencil, ShieldCheck } from 'lucide-react';
+import { MapPin, Building2, Camera, Loader2, Pencil, ShieldCheck, Ruler } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useObras } from '@/hooks/useObras';
 import { supabase } from '@/integrations/supabase/client';
-import { Obra } from '@/types/database';
+import { Obra, SistemaMedidas } from '@/types/database';
 
 interface EditarObraDialogProps {
   open: boolean;
@@ -26,6 +27,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
   const [nome, setNome] = useState(obra.nome);
   const [endereco, setEndereco] = useState(obra.endereco);
   const [retencao, setRetencao] = useState(String(obra.retencao_tecnica_percentual ?? 5));
+  const [sistemaMedidas, setSistemaMedidas] = useState<SistemaMedidas>(obra.sistema_medidas ?? 'metrico');
   const [fotoCapa, setFotoCapa] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(obra.foto_capa);
   const [loading, setLoading] = useState(false);
@@ -38,6 +40,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
     setNome(obra.nome);
     setEndereco(obra.endereco);
     setRetencao(String(obra.retencao_tecnica_percentual ?? 5));
+    setSistemaMedidas(obra.sistema_medidas ?? 'metrico');
     setPreviewUrl(obra.foto_capa);
     setFotoCapa(null);
   }, [obra]);
@@ -91,7 +94,8 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
         endereco: endereco.trim(),
         foto_capa: fotoUrl,
         retencao_tecnica_percentual: parseFloat(retencao) || 5,
-      });
+        sistema_medidas: sistemaMedidas,
+      } as any);
 
       toast({
         title: 'Obra atualizada!',
@@ -204,6 +208,33 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
               />
             </div>
             <p className="text-xs text-muted-foreground">Percentual retido em cada medição (padrão: 5%)</p>
+          </div>
+
+          {/* Sistema de Medidas */}
+          <div className="space-y-2">
+            <Label className="text-base font-medium flex items-center gap-2">
+              <Ruler className="w-4 h-4" />
+              Sistema de Medidas
+            </Label>
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">
+                  {sistemaMedidas === 'metrico' ? 'Métrico' : 'Imperial'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {sistemaMedidas === 'metrico' ? 'm, kg, L, m²' : 'ft, lbs, gal, ft²'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Métrico</span>
+                <Switch
+                  checked={sistemaMedidas === 'imperial'}
+                  onCheckedChange={(checked) => setSistemaMedidas(checked ? 'imperial' : 'metrico')}
+                />
+                <span className="text-xs text-muted-foreground">Imperial</span>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">Altera as unidades dos materiais sugeridos</p>
           </div>
 
           <div className="flex gap-3 pt-2">

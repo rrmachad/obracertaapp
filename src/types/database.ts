@@ -1,4 +1,5 @@
 export type ObraStatus = 'planejamento' | 'em_andamento' | 'concluida' | 'pausada';
+export type SistemaMedidas = 'metrico' | 'imperial';
 export type ClimaTipo = 'ensolarado' | 'nublado' | 'chuvoso' | 'parcialmente_nublado';
 export type ItemStatus = 'pendente' | 'em_andamento' | 'concluido';
 
@@ -22,6 +23,7 @@ export interface Obra {
   progresso: number;
   foto_capa?: string;
   retencao_tecnica_percentual: number;
+  sistema_medidas: SistemaMedidas;
   created_at: string;
   updated_at: string;
 }

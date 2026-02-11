@@ -207,7 +207,7 @@ export function ObraDetails() {
             )}
           </TabsContent>
           <TabsContent value="estoque" className="mt-4">
-            <EstoqueTab obraId={obra.id} onUpgradeClick={() => setUpgradeDialogOpen(true)} />
+            <EstoqueTab obraId={obra.id} sistemaMedidas={(obra as any).sistema_medidas ?? 'metrico'} onUpgradeClick={() => setUpgradeDialogOpen(true)} />
           </TabsContent>
           <TabsContent value="diario" className="mt-4">
             <DiarioTab obraId={obra.id} onUpgradeClick={() => setUpgradeDialogOpen(true)} />

@@ -58,10 +58,11 @@ const detectarCategoria = (nome: string): string => {
 
 interface EstoqueTabProps {
   obraId: string;
+  sistemaMedidas?: 'metrico' | 'imperial';
   onUpgradeClick?: () => void;
 }
 
-export function EstoqueTab({ obraId, onUpgradeClick }: EstoqueTabProps) {
+export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick }: EstoqueTabProps) {
   const { materiais, isLoading, ajustarQuantidade, deleteMaterial } = useMateriais(obraId);
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -309,6 +310,7 @@ export function EstoqueTab({ obraId, onUpgradeClick }: EstoqueTabProps) {
         open={dialogOpen} 
         onOpenChange={setDialogOpen}
         obraId={obraId}
+        sistemaMedidas={sistemaMedidas}
         onUpgradeClick={onUpgradeClick}
       />
     </div>
