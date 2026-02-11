@@ -666,6 +666,7 @@ export type Database = {
           portal_ativo: boolean
           progresso: number | null
           retencao_tecnica_percentual: number
+          sistema_medidas: string
           status: Database["public"]["Enums"]["obra_status"]
           token_portal: string | null
           updated_at: string
@@ -680,6 +681,7 @@ export type Database = {
           portal_ativo?: boolean
           progresso?: number | null
           retencao_tecnica_percentual?: number
+          sistema_medidas?: string
           status?: Database["public"]["Enums"]["obra_status"]
           token_portal?: string | null
           updated_at?: string
@@ -694,6 +696,7 @@ export type Database = {
           portal_ativo?: boolean
           progresso?: number | null
           retencao_tecnica_percentual?: number
+          sistema_medidas?: string
           status?: Database["public"]["Enums"]["obra_status"]
           token_portal?: string | null
           updated_at?: string

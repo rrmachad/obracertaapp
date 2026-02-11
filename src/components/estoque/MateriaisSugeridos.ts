@@ -278,12 +278,41 @@ const materiaisByLang: Record<string, FaseMateriais[]> = {
   'es-ES': materiaisES,
 };
 
-export function getMateriaisPorFase(language: string): FaseMateriais[] {
-  return materiaisByLang[language] || materiaisPT;
+// ─── Unit conversion for Imperial system ───
+const metricToImperial: Record<string, string> = {
+  'm³': 'yd³',
+  'm²': 'ft²',
+  'm': 'ft',
+  'kg': 'lbs',
+  'lt': 'gal',
+};
+
+const imperialToMetric: Record<string, string> = {
+  'yd³': 'm³',
+  'ft²': 'm²',
+  'ft': 'm',
+  'lbs': 'kg',
+  'gal': 'lt',
+};
+
+function convertUnitsForSystem(materiais: FaseMateriais[], sistema: 'metrico' | 'imperial'): FaseMateriais[] {
+  if (sistema === 'metrico') return materiais;
+  return materiais.map(fase => ({
+    ...fase,
+    materiais: fase.materiais.map(m => ({
+      ...m,
+      unidade: metricToImperial[m.unidade] || m.unidade,
+    })),
+  }));
 }
 
-export function getTodosMateriais(language: string): MaterialSugerido[] {
-  const list = getMateriaisPorFase(language);
+export function getMateriaisPorFase(language: string, sistema: 'metrico' | 'imperial' = 'metrico'): FaseMateriais[] {
+  const base = materiaisByLang[language] || materiaisPT;
+  return convertUnitsForSystem(base, sistema);
+}
+
+export function getTodosMateriais(language: string, sistema: 'metrico' | 'imperial' = 'metrico'): MaterialSugerido[] {
+  const list = getMateriaisPorFase(language, sistema);
   return Array.from(
     new Map(list.flatMap(f => f.materiais).map(m => [m.nome, m])).values()
   );
@@ -295,6 +324,14 @@ export function getCategorias(language: string): string[] {
 
 export function getFases(language: string): string[] {
   return getMateriaisPorFase(language).map(f => f.faseNome);
+}
+
+export function getImperialUnit(metricUnit: string): string {
+  return metricToImperial[metricUnit] || metricUnit;
+}
+
+export function getMetricUnit(imperialUnit: string): string {
+  return imperialToMetric[imperialUnit] || imperialUnit;
 }
 
 // Legacy default exports (Portuguese)

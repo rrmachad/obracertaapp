@@ -18,17 +18,18 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useMateriais } from '@/hooks/useMateriais';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
-import { materiaisPorFase, todosMateriais, MaterialSugerido } from './MateriaisSugeridos';
+import { getMateriaisPorFase, getTodosMateriais, MaterialSugerido } from './MateriaisSugeridos';
 import { cn } from '@/lib/utils';
 
 interface NovoMaterialDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   obraId: string;
+  sistemaMedidas?: 'metrico' | 'imperial';
   onUpgradeClick?: () => void;
 }
 
-const unidades = [
+const unidadesMetricas = [
   { value: 'un', label: 'Unidades (un)', inteiro: true },
   { value: 'sc', label: 'Sacos (sc)', inteiro: true },
   { value: 'kg', label: 'Quilos (kg)', inteiro: false },
@@ -39,13 +40,25 @@ const unidades = [
   { value: 'pc', label: 'Peças (pc)', inteiro: true },
 ];
 
+const unidadesImperiais = [
+  { value: 'un', label: 'Units (un)', inteiro: true },
+  { value: 'bag', label: 'Bags (bag)', inteiro: true },
+  { value: 'lbs', label: 'Pounds (lbs)', inteiro: false },
+  { value: 'yd³', label: 'Cubic yard (yd³)', inteiro: false },
+  { value: 'ft²', label: 'Square foot (ft²)', inteiro: false },
+  { value: 'ft', label: 'Foot (ft)', inteiro: false },
+  { value: 'gal', label: 'Gallons (gal)', inteiro: false },
+  { value: 'pc', label: 'Pieces (pc)', inteiro: true },
+];
+
 // Função helper para verificar se unidade usa números inteiros
 export const isUnidadeInteira = (unidade: string): boolean => {
-  const found = unidades.find(u => u.value === unidade);
+  const allUnidades = [...unidadesMetricas, ...unidadesImperiais];
+  const found = allUnidades.find(u => u.value === unidade);
   return found?.inteiro ?? false;
 };
 
-export function NovoMaterialDialog({ open, onOpenChange, obraId, onUpgradeClick }: NovoMaterialDialogProps) {
+export function NovoMaterialDialog({ open, onOpenChange, obraId, sistemaMedidas = 'metrico', onUpgradeClick }: NovoMaterialDialogProps) {
   const [nome, setNome] = useState('');
   const [unidade, setUnidade] = useState('un');
   const [qtdAtual, setQtdAtual] = useState('0');
@@ -53,6 +66,9 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId, onUpgradeClick 
   const [loading, setLoading] = useState(false);
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [selectedFase, setSelectedFase] = useState<string>('all');
+  const unidades = sistemaMedidas === 'imperial' ? unidadesImperiais : unidadesMetricas;
+  const currentMateriaisPorFase = useMemo(() => getMateriaisPorFase('pt-BR', sistemaMedidas), [sistemaMedidas]);
+  const currentTodosMateriais = useMemo(() => getTodosMateriais('pt-BR', sistemaMedidas), [sistemaMedidas]);
 
   const { createMaterial, materiais } = useMateriais(obraId);
   const { canCreateMaterial, getMaterialCount, limits } = usePlanLimits();
@@ -63,10 +79,10 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId, onUpgradeClick 
 
   // Filtrar materiais por fase selecionada
   const materiaisFiltrados = useMemo(() => {
-    if (selectedFase === 'all') return todosMateriais;
-    const fase = materiaisPorFase.find(f => f.faseNome === selectedFase);
-    return fase?.materiais ?? todosMateriais;
-  }, [selectedFase]);
+    if (selectedFase === 'all') return currentTodosMateriais;
+    const fase = currentMateriaisPorFase.find(f => f.faseNome === selectedFase);
+    return fase?.materiais ?? currentTodosMateriais;
+  }, [selectedFase, currentTodosMateriais, currentMateriaisPorFase]);
 
   // Materiais já cadastrados (para evitar duplicatas)
   const materiaisExistentes = useMemo(() => 
@@ -174,7 +190,7 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId, onUpgradeClick 
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as fases</SelectItem>
-                {materiaisPorFase.map((fase) => (
+                {currentMateriaisPorFase.map((fase) => (
                   <SelectItem key={fase.faseNome} value={fase.faseNome}>
                     {fase.faseNome}
                   </SelectItem>
@@ -223,7 +239,7 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId, onUpgradeClick 
                         )}
                       </div>
                     </CommandEmpty>
-                    {materiaisPorFase
+                    {currentMateriaisPorFase
                       .filter(f => selectedFase === 'all' || f.faseNome === selectedFase)
                       .map((fase) => (
                         <CommandGroup key={fase.faseNome} heading={fase.faseNome}>
