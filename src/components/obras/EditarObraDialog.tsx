@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Building2, Camera, Loader2, Pencil, ShieldCheck, Ruler } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,6 +35,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
 
   const { updateObra } = useObras();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Atualiza o formulário quando a obra muda
   useEffect(() => {
@@ -214,27 +216,27 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
           <div className="space-y-2">
             <Label className="text-base font-medium flex items-center gap-2">
               <Ruler className="w-4 h-4" />
-              Sistema de Medidas
+              {t('measurementSystem.title')}
             </Label>
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex flex-col">
                 <span className="text-sm font-medium">
-                  {sistemaMedidas === 'metrico' ? 'Métrico' : 'Imperial'}
+                  {sistemaMedidas === 'metrico' ? t('measurementSystem.metric') : t('measurementSystem.imperial')}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {sistemaMedidas === 'metrico' ? 'm, kg, L, m²' : 'ft, lbs, gal, ft²'}
+                  {sistemaMedidas === 'metrico' ? t('measurementSystem.metricUnits') : t('measurementSystem.imperialUnits')}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Métrico</span>
+                <span className="text-xs text-muted-foreground">{t('measurementSystem.metric')}</span>
                 <Switch
                   checked={sistemaMedidas === 'imperial'}
                   onCheckedChange={(checked) => setSistemaMedidas(checked ? 'imperial' : 'metrico')}
                 />
-                <span className="text-xs text-muted-foreground">Imperial</span>
+                <span className="text-xs text-muted-foreground">{t('measurementSystem.imperial')}</span>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">Altera as unidades dos materiais sugeridos</p>
+            <p className="text-xs text-muted-foreground">{t('measurementSystem.description')}</p>
           </div>
 
           <div className="flex gap-3 pt-2">

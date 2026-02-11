@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Package, Plus, AlertTriangle, Trash2, Filter } from 'lucide-react';
+import { Package, Plus, AlertTriangle, Trash2, Filter, Ruler } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +66,7 @@ interface EstoqueTabProps {
 export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick }: EstoqueTabProps) {
   const { materiais, isLoading, ajustarQuantidade, deleteMaterial } = useMateriais(obraId);
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [categoriaFiltro, setCategoriaFiltro] = useState('all');
 
@@ -151,14 +153,22 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
 
   return (
     <div className="space-y-4">
-      {/* Botão adicionar */}
-      <Button
-        onClick={() => setDialogOpen(true)}
-        className="w-full h-14 text-base font-semibold"
-      >
-        <Plus className="w-5 h-5 mr-2" />
-        Adicionar Material
-      </Button>
+      {/* Header com indicador de sistema de medidas */}
+      <div className="flex items-center justify-between gap-2">
+        <Button
+          onClick={() => setDialogOpen(true)}
+          className="flex-1 h-14 text-base font-semibold"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Adicionar Material
+        </Button>
+        <Badge variant="outline" className="h-14 px-3 flex items-center gap-1.5 shrink-0">
+          <Ruler className="w-4 h-4" />
+          <span className="text-xs font-medium">
+            {sistemaMedidas === 'imperial' ? t('measurementSystem.imperial') : t('measurementSystem.metric')}
+          </span>
+        </Badge>
+      </div>
 
       {/* Filtro por categoria */}
       {materiais.length > 0 && (
