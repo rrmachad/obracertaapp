@@ -584,7 +584,17 @@
     "advanceValue": "Valor (R$)",
     "advanceRegistered": "Adiantamento registrado!",
     "errorRegisteringAdvance": "Erro ao registrar",
-    "registerAdvance": "Registrar Adiantamento"
+    "registerAdvance": "Registrar Adiantamento",
+    "comparativeByPhase": "Comparativo por Fase",
+    "evolutionByBilling": "Evolução por Medição",
+    "cumulative": "Acumulado",
+    "contracted": "Contratado",
+    "completed": "Concluído",
+    "grossLabel": "Bruto",
+    "netLabel": "Líquido",
+    "totalMeasured": "Total Medido",
+    "totalPaidChart": "Total Pago",
+    "billingLabel": "Med"
   },
   "dialogs": {
     "editDiary": "Editar Registro do Diário",

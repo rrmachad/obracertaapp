@@ -584,7 +584,17 @@
     "advanceValue": "Valor ($)",
     "advanceRegistered": "¡Anticipo registrado!",
     "errorRegisteringAdvance": "Error al registrar",
-    "registerAdvance": "Registrar Anticipo"
+    "registerAdvance": "Registrar Anticipo",
+    "comparativeByPhase": "Comparativo por Fase",
+    "evolutionByBilling": "Evolución por Medición",
+    "cumulative": "Acumulado",
+    "contracted": "Contratado",
+    "completed": "Completado",
+    "grossLabel": "Bruto",
+    "netLabel": "Neto",
+    "totalMeasured": "Total Medido",
+    "totalPaidChart": "Total Pagado",
+    "billingLabel": "Med"
   },
   "dialogs": {
     "editDiary": "Editar Registro del Diario",

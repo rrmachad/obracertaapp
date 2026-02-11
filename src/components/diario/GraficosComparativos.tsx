@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { format, startOfMonth, endOfMonth, subMonths, getDaysInMonth, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { format, startOfMonth, endOfMonth, subMonths, getDaysInMonth, startOfWeek, endOfWeek, subWeeks, type Locale } from 'date-fns';
+import { ptBR, enUS, es } from 'date-fns/locale';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, LineChart, Line, AreaChart, Area
@@ -39,15 +40,19 @@ const climaColors: Record<ClimaTipo, string> = {
   chuvoso: '#3b82f6',
 };
 
-const climaLabels: Record<ClimaTipo, string> = {
-  ensolarado: 'Ensolarado',
-  parcialmente_nublado: 'Parc. Nublado',
-  nublado: 'Nublado',
-  chuvoso: 'Chuvoso',
-};
+const dateLocales: Record<string, Locale> = { 'pt-BR': ptBR, 'en-US': enUS, 'es-ES': es };
 
 export function GraficosComparativos({ registros, obraNome }: GraficosComparativosProps) {
-  // Calculate data for the last 6 months
+  const { t, i18n } = useTranslation();
+  const locale = dateLocales[i18n.language] || ptBR;
+
+  const climaLabels: Record<ClimaTipo, string> = {
+    ensolarado: t('diary.sunny'),
+    parcialmente_nublado: t('diary.partlyCloudy'),
+    nublado: t('diary.cloudy'),
+    chuvoso: t('diary.rainy'),
+  };
+
   const dadosMensais = useMemo(() => {
     const meses = [];
     for (let i = 5; i >= 0; i--) {
@@ -65,8 +70,8 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
       }, 0);
 
       meses.push({
-        mes: format(mesBase, 'MMM', { locale: ptBR }),
-        mesCompleto: format(mesBase, "MMM 'de' yyyy", { locale: ptBR }),
+        mes: format(mesBase, 'MMM', { locale }),
+        mesCompleto: format(mesBase, "MMM yyyy", { locale }),
         diasTrabalhados: registrosMes.length,
         diasNoMes: getDaysInMonth(mesBase),
         totalProfissionais,
@@ -76,9 +81,8 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
       });
     }
     return meses;
-  }, [registros]);
+  }, [registros, locale]);
 
-  // Calculate data for the last 4 weeks
   const dadosSemanais = useMemo(() => {
     const semanas = [];
     for (let i = 3; i >= 0; i--) {
@@ -96,7 +100,7 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
       }, 0);
 
       semanas.push({
-        semana: `Sem ${4 - i}`,
+        semana: `${4 - i}`,
         periodo: `${format(inicio, 'dd/MM')} - ${format(fim, 'dd/MM')}`,
         diasTrabalhados: registrosSemana.length,
         totalProfissionais,
@@ -105,7 +109,6 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
     return semanas;
   }, [registros]);
 
-  // Climate distribution (last 3 months)
   const dadosClima = useMemo(() => {
     const inicio = startOfMonth(subMonths(new Date(), 2));
     const registrosRecentes = registros.filter(r => {
@@ -114,15 +117,9 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
     });
 
     const contagem: Record<ClimaTipo, number> = {
-      ensolarado: 0,
-      parcialmente_nublado: 0,
-      nublado: 0,
-      chuvoso: 0,
+      ensolarado: 0, parcialmente_nublado: 0, nublado: 0, chuvoso: 0,
     };
-
-    registrosRecentes.forEach(r => {
-      contagem[r.clima]++;
-    });
+    registrosRecentes.forEach(r => { contagem[r.clima]++; });
 
     return Object.entries(contagem)
       .filter(([, count]) => count > 0)
@@ -131,40 +128,28 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
         value,
         color: climaColors[clima as ClimaTipo],
       }));
-  }, [registros]);
+  }, [registros, climaLabels]);
 
-  // Professional distribution (all time)
   const dadosProfissionais = useMemo(() => {
     const totais: Record<string, number> = {};
-    
     registros.forEach(r => {
       r.profissionais?.forEach(p => {
         totais[p.funcao] = (totais[p.funcao] || 0) + p.quantidade;
       });
     });
-
     return Object.entries(totais)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 8)
-      .map(([funcao, total]) => ({
-        funcao,
-        total,
-      }));
+      .map(([funcao, total]) => ({ funcao, total }));
   }, [registros]);
 
-  // Productivity trend
   const tendenciaProdutividade = useMemo(() => {
     if (dadosMensais.length < 2) return null;
     const ultimoMes = dadosMensais[dadosMensais.length - 1];
     const penultimoMes = dadosMensais[dadosMensais.length - 2];
-    
     if (penultimoMes.produtividade === 0) return null;
-    
     const variacao = ultimoMes.produtividade - penultimoMes.produtividade;
-    return {
-      variacao,
-      positivo: variacao >= 0,
-    };
+    return { variacao, positivo: variacao >= 0 };
   }, [dadosMensais]);
 
   if (registros.length === 0) {
@@ -172,8 +157,8 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
           <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>Nenhum registro para gerar gráficos.</p>
-          <p className="text-sm mt-1">Adicione registros ao diário para ver estatísticas.</p>
+          <p>{t('dialogs.noRecordsForCharts')}</p>
+          <p className="text-sm mt-1">{t('dialogs.addRecordsHint')}</p>
         </CardContent>
       </Card>
     );
@@ -181,13 +166,12 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
 
   return (
     <div className="space-y-4">
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" />
-              <span className="text-xs text-muted-foreground">Produtividade</span>
+              <span className="text-xs text-muted-foreground">{t('dialogs.productivity')}</span>
             </div>
             <div className="mt-2">
               <span className="text-2xl font-bold">
@@ -199,40 +183,38 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Este mês</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('dialogs.thisMonth')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
-              <span className="text-xs text-muted-foreground">Presenças</span>
+              <span className="text-xs text-muted-foreground">{t('dialogs.attendances')}</span>
             </div>
             <div className="mt-2">
               <span className="text-2xl font-bold">
                 {dadosMensais[dadosMensais.length - 1]?.totalProfissionais || 0}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Este mês</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('dialogs.thisMonth')}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts Tabs */}
       <Tabs defaultValue="produtividade" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="produtividade" className="text-xs">Produtividade</TabsTrigger>
-          <TabsTrigger value="clima" className="text-xs">Clima</TabsTrigger>
-          <TabsTrigger value="equipe" className="text-xs">Equipe</TabsTrigger>
+          <TabsTrigger value="produtividade" className="text-xs">{t('dialogs.productivity')}</TabsTrigger>
+          <TabsTrigger value="clima" className="text-xs">{t('dialogs.climate')}</TabsTrigger>
+          <TabsTrigger value="equipe" className="text-xs">{t('dialogs.team')}</TabsTrigger>
         </TabsList>
 
-        {/* Productivity Chart */}
         <TabsContent value="produtividade" className="mt-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
-                Dias Trabalhados por Mês
+                {t('dialogs.daysByMonth')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -246,70 +228,32 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="mes" 
-                      tick={{ fontSize: 10 }} 
-                      className="fill-muted-foreground"
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 10 }} 
-                      className="fill-muted-foreground"
-                    />
+                    <XAxis dataKey="mes" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
+                    <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" />
                     <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                      formatter={(value, name) => [
-                        `${value} dias`,
-                        'Dias trabalhados'
-                      ]}
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                      formatter={(value) => [`${value} ${t('dialogs.daysLabel')}`, t('dialogs.daysWorked')]}
                       labelFormatter={(label, payload) => payload[0]?.payload?.mesCompleto}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="diasTrabalhados" 
-                      stroke={COLORS.primary} 
-                      fillOpacity={1} 
-                      fill="url(#colorDias)" 
-                    />
+                    <Area type="monotone" dataKey="diasTrabalhados" stroke={COLORS.primary} fillOpacity={1} fill="url(#colorDias)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
               
-              {/* Weekly comparison */}
               <div className="mt-4 pt-4 border-t">
-                <p className="text-xs font-medium mb-2">Últimas 4 semanas</p>
+                <p className="text-xs font-medium mb-2">{t('dialogs.last4Weeks')}</p>
                 <div className="h-32">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={dadosSemanais}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis 
-                        dataKey="semana" 
-                        tick={{ fontSize: 10 }} 
-                        className="fill-muted-foreground"
-                      />
-                      <YAxis 
-                        tick={{ fontSize: 10 }}
-                        className="fill-muted-foreground"
-                      />
+                      <XAxis dataKey="semana" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
+                      <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" />
                       <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          fontSize: '12px'
-                        }}
-                        formatter={(value) => [`${value} dias`, 'Trabalhados']}
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                        formatter={(value) => [`${value} ${t('dialogs.daysLabel')}`, t('dialogs.worked')]}
                         labelFormatter={(label, payload) => payload[0]?.payload?.periodo}
                       />
-                      <Bar 
-                        dataKey="diasTrabalhados" 
-                        fill={COLORS.primary}
-                        radius={[4, 4, 0, 0]}
-                      />
+                      <Bar dataKey="diasTrabalhados" fill={COLORS.primary} radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -318,13 +262,12 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
           </Card>
         </TabsContent>
 
-        {/* Weather Chart */}
         <TabsContent value="clima" className="mt-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Cloud className="w-4 h-4" />
-                Distribuição de Clima (últimos 3 meses)
+                {t('dialogs.weatherDistribution')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -332,131 +275,68 @@ export function GraficosComparativos({ registros, obraNome }: GraficosComparativ
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie
-                        data={dadosClima}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={2}
-                        dataKey="value"
-                      >
+                      <Pie data={dadosClima} cx="50%" cy="50%" innerRadius={40} outerRadius={80} paddingAngle={2} dataKey="value">
                         {dadosClima.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
                       <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          fontSize: '12px'
-                        }}
-                        formatter={(value) => [`${value} dia(s)`, '']}
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                        formatter={(value) => [`${value} ${t('dialogs.days')}`, '']}
                       />
-                      <Legend 
-                        wrapperStyle={{ fontSize: '11px' }}
-                        formatter={(value) => value}
-                      />
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center text-sm text-muted-foreground py-8">
-                  Sem dados de clima disponíveis
-                </p>
+                <p className="text-center text-sm text-muted-foreground py-8">{t('dialogs.noWeatherData')}</p>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Team Chart */}
         <TabsContent value="equipe" className="mt-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                Presenças por Função (histórico)
+                {t('dialogs.attendancesByRole')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {dadosProfissionais.length > 0 ? (
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart 
-                      data={dadosProfissionais} 
-                      layout="vertical"
-                      margin={{ left: 70 }}
-                    >
+                    <BarChart data={dadosProfissionais} layout="vertical" margin={{ left: 70 }}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis 
-                        type="number" 
-                        tick={{ fontSize: 10 }}
-                        className="fill-muted-foreground"
-                      />
-                      <YAxis 
-                        type="category" 
-                        dataKey="funcao" 
-                        tick={{ fontSize: 10 }}
-                        className="fill-muted-foreground"
-                        width={65}
-                      />
+                      <XAxis type="number" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
+                      <YAxis type="category" dataKey="funcao" tick={{ fontSize: 10 }} className="fill-muted-foreground" width={65} />
                       <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          fontSize: '12px'
-                        }}
-                        formatter={(value) => [`${value} presenças`, '']}
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                        formatter={(value) => [`${value} ${t('dialogs.attendancesLabel')}`, '']}
                       />
-                      <Bar 
-                        dataKey="total" 
-                        fill={COLORS.info}
-                        radius={[0, 4, 4, 0]}
-                      />
+                      <Bar dataKey="total" fill={COLORS.info} radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center text-sm text-muted-foreground py-8">
-                  Nenhum profissional registrado
-                </p>
+                <p className="text-center text-sm text-muted-foreground py-8">{t('dialogs.noProfessionals')}</p>
               )}
               
-              {/* Monthly workforce trend */}
               <div className="mt-4 pt-4 border-t">
-                <p className="text-xs font-medium mb-2">Evolução Mensal de Presenças</p>
+                <p className="text-xs font-medium mb-2">{t('dialogs.monthlyAttendanceTrend')}</p>
                 <div className="h-32">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={dadosMensais}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis 
-                        dataKey="mes" 
-                        tick={{ fontSize: 10 }}
-                        className="fill-muted-foreground"
-                      />
-                      <YAxis 
-                        tick={{ fontSize: 10 }}
-                        className="fill-muted-foreground"
-                      />
+                      <XAxis dataKey="mes" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
+                      <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" />
                       <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          fontSize: '12px'
-                        }}
-                        formatter={(value) => [`${value} presenças`, '']}
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                        formatter={(value) => [`${value} ${t('dialogs.attendancesLabel')}`, '']}
                         labelFormatter={(label, payload) => payload[0]?.payload?.mesCompleto}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="totalProfissionais" 
-                        stroke={COLORS.success}
-                        strokeWidth={2}
-                        dot={{ fill: COLORS.success, r: 3 }}
-                      />
+                      <Line type="monotone" dataKey="totalProfissionais" stroke={COLORS.success} strokeWidth={2} dot={{ fill: COLORS.success, r: 3 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>

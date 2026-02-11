@@ -584,7 +584,17 @@
     "advanceValue": "Value ($)",
     "advanceRegistered": "Advance registered!",
     "errorRegisteringAdvance": "Error registering",
-    "registerAdvance": "Register Advance"
+    "registerAdvance": "Register Advance",
+    "comparativeByPhase": "Comparative by Phase",
+    "evolutionByBilling": "Evolution by Billing",
+    "cumulative": "Cumulative",
+    "contracted": "Contracted",
+    "completed": "Completed",
+    "grossLabel": "Gross",
+    "netLabel": "Net",
+    "totalMeasured": "Total Measured",
+    "totalPaidChart": "Total Paid",
+    "billingLabel": "Bill"
   },
   "dialogs": {
     "editDiary": "Edit Daily Log Entry",
