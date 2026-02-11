@@ -1,13 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Building2, 
-  MapPin, 
-  Clock, 
-  CheckCircle2, 
-  Pause, 
-  FileText,
-  ExternalLink,
-  TrendingUp
+  Building2, MapPin, Clock, CheckCircle2, Pause, FileText, ExternalLink, TrendingUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS, es } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { ObraStats } from '@/hooks/useAdminStats';
 
@@ -24,31 +19,19 @@ interface ObraStatsListProps {
   isLoading: boolean;
 }
 
-const statusConfig = {
-  planejamento: { 
-    label: 'Planejamento', 
-    icon: Clock, 
-    color: 'bg-muted text-muted-foreground' 
-  },
-  em_andamento: { 
-    label: 'Em Andamento', 
-    icon: TrendingUp, 
-    color: 'bg-primary/10 text-primary' 
-  },
-  concluida: { 
-    label: 'Concluída', 
-    icon: CheckCircle2, 
-    color: 'bg-chart-2/10 text-chart-2' 
-  },
-  pausada: { 
-    label: 'Pausada', 
-    icon: Pause, 
-    color: 'bg-chart-3/10 text-chart-3' 
-  },
-};
+const localeMap: Record<string, Locale> = { 'pt-BR': ptBR, 'en-US': enUS, 'es-ES': es };
 
 export function ObraStatsList({ obras, isLoading }: ObraStatsListProps) {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const dateLocale = localeMap[i18n.language] || ptBR;
+
+  const statusConfig = {
+    planejamento: { label: t('status.planning'), icon: Clock, color: 'bg-muted text-muted-foreground' },
+    em_andamento: { label: t('status.inProgress'), icon: TrendingUp, color: 'bg-primary/10 text-primary' },
+    concluida: { label: t('status.completed'), icon: CheckCircle2, color: 'bg-chart-2/10 text-chart-2' },
+    pausada: { label: t('status.paused'), icon: Pause, color: 'bg-chart-3/10 text-chart-3' },
+  };
 
   if (isLoading) {
     return (
@@ -56,7 +39,7 @@ export function ObraStatsList({ obras, isLoading }: ObraStatsListProps) {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Building2 className="w-4 h-4" />
-            Suas Obras
+            {t('admin.yourWorks')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -79,26 +62,17 @@ export function ObraStatsList({ obras, isLoading }: ObraStatsListProps) {
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <Building2 className="w-4 h-4 text-primary" />
-          Suas Obras
+          {t('admin.yourWorks')}
         </CardTitle>
-        <CardDescription>
-          Visão geral de todas as obras cadastradas
-        </CardDescription>
+        <CardDescription>{t('admin.worksOverview')}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1">
         {obras.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <Building2 className="w-10 h-10 text-muted-foreground/50 mb-3" />
-            <p className="text-sm text-muted-foreground">
-              Nenhuma obra cadastrada
-            </p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-3"
-              onClick={() => navigate('/dashboard')}
-            >
-              Cadastrar primeira obra
+            <p className="text-sm text-muted-foreground">{t('admin.noWorksRegistered')}</p>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate('/dashboard')}>
+              {t('admin.registerFirst')}
             </Button>
           </div>
         ) : (
@@ -128,35 +102,29 @@ export function ObraStatsList({ obras, isLoading }: ObraStatsListProps) {
                       </Badge>
                     </div>
 
-                    {/* Progress bar */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                        <span>Progresso</span>
+                        <span>{t('admin.progress')}</span>
                         <span>{obra.progresso}%</span>
                       </div>
                       <Progress value={obra.progresso} className="h-1.5" />
                     </div>
 
-                    {/* Stats */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <FileText className="w-3 h-3" />
-                          <span>{obra.totalDiarios} diários</span>
+                          <span>{obra.totalDiarios} {t('admin.diaries')}</span>
                         </div>
                         {obra.ultimaAtividade && (
                           <span className="text-muted-foreground/60">
-                            Última: {format(new Date(obra.ultimaAtividade), 'dd/MM', { locale: ptBR })}
+                            {t('admin.last')} {format(new Date(obra.ultimaAtividade), 'dd/MM', { locale: dateLocale })}
                           </span>
                         )}
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="h-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
+                      <Button variant="ghost" size="sm" className="h-7 opacity-0 group-hover:opacity-100 transition-opacity">
                         <ExternalLink className="w-3 h-3 mr-1" />
-                        Abrir
+                        {t('admin.open')}
                       </Button>
                     </div>
                   </div>

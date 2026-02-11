@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { 
   FileText, 
   Package, 
@@ -13,7 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS, es } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import type { RecentActivity } from '@/hooks/useAdminStats';
 
@@ -29,8 +31,12 @@ const climaIcons: Record<string, React.ReactNode> = {
   parcialmente_nublado: <CloudSun className="w-3 h-3 text-chart-3" />,
 };
 
+const localeMap: Record<string, Locale> = { 'pt-BR': ptBR, 'en-US': enUS, 'es-ES': es };
+
 export function RecentActivityList({ activities, isLoading }: RecentActivityListProps) {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const dateLocale = localeMap[i18n.language] || ptBR;
 
   if (isLoading) {
     return (
@@ -38,7 +44,7 @@ export function RecentActivityList({ activities, isLoading }: RecentActivityList
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            Atividade Recente
+            {t('admin.recentActivity')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -60,23 +66,17 @@ export function RecentActivityList({ activities, isLoading }: RecentActivityList
 
   const getIcon = (type: RecentActivity['type']) => {
     switch (type) {
-      case 'diario':
-        return <FileText className="w-4 h-4 text-primary" />;
-      case 'material':
-        return <Package className="w-4 h-4 text-chart-2" />;
-      default:
-        return <Clock className="w-4 h-4 text-muted-foreground" />;
+      case 'diario': return <FileText className="w-4 h-4 text-primary" />;
+      case 'material': return <Package className="w-4 h-4 text-chart-2" />;
+      default: return <Clock className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
   const getTypeLabel = (type: RecentActivity['type']) => {
     switch (type) {
-      case 'diario':
-        return 'Diário';
-      case 'material':
-        return 'Estoque';
-      default:
-        return 'Cronograma';
+      case 'diario': return t('admin.typeDiary');
+      case 'material': return t('admin.typeStock');
+      default: return t('admin.typeSchedule');
     }
   };
 
@@ -85,22 +85,16 @@ export function RecentActivityList({ activities, isLoading }: RecentActivityList
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <Clock className="w-4 h-4 text-primary" />
-          Atividade Recente
+          {t('admin.recentActivity')}
         </CardTitle>
-        <CardDescription>
-          Últimos registros nas suas obras
-        </CardDescription>
+        <CardDescription>{t('admin.latestRecords')}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1">
         {activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <FileText className="w-10 h-10 text-muted-foreground/50 mb-3" />
-            <p className="text-sm text-muted-foreground">
-              Nenhuma atividade registrada ainda
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Comece adicionando registros ao diário
-            </p>
+            <p className="text-sm text-muted-foreground">{t('admin.noActivityYet')}</p>
+            <p className="text-xs text-muted-foreground">{t('admin.startAddingDiary')}</p>
           </div>
         ) : (
           <ScrollArea className="h-80">
@@ -121,24 +115,13 @@ export function RecentActivityList({ activities, isLoading }: RecentActivityList
                       </Badge>
                       {activity.clima && climaIcons[activity.clima]}
                     </div>
-                    <p className="text-sm font-medium truncate">
-                      {activity.obraName}
-                    </p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {activity.description}
-                    </p>
+                    <p className="text-sm font-medium truncate">{activity.obraName}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{activity.description}</p>
                     <p className="text-xs text-muted-foreground/70 mt-1">
-                      {formatDistanceToNow(new Date(activity.timestamp), { 
-                        addSuffix: true, 
-                        locale: ptBR 
-                      })}
+                      {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true, locale: dateLocale })}
                     </p>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
+                  <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <ExternalLink className="w-4 h-4" />
                   </Button>
                 </div>

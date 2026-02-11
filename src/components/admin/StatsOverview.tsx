@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { 
   Building2, 
   FileText, 
@@ -91,6 +92,8 @@ function StatCard({ title, value, subtitle, icon, trend, trendValue, variant = '
 }
 
 export function StatsOverview({ stats, isLoading }: StatsOverviewProps) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -114,86 +117,83 @@ export function StatsOverview({ stats, isLoading }: StatsOverviewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Cards principais */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          title="Total de Obras"
+          title={t('admin.totalWorks')}
           value={stats.totalObras}
-          subtitle={`${stats.obrasAtivas} em andamento`}
+          subtitle={t('admin.inProgressCount', { count: stats.obrasAtivas })}
           icon={<Building2 className="w-5 h-5" />}
           variant="default"
         />
         <StatCard
-          title="Registros no Diário"
+          title={t('admin.diaryRecords')}
           value={stats.totalDiarios}
-          subtitle={`${stats.diariosSemanais} esta semana`}
+          subtitle={`${stats.diariosSemanais} ${t('admin.thisWeek')}`}
           icon={<FileText className="w-5 h-5" />}
           variant="success"
           trend={stats.diariosSemanais > 0 ? 'up' : 'neutral'}
-          trendValue={stats.diariosSemanais > 0 ? `+${stats.diariosSemanais} esta semana` : 'Sem registros'}
+          trendValue={stats.diariosSemanais > 0 ? t('admin.plusThisWeek', { count: stats.diariosSemanais }) : t('admin.noRecords')}
         />
         <StatCard
-          title="Materiais Cadastrados"
+          title={t('admin.registeredMaterials')}
           value={stats.totalMateriais}
-          subtitle={stats.materiaisEmAlerta > 0 ? `${stats.materiaisEmAlerta} em alerta` : 'Estoque OK'}
+          subtitle={stats.materiaisEmAlerta > 0 ? t('admin.inAlert', { count: stats.materiaisEmAlerta }) : t('admin.stockOk')}
           icon={<Package className="w-5 h-5" />}
           variant={stats.materiaisEmAlerta > 0 ? 'warning' : 'default'}
         />
         <StatCard
-          title="Progresso Médio"
+          title={t('admin.averageProgress')}
           value={`${stats.progressoMedio}%`}
-          subtitle="Das suas obras"
+          subtitle={t('admin.ofYourWorks')}
           icon={<TrendingUp className="w-5 h-5" />}
           variant="success"
         />
       </div>
 
-      {/* Cards secundários */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          title="Obras Ativas"
+          title={t('admin.activeWorks')}
           value={stats.obrasAtivas}
           icon={<Clock className="w-5 h-5" />}
           variant="success"
         />
         <StatCard
-          title="Obras Concluídas"
+          title={t('admin.completedWorks')}
           value={stats.obrasConcluidas}
           icon={<CheckCircle2 className="w-5 h-5" />}
           variant="default"
         />
         <StatCard
-          title="Diários do Mês"
+          title={t('admin.monthlyDiaries')}
           value={stats.diariosMensais}
           icon={<Calendar className="w-5 h-5" />}
           variant="default"
         />
         <StatCard
-          title="Materiais em Alerta"
+          title={t('admin.materialsInAlert')}
           value={stats.materiaisEmAlerta}
-          subtitle={stats.materiaisEmAlerta > 0 ? 'Estoque baixo!' : 'Tudo certo'}
+          subtitle={stats.materiaisEmAlerta > 0 ? t('admin.lowStock') : t('admin.allGood')}
           icon={<AlertTriangle className="w-5 h-5" />}
           variant={stats.materiaisEmAlerta > 0 ? 'destructive' : 'default'}
         />
       </div>
 
-      {/* Progresso do cronograma */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-primary" />
-            Progresso Geral do Cronograma
+            {t('admin.scheduleProgress')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
             <Progress value={progressoCronograma} className="flex-1" />
             <span className="text-sm font-medium min-w-16 text-right">
-              {stats.itensConcluidos}/{stats.totalCronograma} itens
+              {t('admin.itemsCount', { done: stats.itensConcluidos, total: stats.totalCronograma })}
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            {progressoCronograma}% das tarefas concluídas em todas as obras
+            {t('admin.tasksCompleted', { pct: progressoCronograma })}
           </p>
         </CardContent>
       </Card>
