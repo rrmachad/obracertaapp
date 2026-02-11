@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAdiantamentos } from '@/hooks/useMedicoes';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrency } from '@/hooks/useCurrency';
+import { useTranslation } from 'react-i18next';
 
 interface NovoAdiantamentoDialogProps {
   open: boolean;
@@ -13,6 +15,8 @@ interface NovoAdiantamentoDialogProps {
 }
 
 export function NovoAdiantamentoDialog({ open, onOpenChange, obraId }: NovoAdiantamentoDialogProps) {
+  const { t } = useTranslation();
+  const { formatCurrency } = useCurrency();
   const { createAdiantamento } = useAdiantamentos(obraId);
   const { toast } = useToast();
   const [valor, setValor] = useState('');
@@ -30,12 +34,12 @@ export function NovoAdiantamentoDialog({ open, onOpenChange, obraId }: NovoAdian
         valor: valorNum,
         descricao: descricao || undefined,
       });
-      toast({ title: 'Adiantamento registrado!', description: `R$ ${valorNum.toFixed(2)}` });
+      toast({ title: t('financial.advanceRegistered'), description: formatCurrency(valorNum) });
       setValor('');
       setDescricao('');
       onOpenChange(false);
     } catch {
-      toast({ title: 'Erro ao registrar', variant: 'destructive' });
+      toast({ title: t('financial.errorRegisteringAdvance'), variant: 'destructive' });
     }
   };
 
@@ -43,15 +47,15 @@ export function NovoAdiantamentoDialog({ open, onOpenChange, obraId }: NovoAdian
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Novo Adiantamento (Vale)</DialogTitle>
+          <DialogTitle>{t('financial.newAdvanceTitle')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Data</Label>
+            <Label>{t('common.date')}</Label>
             <Input type="date" value={data} onChange={e => setData(e.target.value)} />
           </div>
           <div>
-            <Label>Valor (R$)</Label>
+            <Label>{t('financial.advanceValue')}</Label>
             <Input
               type="number"
               step="0.01"
@@ -62,7 +66,7 @@ export function NovoAdiantamentoDialog({ open, onOpenChange, obraId }: NovoAdian
             />
           </div>
           <div>
-            <Label>Descrição</Label>
+            <Label>{t('common.description')}</Label>
             <Input
               placeholder="Ex: Vale para almoço"
               value={descricao}
@@ -70,7 +74,7 @@ export function NovoAdiantamentoDialog({ open, onOpenChange, obraId }: NovoAdian
             />
           </div>
           <Button onClick={handleSubmit} className="w-full" disabled={!valor || createAdiantamento.isPending}>
-            Registrar Adiantamento
+            {t('financial.registerAdvance')}
           </Button>
         </div>
       </DialogContent>

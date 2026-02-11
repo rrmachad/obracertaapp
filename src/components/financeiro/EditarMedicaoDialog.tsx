@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useMedicoes } from '@/hooks/useMedicoes';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrency } from '@/hooks/useCurrency';
+import { useTranslation } from 'react-i18next';
 import { Medicao } from '@/types/database';
 import { Pencil, Loader2 } from 'lucide-react';
 
@@ -18,6 +20,8 @@ interface EditarMedicaoDialogProps {
 }
 
 export function EditarMedicaoDialog({ open, onOpenChange, medicao, obraId, retencaoPercentual }: EditarMedicaoDialogProps) {
+  const { t } = useTranslation();
+  const { formatCurrency } = useCurrency();
   const { updateMedicao } = useMedicoes(obraId);
   const { toast } = useToast();
 
@@ -40,8 +44,6 @@ export function EditarMedicaoDialog({ open, onOpenChange, medicao, obraId, reten
   const valorAdiantamentos = Number(medicao.valor_adiantamentos_descontados);
   const valorLiquido = valorBruto - valorRetencao - valorAdiantamentos;
 
-  const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
   const handleSave = async () => {
     try {
       await updateMedicao.mutateAsync({
@@ -55,10 +57,10 @@ export function EditarMedicaoDialog({ open, onOpenChange, medicao, obraId, reten
         valor_liquido_a_pagar: valorLiquido,
         observacoes: observacoes || null,
       });
-      toast({ title: 'Medição atualizada!' });
+      toast({ title: t('financial.billingUpdated') });
       onOpenChange(false);
     } catch {
-      toast({ title: 'Erro ao atualizar', variant: 'destructive' });
+      toast({ title: t('financial.errorUpdating'), variant: 'destructive' });
     }
   };
 
@@ -68,29 +70,29 @@ export function EditarMedicaoDialog({ open, onOpenChange, medicao, obraId, reten
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pencil className="w-5 h-5 text-primary" />
-            Editar Medição
+            {t('financial.editBilling')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label>Data da Medição</Label>
+            <Label>{t('financial.billingDate')}</Label>
             <Input type="date" value={dataMedicao} onChange={e => setDataMedicao(e.target.value)} />
           </div>
 
           <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Valor do Contrato:</span>
+              <span className="text-muted-foreground">{t('financial.contractValueLabel')}</span>
               <span className="font-semibold">{formatCurrency(valorContrato)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">% Anterior:</span>
+              <span className="text-muted-foreground">{t('financial.previousPct')}</span>
               <span className="font-semibold">{percentualAnterior}%</span>
             </div>
           </div>
 
           <div>
-            <Label>% Acumulado Atual</Label>
+            <Label>{t('financial.currentAccumulated')}</Label>
             <Input
               type="number"
               min={percentualAnterior}
@@ -102,9 +104,9 @@ export function EditarMedicaoDialog({ open, onOpenChange, medicao, obraId, reten
           </div>
 
           <div>
-            <Label>Observações</Label>
+            <Label>{t('diary.observations')}</Label>
             <Textarea
-              placeholder="Observações sobre esta medição..."
+              placeholder={t('financial.observationsAboutBilling')}
               value={observacoes}
               onChange={e => setObservacoes(e.target.value)}
               rows={2}
@@ -113,28 +115,28 @@ export function EditarMedicaoDialog({ open, onOpenChange, medicao, obraId, reten
 
           <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
             <div className="flex justify-between">
-              <span>Bruto:</span>
+              <span>{t('financial.gross')}</span>
               <span className="font-medium">{formatCurrency(valorBruto)}</span>
             </div>
             <div className="flex justify-between text-warning">
-              <span>Retenção ({retencaoPercentual}%):</span>
+              <span>{t('financial.retention', { pct: retencaoPercentual })}</span>
               <span>- {formatCurrency(valorRetencao)}</span>
             </div>
             {valorAdiantamentos > 0 && (
               <div className="flex justify-between text-destructive">
-                <span>Adiantamentos:</span>
+                <span>{t('financial.advancesLabel')}</span>
                 <span>- {formatCurrency(valorAdiantamentos)}</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-success pt-1 border-t">
-              <span>Líquido:</span>
+              <span>{t('financial.net')}</span>
               <span>{formatCurrency(valorLiquido)}</span>
             </div>
           </div>
 
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleSave}
@@ -142,7 +144,7 @@ export function EditarMedicaoDialog({ open, onOpenChange, medicao, obraId, reten
               disabled={updateMedicao.isPending || percAtual <= percentualAnterior}
             >
               {updateMedicao.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Salvar
+              {t('common.save')}
             </Button>
           </div>
         </div>
