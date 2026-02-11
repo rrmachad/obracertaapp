@@ -19,16 +19,16 @@ const formatarQuantidade = (qtd: number, unidade: string): string => {
   return qtd.toFixed(2);
 };
 
-// Categorias disponíveis
-const CATEGORIAS = [
-  { value: 'all', label: 'Todas categorias', icon: '📦' },
-  { value: 'alvenaria', label: 'Alvenaria', icon: '🧱' },
-  { value: 'hidraulica', label: 'Hidráulica', icon: '🚿' },
-  { value: 'eletrica', label: 'Elétrica', icon: '⚡' },
-  { value: 'estrutural', label: 'Estrutural', icon: '🏗️' },
-  { value: 'acabamento', label: 'Acabamento', icon: '🎨' },
-  { value: 'ferramentas', label: 'Ferramentas', icon: '🔧' },
-  { value: 'outros', label: 'Outros', icon: '📋' },
+// Categorias disponíveis — keys mapped to i18n
+const CATEGORIA_KEYS: { value: string; i18nKey: string; icon: string }[] = [
+  { value: 'all', i18nKey: 'inventory.allCategories', icon: '📦' },
+  { value: 'alvenaria', i18nKey: 'inventory.masonry', icon: '🧱' },
+  { value: 'hidraulica', i18nKey: 'inventory.plumbing', icon: '🚿' },
+  { value: 'eletrica', i18nKey: 'inventory.electrical', icon: '⚡' },
+  { value: 'estrutural', i18nKey: 'inventory.structural', icon: '🏗️' },
+  { value: 'acabamento', i18nKey: 'inventory.finishing', icon: '🎨' },
+  { value: 'ferramentas', i18nKey: 'inventory.tools', icon: '🔧' },
+  { value: 'outros', i18nKey: 'inventory.other', icon: '📋' },
 ];
 
 // Detectar categoria com base no nome do material
@@ -108,39 +108,39 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
     try {
       await ajustarQuantidade.mutateAsync({ id: material.id, delta });
       toast({
-        title: delta > 0 ? 'Entrada registrada' : 'Saída registrada',
+        title: delta > 0 ? t('inventory.entryRegistered') : t('inventory.exitRegistered'),
         description: `${Math.abs(delta)} ${material.unidade} de ${material.nome}`,
       });
     } catch (error) {
       toast({
-        title: 'Erro ao ajustar',
-        description: 'Tente novamente.',
+        title: t('inventory.errorAdjusting'),
+        description: t('common.tryAgain'),
         variant: 'destructive',
       });
-      throw error; // Re-throw para o popover saber que falhou
+      throw error;
     }
   };
 
   const handleDelete = async (material: Material) => {
-    if (!confirm(`Remover "${material.nome}" do estoque?`)) return;
+    if (!confirm(t('inventory.removeFromStock', { name: material.nome }))) return;
     
     try {
       await deleteMaterial.mutateAsync(material.id);
       toast({
-        title: 'Material removido',
+        title: t('inventory.materialRemoved'),
         description: material.nome,
       });
     } catch (error) {
       toast({
-        title: 'Erro ao remover',
-        description: 'Tente novamente.',
+        title: t('inventory.errorRemoving'),
+        description: t('common.tryAgain'),
         variant: 'destructive',
       });
     }
   };
 
   const getCategoriaInfo = (categoria: string) => {
-    return CATEGORIAS.find(c => c.value === categoria) || CATEGORIAS[CATEGORIAS.length - 1];
+    return CATEGORIA_KEYS.find(c => c.value === categoria) || CATEGORIA_KEYS[CATEGORIA_KEYS.length - 1];
   };
 
   if (isLoading) {
@@ -160,7 +160,7 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
           className="flex-1 h-14 text-base font-semibold"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Adicionar Material
+          {t('inventory.addMaterial')}
         </Button>
         <Badge variant="outline" className="h-14 px-3 flex items-center gap-1.5 shrink-0">
           <Ruler className="w-4 h-4" />
@@ -179,11 +179,11 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {CATEGORIAS.map((cat) => (
+              {CATEGORIA_KEYS.map((cat) => (
                 <SelectItem key={cat.value} value={cat.value}>
                   <span className="flex items-center gap-2">
                     <span>{cat.icon}</span>
-                    <span>{cat.label}</span>
+                    <span>{t(cat.i18nKey)}</span>
                     {cat.value !== 'all' && contadorCategorias[cat.value] && (
                       <Badge variant="secondary" className="ml-auto text-xs">
                         {contadorCategorias[cat.value]}
@@ -210,7 +210,7 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                 onClick={() => setCategoriaFiltro(categoria)}
               >
                 <span className="mr-1">{info.icon}</span>
-                {info.label}: {count}
+                {t(info.i18nKey)}: {count}
               </Badge>
             );
           })}
@@ -222,21 +222,21 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Package className="w-12 h-12 mb-4 opacity-50" />
-            <p className="text-lg font-medium">Nenhum material cadastrado</p>
-            <p className="text-sm">Adicione materiais para controlar seu estoque</p>
+            <p className="text-lg font-medium">{t('inventory.noMaterialsRegistered')}</p>
+            <p className="text-sm">{t('inventory.addMaterialsToTrack')}</p>
           </CardContent>
         </Card>
       ) : materiaisFiltrados.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-8 text-muted-foreground">
             <Filter className="w-10 h-10 mb-3 opacity-50" />
-            <p className="font-medium">Nenhum material nesta categoria</p>
+            <p className="font-medium">{t('inventory.noMaterialsInCategory')}</p>
             <Button 
               variant="link" 
               size="sm"
               onClick={() => setCategoriaFiltro('all')}
             >
-              Ver todos
+              {t('common.viewAll')}
             </Button>
           </CardContent>
         </Card>
@@ -261,17 +261,16 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                         {isLow && (
                           <Badge variant="destructive" className="flex items-center gap-1">
                             <AlertTriangle className="w-3 h-3" />
-                            Baixo
+                            {t('inventory.low')}
                           </Badge>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Mínimo: {formatarQuantidade(material.qtd_minima, material.unidade)} {material.unidade}
+                        {t('inventory.minimum')} {formatarQuantidade(material.qtd_minima, material.unidade)} {material.unidade}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {/* Botão diminuir com popover */}
                       <AjusteQuantidadePopover
                         tipo="saida"
                         onAjuste={(delta) => handleAjuste(material, delta)}
@@ -280,7 +279,6 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                         qtdAtual={material.qtd_atual}
                       />
 
-                      {/* Quantidade atual */}
                       <div className="w-20 text-center">
                         <div className={`text-2xl font-bold ${isLow ? 'text-destructive' : ''}`}>
                           {formatarQuantidade(material.qtd_atual, material.unidade)}
@@ -290,7 +288,6 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                         </div>
                       </div>
 
-                      {/* Botão aumentar com popover */}
                       <AjusteQuantidadePopover
                         tipo="entrada"
                         onAjuste={(delta) => handleAjuste(material, delta)}
@@ -298,7 +295,6 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                         qtdAtual={material.qtd_atual}
                       />
 
-                      {/* Botão excluir */}
                       <Button
                         variant="ghost"
                         size="icon"

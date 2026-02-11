@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Medicao } from '@/types/database';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
+import { useCurrency } from '@/hooks/useCurrency';
 import jsPDF from 'jspdf';
 
 interface FinanceiroTabProps {
@@ -31,26 +33,26 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
   const { itens, isLoading: loadingItens, updateItem } = useCronogramaItens(obraId);
   const { data: fases } = useFases();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const { formatCurrency: fmtCurrency } = useCurrency();
 
   const [medicaoDialogOpen, setMedicaoDialogOpen] = useState(false);
   const [adiantamentoDialogOpen, setAdiantamentoDialogOpen] = useState(false);
   const [editMedicao, setEditMedicao] = useState<Medicao | null>(null);
 
-  const formatCurrency = (v: number) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const formatCurrency = (v: number) => fmtCurrency(Number(v));
 
   const totalMedido = medicoes.reduce((s, m) => s + Number(m.valor_bruto_medido), 0);
   const totalPago = medicoes.reduce((s, m) => s + Number(m.valor_liquido_a_pagar), 0);
   const saldoRetencao = medicoes.reduce((s, m) => s + Number(m.valor_retencao_tecnica), 0);
   const totalAdiantamentosPendentes = pendentes.reduce((s, a) => s + Number(a.valor), 0);
 
-  // Computed values from completed cronograma items
   const valorTotalContrato = itens.reduce((s, i) => s + (Number(i.valor_contrato_mao_de_obra) || 0), 0);
   const valorConcluido = itens
     .filter(i => i.status === 'concluido')
     .reduce((s, i) => s + (Number(i.valor_contrato_mao_de_obra) || 0), 0);
   const valorPendente = valorTotalContrato - valorConcluido;
 
-  // Group completed values by phase
   const valoresPorFase = fases?.map(fase => {
     const itensFase = itens.filter(i => i.fase_id === fase.id);
     const total = itensFase.reduce((s, i) => s + (Number(i.valor_contrato_mao_de_obra) || 0), 0);
@@ -60,11 +62,9 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
     return { fase, total, concluido, pendente: total - concluido, itensFase };
   }).filter(f => f.total > 0) ?? [];
 
-  // Contract overrun alerts (admin only)
   const alertasEstouro = isAdmin ? valoresPorFase
     .filter(f => f.total > 0 && totalPago > 0)
     .map(f => {
-      // Check if payments for this phase exceed the phase contract
       const medicoesFase = medicoes.filter(m => m.fase_id === f.fase.id);
       const pagoFase = medicoesFase.reduce((s, m) => s + Number(m.valor_liquido_a_pagar), 0);
       if (pagoFase > f.total) {
@@ -73,7 +73,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
       return null;
     }).filter(Boolean) : [];
 
-  // Global overrun
   const globalOverrun = isAdmin && valorTotalContrato > 0 && totalPago > valorTotalContrato
     ? { total: valorTotalContrato, pago: totalPago, excesso: totalPago - valorTotalContrato }
     : null;
@@ -81,29 +80,29 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
   const handleUpdateItemValor = async (itemId: string, valor: number | null) => {
     try {
       await updateItem.mutateAsync({ id: itemId, valor_contrato_mao_de_obra: valor as any });
-      toast({ title: 'Valor atualizado!' });
+      toast({ title: t('schedule.valueUpdated') });
     } catch {
-      toast({ title: 'Erro ao atualizar', variant: 'destructive' });
+      toast({ title: t('schedule.errorUpdating'), variant: 'destructive' });
     }
   };
 
   const handleDeleteMedicao = async (id: string) => {
-    if (!confirm('Excluir esta medição?')) return;
+    if (!confirm(t('financial.deleteThisBilling'))) return;
     try {
       await deleteMedicao.mutateAsync(id);
-      toast({ title: 'Medição excluída' });
+      toast({ title: t('financial.billingDeleted') });
     } catch {
-      toast({ title: 'Erro ao excluir', variant: 'destructive' });
+      toast({ title: t('financial.errorDeleting'), variant: 'destructive' });
     }
   };
 
   const handleDeleteAdiantamento = async (id: string) => {
-    if (!confirm('Excluir este adiantamento?')) return;
+    if (!confirm(t('financial.deleteThisAdvance'))) return;
     try {
       await deleteAdiantamento.mutateAsync(id);
-      toast({ title: 'Adiantamento excluído' });
+      toast({ title: t('financial.advanceDeleted') });
     } catch {
-      toast({ title: 'Erro ao excluir', variant: 'destructive' });
+      toast({ title: t('financial.errorDeleting'), variant: 'destructive' });
     }
   };
 
@@ -124,11 +123,10 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(128);
-    doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} | Retencao Tecnica: ${retencaoPercentual}%`, pageWidth / 2, y, { align: 'center' });
+    doc.text(`Gerado em ${new Date().toLocaleDateString()} | Retencao Tecnica: ${retencaoPercentual}%`, pageWidth / 2, y, { align: 'center' });
     doc.setTextColor(0);
     y += 12;
 
-    // Contract summary
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text('VALORES DO CONTRATO', margin, y);
@@ -152,7 +150,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
       doc.text('COMPARATIVO POR FASE', margin, y);
       y += 8;
 
-      // Table header
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
       doc.setFillColor(240, 240, 240);
@@ -177,7 +174,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
         doc.text(formatCurrency(f.concluido), fCols[2], y);
         doc.text(formatCurrency(pagoFase), fCols[3], y);
 
-        // Mini progress bar
         const barX = fCols[4];
         const barW = 20;
         doc.setFillColor(230, 230, 230);
@@ -190,7 +186,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
         y += 6;
       });
 
-      // Totals row
       doc.setFont('helvetica', 'bold');
       doc.setFillColor(245, 245, 245);
       doc.rect(margin, y - 4, maxWidth, 7, 'F');
@@ -249,7 +244,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
       doc.setFont('helvetica', 'normal');
       medicoes.forEach(m => {
         if (y > 270) { doc.addPage(); y = 20; }
-        doc.text(new Date(m.data_medicao).toLocaleDateString('pt-BR'), cols[0], y);
+        doc.text(new Date(m.data_medicao).toLocaleDateString(), cols[0], y);
         doc.text(`${Number(m.percentual_anterior)}%`, cols[1], y);
         doc.text(`${Number(m.percentual_atual)}%`, cols[2], y);
         doc.text(formatCurrency(Number(m.valor_bruto_medido)), cols[3], y);
@@ -278,10 +273,10 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
       doc.setFont('helvetica', 'normal');
       adiantamentos.forEach(a => {
         if (y > 270) { doc.addPage(); y = 20; }
-        doc.text(new Date(a.data).toLocaleDateString('pt-BR'), margin, y);
+        doc.text(new Date(a.data).toLocaleDateString(), margin, y);
         doc.text((a.descricao || '—').substring(0, 40), margin + 25, y);
         doc.text(formatCurrency(Number(a.valor)), margin + 100, y);
-        doc.text(a.abatido_em_medicao_id ? 'Abatido' : 'Pendente', margin + 135, y);
+        doc.text(a.abatido_em_medicao_id ? t('financial.deducted') : t('common.pending'), margin + 135, y);
         y += 5;
       });
     }
@@ -295,7 +290,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
     }
 
     doc.save(`extrato-financeiro-${obraNome.replace(/\s+/g, '-').toLowerCase()}.pdf`);
-    toast({ title: 'PDF exportado com sucesso!' });
+    toast({ title: t('financial.pdfExported') });
   };
 
   if (loadingMedicoes || loadingAdiantamentos || loadingItens) {
@@ -312,18 +307,18 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
       {isAdmin && globalOverrun && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Estouro de Contrato Global</AlertTitle>
+          <AlertTitle>{t('financial.globalOverrun')}</AlertTitle>
           <AlertDescription>
-            O total pago ({formatCurrency(globalOverrun.pago)}) excedeu o valor do contrato ({formatCurrency(globalOverrun.total)}) em {formatCurrency(globalOverrun.excesso)}.
+            {t('financial.globalOverrunDesc', { paid: formatCurrency(globalOverrun.pago), total: formatCurrency(globalOverrun.total), excess: formatCurrency(globalOverrun.excesso) })}
           </AlertDescription>
         </Alert>
       )}
       {isAdmin && alertasEstouro.map((alerta, i) => alerta && (
         <Alert key={i} variant="destructive" className="border-warning bg-warning/10">
           <AlertTriangle className="h-4 w-4 text-warning" />
-          <AlertTitle className="text-warning">Estouro: {alerta.fase}</AlertTitle>
+          <AlertTitle className="text-warning">{t('financial.phaseOverrun', { phase: alerta.fase })}</AlertTitle>
           <AlertDescription className="text-warning">
-            Pago {formatCurrency(alerta.pago)} de {formatCurrency(alerta.total)} — excesso de {formatCurrency(alerta.excesso)}.
+            {t('financial.phaseOverrunDesc', { paid: formatCurrency(alerta.pago), total: formatCurrency(alerta.total), excess: formatCurrency(alerta.excesso) })}
           </AlertDescription>
         </Alert>
       ))}
@@ -332,43 +327,42 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
       <div className="flex gap-2">
         <Button onClick={() => setMedicaoDialogOpen(true)} className="flex-1">
           <Calculator className="w-4 h-4 mr-2" />
-          Nova Medição
+          {t('financial.newBilling')}
         </Button>
         <Button variant="outline" onClick={() => setAdiantamentoDialogOpen(true)} className="flex-1">
           <Plus className="w-4 h-4 mr-2" />
-          Novo Adiantamento
+          {t('financial.newAdvance')}
         </Button>
-        <Button variant="outline" size="icon" onClick={handleExportPDF} title="Exportar PDF">
+        <Button variant="outline" size="icon" onClick={handleExportPDF} title="Export PDF">
           <FileDown className="w-4 h-4" />
         </Button>
       </div>
 
-      {/* Contract value cards with editable items */}
+      {/* Contract value cards */}
       {valorTotalContrato > 0 && (
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" />
-              Valores do Contrato
+              {t('financial.contractValues')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-xs text-muted-foreground">{t('common.total')}</p>
                 <p className="text-sm font-bold">{formatCurrency(valorTotalContrato)}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Concluído</p>
+                <p className="text-xs text-muted-foreground">{t('schedule.completed')}</p>
                 <p className="text-sm font-bold text-success">{formatCurrency(valorConcluido)}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Pendente</p>
+                <p className="text-xs text-muted-foreground">{t('common.pending')}</p>
                 <p className="text-sm font-bold text-warning">{formatCurrency(valorPendente)}</p>
               </div>
             </div>
 
-            {/* Phase breakdown with editable values */}
             {valoresPorFase.length > 0 && (
               <div className="space-y-2 pt-2 border-t border-primary/10">
                 {valoresPorFase.map(f => {
@@ -385,7 +379,6 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
                           {formatCurrency(f.concluido)} / {formatCurrency(f.total)}
                         </span>
                       </div>
-                      {/* Editable completed items */}
                       {concluidoItens.length > 0 && (
                         <div className="pl-3 space-y-0.5">
                           {concluidoItens.map(item => (
@@ -397,12 +390,12 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
                                   <button className="text-primary hover:underline text-[11px] font-medium whitespace-nowrap">
                                     {Number(item.valor_contrato_mao_de_obra) > 0
                                       ? formatCurrency(Number(item.valor_contrato_mao_de_obra))
-                                      : 'Definir valor'}
+                                      : t('financial.setValue')}
                                   </button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-56" align="end">
                                   <div className="space-y-2">
-                                    <Label className="text-xs">Valor — {item.descricao}</Label>
+                                    <Label className="text-xs">{t('financial.valueLabel', { item: item.descricao })}</Label>
                                     <Input
                                       type="number"
                                       step="0.01"
@@ -436,7 +429,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-1">
               <CheckCircle2 className="w-4 h-4 text-success" />
-              <span className="text-xs text-muted-foreground">Valor Concluído</span>
+              <span className="text-xs text-muted-foreground">{t('financial.completedValue')}</span>
             </div>
             <p className="text-lg font-bold text-success">{formatCurrency(valorConcluido)}</p>
           </CardContent>
@@ -445,7 +438,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-1">
               <Wallet className="w-4 h-4 text-primary" />
-              <span className="text-xs text-muted-foreground">Total Pago</span>
+              <span className="text-xs text-muted-foreground">{t('financial.totalPaid')}</span>
             </div>
             <p className="text-lg font-bold text-primary">{formatCurrency(totalPago)}</p>
           </CardContent>
@@ -454,7 +447,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-1">
               <ShieldCheck className="w-4 h-4 text-warning" />
-              <span className="text-xs text-muted-foreground">Saldo Retenção</span>
+              <span className="text-xs text-muted-foreground">{t('financial.retentionBalance')}</span>
             </div>
             <p className="text-lg font-bold text-warning">{formatCurrency(saldoRetencao)}</p>
           </CardContent>
@@ -463,7 +456,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-1">
               <ArrowDownCircle className="w-4 h-4 text-destructive" />
-              <span className="text-xs text-muted-foreground">Vales Pendentes</span>
+              <span className="text-xs text-muted-foreground">{t('financial.pendingAdvances')}</span>
             </div>
             <p className="text-lg font-bold text-destructive">{formatCurrency(totalAdiantamentosPendentes)}</p>
           </CardContent>
@@ -473,21 +466,21 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
       {/* Medicoes table */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Histórico de Medições</CardTitle>
+          <CardTitle className="text-base">{t('financial.billingHistory')}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {medicoes.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Nenhuma medição registrada.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t('financial.noBillingRecords')}</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead className="text-right">Medido</TableHead>
-                    <TableHead className="text-right">Retido</TableHead>
-                    <TableHead className="text-right">Vales</TableHead>
-                    <TableHead className="text-right">Pago</TableHead>
+                    <TableHead>{t('common.date')}</TableHead>
+                    <TableHead className="text-right">{t('financial.measured')}</TableHead>
+                    <TableHead className="text-right">{t('financial.retained')}</TableHead>
+                    <TableHead className="text-right">{t('financial.advances')}</TableHead>
+                    <TableHead className="text-right">{t('financial.paid')}</TableHead>
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -495,7 +488,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
                   {medicoes.map(m => (
                     <TableRow key={m.id}>
                       <TableCell className="text-sm">
-                        {new Date(m.data_medicao).toLocaleDateString('pt-BR')}
+                        {new Date(m.data_medicao).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right text-sm">{formatCurrency(Number(m.valor_bruto_medido))}</TableCell>
                       <TableCell className="text-right">
@@ -537,34 +530,34 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
       {/* Adiantamentos list */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Adiantamentos (Vales)</CardTitle>
+          <CardTitle className="text-base">{t('financial.advancesTitle')}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {adiantamentos.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Nenhum adiantamento registrado.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t('financial.noAdvanceRecords')}</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t('common.date')}</TableHead>
+                    <TableHead>{t('common.description')}</TableHead>
+                    <TableHead className="text-right">{t('common.value')}</TableHead>
+                    <TableHead>{t('financial.status')}</TableHead>
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {adiantamentos.map(a => (
                     <TableRow key={a.id}>
-                      <TableCell className="text-sm">{new Date(a.data).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell className="text-sm">{new Date(a.data).toLocaleDateString()}</TableCell>
                       <TableCell className="text-sm">{a.descricao || '—'}</TableCell>
                       <TableCell className="text-right text-sm font-medium">{formatCurrency(Number(a.valor))}</TableCell>
                       <TableCell>
                         {a.abatido_em_medicao_id ? (
-                          <Badge className="bg-success/15 text-success border-success/30 text-xs">Abatido</Badge>
+                          <Badge className="bg-success/15 text-success border-success/30 text-xs">{t('financial.deducted')}</Badge>
                         ) : (
-                          <Badge variant="outline" className="text-destructive border-destructive text-xs">Pendente</Badge>
+                          <Badge variant="outline" className="text-destructive border-destructive text-xs">{t('common.pending')}</Badge>
                         )}
                       </TableCell>
                       <TableCell>
