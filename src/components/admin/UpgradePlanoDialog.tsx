@@ -285,10 +285,10 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
                       <Button
                         variant={isCurrentPlan ? 'outline' : planOption.popular ? 'default' : 'secondary'}
                         className={`w-full ${planOption.popular && !isCurrentPlan ? 'bg-primary hover:bg-primary/90' : ''}`}
-                        disabled={isCurrentPlan || isDowngrade || loading !== null}
-                        onClick={() => handleSelectPlan(planOption.id)}
+                        disabled={isCurrentPlan || loading !== null || portalLoading}
+                        onClick={() => isDowngrade ? handleManageSubscription() : handleSelectPlan(planOption.id)}
                       >
-                        {loading === planOption.id ? (
+                        {loading === planOption.id || (isDowngrade && portalLoading) ? (
                           <span className="flex items-center gap-2">
                             <span className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
                             Processando...
