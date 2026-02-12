@@ -9,9 +9,9 @@ const corsHeaders = {
 
 // Mapping de planos para price IDs do Stripe
 const planPrices: Record<string, string> = {
-  start: "price_1SvdpfDaZO2bVcEoJbBzdECj",
-  gold: "price_1SvdpyDaZO2bVcEoAqG6B7Ap",
-  premium: "price_1SvdqFDaZO2bVcEoJQExx6zg",
+  start: "price_1T099eDaZO2bVcEoUhpcgat9",
+  gold: "price_1T099sDaZO2bVcEojJBqTVmO",
+  premium: "price_1T09A4DaZO2bVcEoylyucjTb",
 };
 
 const logStep = (step: string, details?: Record<string, unknown>) => {

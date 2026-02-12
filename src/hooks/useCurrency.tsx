@@ -2,9 +2,9 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const currencyConfig: Record<string, { locale: string; currency: string }> = {
-  'pt-BR': { locale: 'pt-BR', currency: 'BRL' },
+  'pt-BR': { locale: 'en-US', currency: 'USD' },
   'en-US': { locale: 'en-US', currency: 'USD' },
-  'es-ES': { locale: 'es-AR', currency: 'USD' },
+  'es-ES': { locale: 'en-US', currency: 'USD' },
 };
 
 export function useCurrency() {
