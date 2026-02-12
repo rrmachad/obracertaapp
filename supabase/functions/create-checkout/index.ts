@@ -39,7 +39,8 @@ serve(async (req) => {
       throw new Error(`Invalid plan: ${plan}`);
     }
 
-    const authHeader = req.headers.get("Authorization")!;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("No authorization header provided");
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
