@@ -1,4 +1,4 @@
-import { Crown, Users, Building2, CheckCircle2, Unlock, AlertTriangle, FileText, Package, Rocket } from 'lucide-react';
+import { Crown, Users, Building2, CheckCircle2, Unlock, AlertTriangle, FileText, Package, Rocket, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -18,57 +18,59 @@ const planFeatures: Record<SubscriptionPlan, { included: string[]; locked: strin
   free: {
     included: [
       '1 obra ativa',
-      '3 diários por obra',
-      '5 itens no estoque',
       'Cronograma de fases',
+      'Controle básico de estoque',
+      '1 Usuário (Você)',
     ],
-    lockedTitle: 'Desbloqueie no Plano Profissional',
+    lockedTitle: 'Desbloqueie no Plano Autônomo',
     locked: [
-      'Obras e Diários ilimitados',
+      'Obras Ilimitadas',
+      'Diário de Obra Digital',
       'Controle total de estoque',
-      'Acesso para equipe (Mestres/Sócios)',
-      'Relatórios Gerenciais em PDF',
+      'Relatórios em PDF',
     ],
   },
   start: {
     included: [
-      'Até 5 obras',
-      '50 diários por obra',
-      '30 itens no estoque',
-      'Cronograma de fases',
-      'Compartilhar com 1 usuário',
-    ],
-    lockedTitle: 'Desbloqueie no Plano Gold',
-    locked: [
       'Obras ilimitadas',
-      'Relatórios avançados',
-      'Suporte prioritário',
+      'Diário de Obra Digital',
+      'Controle de Estoque completo',
+      'Cronograma Físico',
+      '1 Usuário',
+    ],
+    lockedTitle: 'Desbloqueie no Plano Construtora',
+    locked: [
+      'Medições: Pague o executado',
+      'Desconto Automático de Vales',
+      'Retenção Técnica (5%)',
+      '3 Usuários',
     ],
   },
   gold: {
     included: [
-      'Até 15 obras',
-      '100 diários por obra',
-      '100 itens no estoque',
-      'Cronograma de fases',
-      'Compartilhar com 2 usuários',
-      'Relatórios avançados',
+      'Tudo do Plano Autônomo',
+      'Medições: Pague o executado',
+      'Desconto Automático de Vales',
+      'Retenção Técnica (5%)',
+      '3 Usuários',
     ],
-    lockedTitle: 'Desbloqueie no Plano Premium',
+    lockedTitle: 'Desbloqueie no Plano Business',
     locked: [
-      'Obras ilimitadas',
-      'Suporte prioritário 24/7',
+      'Portal do Cliente',
+      'Módulo de Compras',
+      'Dashboard de Lucratividade',
+      'Usuários Ilimitados',
+      'Suporte VIP 24h',
     ],
   },
   premium: {
     included: [
-      'Obras ilimitadas',
-      'Diários ilimitados',
-      'Estoque ilimitado',
-      'Cronograma de fases',
-      'Compartilhar com 4 usuários',
-      'Relatórios avançados',
-      'Suporte 24/7',
+      'Tudo do Plano Construtora',
+      'Portal do Cliente',
+      'Módulo de Compras',
+      'Dashboard de Lucratividade',
+      'Usuários ilimitados',
+      'Suporte VIP 24h',
     ],
     lockedTitle: '',
     locked: [],
@@ -92,7 +94,6 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
 
   const features = planFeatures[plan];
 
-  // Verificar se está no limite em qualquer recurso
   const isAtUserLimit = usersUsed >= maxUsers;
   const isAtObraLimit = limits.maxObras !== -1 && usage.obrasUsed >= limits.maxObras;
   const isNearUserLimit = usersPercentage >= 80 && !isAtUserLimit;
@@ -102,7 +103,6 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
   const hasAnyNearLimit = isNearUserLimit || isNearObraLimit;
   const showLimitWarning = hasAnyLimit || hasAnyNearLimit;
 
-  // Formatar limite para exibição
   const formatLimit = (value: number) => {
     if (value === -1) return '∞';
     return value.toString();
@@ -122,7 +122,6 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Alerta de limite */}
         {showLimitWarning && plan !== 'premium' && (
           <Alert variant={hasAnyLimit ? "destructive" : "default"} className={cn(
             "border",
@@ -151,9 +150,8 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
           </Alert>
         )}
 
-        {/* Uso de recursos - Grid 2x2 */}
+        {/* Uso de recursos */}
         <div className="grid grid-cols-2 gap-3">
-          {/* Obras */}
           <div className={cn(
             "rounded-lg p-3 transition-colors",
             isAtObraLimit ? "bg-destructive/10" : isNearObraLimit ? "bg-primary/10" : "bg-muted/50"
@@ -181,7 +179,6 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
             )}
           </div>
 
-          {/* Acessos */}
           <div className={cn(
             "rounded-lg p-3 transition-colors",
             isAtUserLimit ? "bg-destructive/10" : isNearUserLimit ? "bg-primary/10" : "bg-muted/50"
@@ -207,7 +204,6 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
             />
           </div>
 
-          {/* Diários por obra */}
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-1">
               <FileText className="w-4 h-4 text-muted-foreground" />
@@ -219,7 +215,6 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
             </p>
           </div>
 
-          {/* Materiais por obra */}
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-1">
               <Package className="w-4 h-4 text-muted-foreground" />
@@ -235,7 +230,7 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
         {/* Recursos incluídos */}
         <div>
           <p className="text-sm font-medium mb-2 text-muted-foreground">
-            Seu pacote atual ({plan === 'free' ? 'Iniciante' : planName})
+            Seu pacote atual ({planName})
           </p>
           <div className="space-y-1.5">
             {features.included.map((feature) => (
@@ -277,7 +272,7 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
             size="lg"
           >
             <Rocket className="w-4 h-4 mr-2" />
-            Quero Obras Ilimitadas
+            {plan === 'free' ? 'Organizar Minhas Obras' : plan === 'start' ? 'Blindar Meu Caixa' : 'Escalar Meu Negócio'}
           </Button>
         )}
       </CardContent>

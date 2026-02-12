@@ -1,7 +1,8 @@
-import { Check, X, Crown, Rocket, Star } from 'lucide-react';
+import { Check, X, Crown, Rocket, Star, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
+import { useCurrency } from '@/hooks/useCurrency';
 import { cn } from '@/lib/utils';
 
 interface PlanoComparisonTableProps {
@@ -34,6 +35,11 @@ const features: FeatureRow[] = [
   { category: 'Estoque', name: 'Controle de Movimentação', free: 'Básico', start: 'Completo', gold: 'Completo', premium: 'Completo' },
   { category: 'Estoque', name: 'Alertas de Estoque Baixo', free: false, start: true, gold: true, premium: true },
   
+  // Blindagem Financeira
+  { category: 'Blindagem Financeira', name: 'Medições (Pague o executado)', free: false, start: false, gold: true, premium: true },
+  { category: 'Blindagem Financeira', name: 'Desconto Automático de Vales', free: false, start: false, gold: true, premium: true },
+  { category: 'Blindagem Financeira', name: 'Retenção Técnica (5%)', free: false, start: false, gold: true, premium: true },
+  
   // Relatórios
   { category: 'Relatórios', name: 'Relatórios em PDF', free: false, start: true, gold: true, premium: true },
   { category: 'Relatórios', name: 'Relatório Semanal', free: false, start: true, gold: true, premium: true },
@@ -42,24 +48,19 @@ const features: FeatureRow[] = [
   // Equipe
   { category: 'Equipe', name: 'Usuários Inclusos', free: '1', start: '1', gold: '3', premium: 'Ilimitados' },
   { category: 'Equipe', name: 'Convites por PIN', free: false, start: false, gold: true, premium: true },
-  { category: 'Equipe', name: 'Múltiplos Admins', free: false, start: false, gold: false, premium: true },
   
-  // Recursos Avançados
-  { category: 'Avançado', name: 'Gestão Financeira', free: false, start: false, gold: 'Básica', premium: 'Completa' },
-  { category: 'Avançado', name: 'Exportação Excel/API', free: false, start: false, gold: false, premium: true },
-  { category: 'Avançado', name: 'Consultoria de Implantação', free: false, start: false, gold: false, premium: true },
-  
-  // Suporte
-  { category: 'Suporte', name: 'Suporte por Email', free: false, start: true, gold: true, premium: true },
-  { category: 'Suporte', name: 'Suporte WhatsApp', free: false, start: false, gold: true, premium: true },
-  { category: 'Suporte', name: 'Suporte 24/7', free: false, start: false, gold: false, premium: true },
+  // Recursos Business
+  { category: 'Business', name: 'Portal do Cliente', free: false, start: false, gold: false, premium: true },
+  { category: 'Business', name: 'Módulo de Compras', free: false, start: false, gold: false, premium: true },
+  { category: 'Business', name: 'Dashboard de Lucratividade', free: false, start: false, gold: false, premium: true },
+  { category: 'Business', name: 'Suporte VIP 24h', free: false, start: false, gold: false, premium: true },
 ];
 
 const planInfo: Record<SubscriptionPlan, { name: string; price: number; icon?: React.ReactNode }> = {
   free: { name: 'Iniciante', price: 0 },
-  start: { name: 'Profissional', price: 29.90, icon: <Rocket className="w-4 h-4" /> },
-  gold: { name: 'Construtora', price: 59.90, icon: <Star className="w-4 h-4" /> },
-  premium: { name: 'Empresarial', price: 99.90, icon: <Crown className="w-4 h-4" /> },
+  start: { name: 'Autônomo', price: 29.90, icon: <Rocket className="w-4 h-4" /> },
+  gold: { name: 'Construtora', price: 59.90, icon: <ShieldCheck className="w-4 h-4" /> },
+  premium: { name: 'Business', price: 99.90, icon: <Crown className="w-4 h-4" /> },
 };
 
 function FeatureValue({ value }: { value: string | boolean }) {
@@ -75,9 +76,9 @@ function FeatureValue({ value }: { value: string | boolean }) {
 
 export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoComparisonTableProps) {
   const { plan: currentPlan } = useSubscription();
-  const plans: SubscriptionPlan[] = ['free', 'start', 'gold', 'premium'];
+  const { formatCurrency } = useCurrency();
+  const planKeys: SubscriptionPlan[] = ['free', 'start', 'gold', 'premium'];
 
-  // Group features by category
   const categories = [...new Set(features.map(f => f.category))];
 
   return (
@@ -88,10 +89,10 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
             <th className="text-left p-3 bg-muted/50 font-medium text-sm min-w-[180px]">
               Funcionalidade
             </th>
-            {plans.map((plan) => {
+            {planKeys.map((plan) => {
               const info = planInfo[plan];
               const isCurrent = plan === currentPlan;
-              const isPopular = plan === 'gold';
+              const isPopular = plan === 'premium';
               
               return (
                 <th
@@ -105,7 +106,7 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
                   <div className="flex flex-col items-center gap-1">
                     {isPopular && (
                       <Badge className="bg-primary text-[10px] px-2 py-0.5 mb-1">
-                        Mais Popular
+                        Gestão Total
                       </Badge>
                     )}
                     {isCurrent && !isPopular && (
@@ -118,7 +119,7 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
                       {info.name}
                     </div>
                     <div className="text-lg font-bold">
-                      {info.price === 0 ? 'Grátis' : `R$ ${info.price.toFixed(2).replace('.', ',')}`}
+                      {info.price === 0 ? 'Grátis' : formatCurrency(info.price)}
                       {info.price > 0 && <span className="text-xs font-normal text-muted-foreground">/mês</span>}
                     </div>
                   </div>
@@ -149,8 +150,8 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
                     className="border-b border-border/50 hover:bg-muted/30 transition-all duration-200"
                   >
                     <td className="p-3 text-sm">{feature.name}</td>
-                    {plans.map((plan) => {
-                      const isPopular = plan === 'gold';
+                    {planKeys.map((plan) => {
+                      const isPopular = plan === 'premium';
                       const isCurrent = plan === currentPlan;
                       
                       return (
@@ -176,10 +177,10 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
           <tfoot>
             <tr>
               <td className="p-3"></td>
-              {plans.map((plan) => {
+              {planKeys.map((plan) => {
                 const isCurrent = plan === currentPlan;
-                const isPopular = plan === 'gold';
-                const isDowngrade = plans.indexOf(plan) < plans.indexOf(currentPlan);
+                const isPopular = plan === 'premium';
+                const isDowngrade = planKeys.indexOf(plan) < planKeys.indexOf(currentPlan);
                 
                 return (
                   <td key={plan} className={cn('p-3', isPopular && 'bg-primary/5')}>

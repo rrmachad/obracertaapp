@@ -1,4 +1,4 @@
-import { Check, Crown, Sparkles, Zap, Settings, Rocket, Users, Star, MessageCircle, Table2 } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, Settings, Rocket, Users, Star, MessageCircle, Table2, ShieldCheck, ShoppingCart } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { PlanoComparisonTable } from './PlanoComparisonTable';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface UpgradePlanoDialogProps {
   open: boolean;
@@ -25,7 +26,7 @@ interface UpgradePlanoDialogProps {
 interface PlanFeature {
   text: string;
   highlight?: boolean;
-  icon?: 'check' | 'rocket' | 'users' | 'star';
+  icon?: 'check' | 'rocket' | 'users' | 'star' | 'shield';
 }
 
 interface PlanOption {
@@ -45,25 +46,25 @@ const plans: PlanOption[] = [
     price: 0,
     features: [
       { text: '1 Obra Ativa', icon: 'check' },
-      { text: 'Gestão de Fases e Cronograma', icon: 'check' },
+      { text: 'Cronograma de Fases', icon: 'check' },
       { text: 'Controle Básico de Estoque', icon: 'check' },
-      { text: '1 Usuário (Você)', icon: 'check' },
+      { text: '⚠️ Ideal apenas para testar', icon: 'check' },
     ],
     buttonText: 'Seu Plano Atual',
     buttonTextCurrent: 'Seu Plano Atual',
   },
   {
     id: 'start',
-    name: 'Profissional',
+    name: 'Autônomo',
     price: 29.90,
     features: [
       { text: 'Obras Ilimitadas', icon: 'rocket', highlight: true },
-      { text: 'Diário de Obra Completo', icon: 'check' },
-      { text: 'Controle Total de Estoque', icon: 'check' },
-      { text: 'Relatórios em PDF', icon: 'check' },
+      { text: 'Diário de Obra Digital', icon: 'check' },
+      { text: 'Controle de Estoque', icon: 'check' },
+      { text: 'Cronograma Físico', icon: 'check' },
       { text: '1 Usuário', icon: 'check' },
     ],
-    buttonText: 'Liberar Obras Ilimitadas',
+    buttonText: 'Organizar Minhas Obras',
     buttonTextCurrent: 'Plano Atual',
   },
   {
@@ -71,36 +72,38 @@ const plans: PlanOption[] = [
     name: 'Construtora',
     price: 59.90,
     features: [
-      { text: 'Tudo do Profissional', icon: 'check', highlight: true },
-      { text: 'Até 3 Usuários (Sócio/Mestre)', icon: 'users', highlight: true },
-      { text: 'Gestão Financeira Básica', icon: 'check' },
-      { text: 'Suporte Prioritário (WhatsApp)', icon: 'check' },
+      { text: 'Tudo do Plano Autônomo', icon: 'check', highlight: true },
+      { text: 'Medições: Pague o executado', icon: 'shield', highlight: true },
+      { text: 'Desconto Automático de Vales', icon: 'shield' },
+      { text: 'Retenção Técnica (5%)', icon: 'shield' },
+      { text: '3 Usuários', icon: 'users' },
     ],
-    popular: true,
-    buttonText: 'Escolher Construtora',
+    buttonText: 'Blindar Meu Caixa',
     buttonTextCurrent: 'Plano Atual',
   },
   {
     id: 'premium',
-    name: 'Empresarial',
+    name: 'Business',
     price: 99.90,
+    popular: true,
     features: [
+      { text: 'Tudo do Plano Construtora', icon: 'check', highlight: true },
+      { text: 'Portal do Cliente', icon: 'star', highlight: true },
+      { text: 'Módulo de Compras', icon: 'check' },
       { text: 'Usuários Ilimitados', icon: 'users', highlight: true },
-      { text: 'Múltiplos Admins', icon: 'check' },
-      { text: 'Exportação de Dados (Excel/API)', icon: 'check' },
-      { text: 'Consultoria de Implantação', icon: 'check' },
-      { text: 'Suporte 24/7 Exclusivo', icon: 'star' },
+      { text: 'Dashboard de Lucratividade', icon: 'check' },
+      { text: 'Suporte VIP 24h', icon: 'star' },
     ],
-    buttonText: 'Assinar Empresarial',
+    buttonText: 'Escalar Meu Negócio',
     buttonTextCurrent: 'Plano Atual',
   },
 ];
 
 const planNames: Record<SubscriptionPlan, string> = {
   free: 'Iniciante',
-  start: 'Profissional',
+  start: 'Autônomo',
   gold: 'Construtora',
-  premium: 'Empresarial',
+  premium: 'Business',
 };
 
 function FeatureIcon({ icon, highlight }: { icon: PlanFeature['icon']; highlight?: boolean }) {
@@ -113,6 +116,8 @@ function FeatureIcon({ icon, highlight }: { icon: PlanFeature['icon']; highlight
       return <Users className={className} />;
     case 'star':
       return <Star className={className} />;
+    case 'shield':
+      return <ShieldCheck className={className} />;
     default:
       return <Check className={className} />;
   }
@@ -122,6 +127,7 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
   const { plan: currentPlan } = useSubscription();
   const { session } = useAuth();
   const { toast } = useToast();
+  const { formatCurrency } = useCurrency();
   const [loading, setLoading] = useState<SubscriptionPlan | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
 
@@ -239,7 +245,7 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
                     {planOption.popular && (
                       <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary px-3 py-1">
                         <Star className="w-3 h-3 mr-1" />
-                        Mais Popular
+                        Gestão Total
                       </Badge>
                     )}
 
@@ -256,7 +262,7 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
                       </CardTitle>
                       <div className="mt-3">
                         <span className="text-3xl font-bold">
-                          {planOption.price === 0 ? 'Grátis' : `R$ ${planOption.price.toFixed(2).replace('.', ',')}`}
+                          {planOption.price === 0 ? 'Grátis' : formatCurrency(planOption.price)}
                         </span>
                         {planOption.price > 0 && (
                           <span className="text-muted-foreground text-sm">/mês</span>
@@ -294,8 +300,8 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
                         ) : (
                           <>
                             {planOption.id === 'start' && <Rocket className="w-4 h-4 mr-1" />}
-                            {planOption.id === 'gold' && <Zap className="w-4 h-4 mr-1" />}
-                            {planOption.id === 'premium' && <MessageCircle className="w-4 h-4 mr-1" />}
+                            {planOption.id === 'gold' && <ShieldCheck className="w-4 h-4 mr-1" />}
+                            {planOption.id === 'premium' && <Crown className="w-4 h-4 mr-1" />}
                             {planOption.buttonText}
                           </>
                         )}

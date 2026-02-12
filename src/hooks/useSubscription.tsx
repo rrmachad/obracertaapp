@@ -26,9 +26,9 @@ const planLimits: Record<SubscriptionPlan, number> = {
 
 const planNames: Record<SubscriptionPlan, string> = {
   free: 'Iniciante',
-  start: 'Profissional',
+  start: 'Autônomo',
   gold: 'Construtora',
-  premium: 'Empresarial',
+  premium: 'Business',
 };
 
 export function useSubscription(overrideUserId?: string | null) {
