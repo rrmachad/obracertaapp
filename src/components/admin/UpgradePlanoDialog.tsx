@@ -1,4 +1,4 @@
-import { Check, Crown, Sparkles, Zap, Settings, Rocket, Users, Star, MessageCircle, Table2, ShieldCheck, ShoppingCart } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, Settings, Rocket, Users, Star, MessageCircle, Table2, ShieldCheck, ShoppingCart, AlertTriangle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -6,6 +6,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -130,8 +140,30 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
   const { formatCurrency } = useCurrency();
   const [loading, setLoading] = useState<SubscriptionPlan | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [downgradeTarget, setDowngradeTarget] = useState<SubscriptionPlan | null>(null);
 
   const currentPlanName = planNames[currentPlan] || 'Iniciante';
+
+  const getLostFeatures = (targetPlan: SubscriptionPlan): string[] => {
+    const currentIdx = plans.findIndex(p => p.id === currentPlan);
+    const targetIdx = plans.findIndex(p => p.id === targetPlan);
+    const lost: string[] = [];
+    for (let i = targetIdx + 1; i <= currentIdx; i++) {
+      plans[i].features
+        .filter(f => f.highlight)
+        .forEach(f => lost.push(f.text));
+    }
+    return lost;
+  };
+
+  const handleDowngradeClick = (targetPlan: SubscriptionPlan) => {
+    setDowngradeTarget(targetPlan);
+  };
+
+  const confirmDowngrade = () => {
+    setDowngradeTarget(null);
+    handleManageSubscription();
+  };
 
   const handleSelectPlan = async (selectedPlan: SubscriptionPlan) => {
     if (selectedPlan === currentPlan) return;
@@ -195,6 +227,7 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -286,7 +319,7 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
                         variant={isCurrentPlan ? 'outline' : planOption.popular ? 'default' : 'secondary'}
                         className={`w-full ${planOption.popular && !isCurrentPlan ? 'bg-primary hover:bg-primary/90' : ''}`}
                         disabled={isCurrentPlan || loading !== null || portalLoading}
-                        onClick={() => isDowngrade ? handleManageSubscription() : handleSelectPlan(planOption.id)}
+                        onClick={() => isDowngrade ? handleDowngradeClick(planOption.id) : handleSelectPlan(planOption.id)}
                       >
                         {loading === planOption.id || (isDowngrade && portalLoading) ? (
                           <span className="flex items-center gap-2">
@@ -319,5 +352,50 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
         </Tabs>
       </DialogContent>
     </Dialog>
+
+      <AlertDialog open={!!downgradeTarget} onOpenChange={(open) => !open && setDowngradeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              Confirmar Downgrade
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Você está prestes a fazer downgrade de <strong>{currentPlanName}</strong> para{' '}
+                  <strong>{downgradeTarget ? planNames[downgradeTarget] : ''}</strong>.
+                </p>
+                {downgradeTarget && getLostFeatures(downgradeTarget).length > 0 && (
+                  <div>
+                    <p className="font-medium text-foreground mb-2">Você perderá acesso a:</p>
+                    <ul className="space-y-1">
+                      {getLostFeatures(downgradeTarget).map((feature, idx) => (
+                        <li key={idx} className="flex items-center gap-2 text-destructive">
+                          <span className="w-1.5 h-1.5 rounded-full bg-destructive flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  Você será redirecionado ao portal de gerenciamento para concluir a alteração.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDowngrade}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Confirmar Downgrade
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
