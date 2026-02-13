@@ -1,6 +1,9 @@
 {
+  "brand": {
+    "name": "Obra Exacta"
+  },
   "app": {
-    "name": "Obra Certa",
+    "name": "Obra Exacta",
     "tagline": "Gestión de Obras Simplificada"
   },
   "nav": {
@@ -365,7 +368,7 @@
     "upgrade": "Hacer Upgrade"
   },
   "landing": {
-    "whatsappMessage": "¡Hola! Vengo del sitio Obra Certa y me gustaría saber más.",
+    "whatsappMessage": "¡Hola! Vengo del sitio $t(brand.name) y me gustaría saber más.",
     "whatsappAriaLabel": "Hablar por WhatsApp",
     "navHowItWorks": "Cómo Funciona",
     "navDemo": "Ver en Acción",
@@ -386,7 +389,7 @@
     "heroReady": "Listo en 2 minutos",
     "painTitle": "Tu obra no tiene que ser un",
     "painTitleHighlight": "dolor de cabeza",
-    "painSubtitle": "Basta de estrés. Mira cómo Obra Certa transforma tu día a día.",
+    "painSubtitle": "Basta de estrés. Mira cómo $t(brand.name) transforma tu día a día.",
     "painLabel": "El Problema:",
     "solutionLabel": "La Solución:",
     "pain1": "Inventario con faltantes y compras de emergencia costosas",
@@ -397,7 +400,7 @@
     "solution3": "Cronograma visual y Reporte Diario de Obra automático",
     "pain4": "Notas en papeles sueltos que se pierden",
     "solution4": "Todo en la nube, accesible desde cualquier lugar",
-    "demoTitle": "Mira Obra Certa",
+    "demoTitle": "Mira $t(brand.name)",
     "demoTitleHighlight": "en Acción",
     "demoSubtitle": "Un recorrido rápido de 2 minutos mostrando las funcionalidades principales",
     "demoWatch": "Ver Demostración",
@@ -497,25 +500,25 @@
     "testimonialsTitleHighlight": "lo recomienda",
     "test1Name": "Juan Silva",
     "test1Role": "Contratista en Belo Horizonte",
-    "test1Content": "Antes perdía el 20% del material. Con Obra Certa, el desperdicio se redujo a cero. Solo eso ya pagó la app.",
+    "test1Content": "Antes perdía el 20% del material. Con $t(brand.name), el desperdicio se redujo a cero. Solo eso ya pagó la app.",
     "test2Name": "Marcos Oliveira",
     "test2Role": "Ingeniero Civil",
     "test2Content": "El reporte diario en PDF me salvó de demandas. Es muy profesional. Mis clientes quedan impresionados.",
     "test3Name": "Carlos Mendes",
     "test3Role": "Ingeniero Civil",
-    "test3Content": "Antes me perdía en las cuentas y le pagaba al albañil dos veces. Con el sistema de Medición de Obra Certa, el descuento de anticipos es automático. Solo pago lo medido. Ahorré $1.000 solo el mes pasado.",
+    "test3Content": "Antes me perdía en las cuentas y le pagaba al albañil dos veces. Con el sistema de Medición de $t(brand.name), el descuento de anticipos es automático. Solo pago lo medido. Ahorré $1.000 solo el mes pasado.",
     "faqTitle": "Preguntas",
     "faqTitleHighlight": "Frecuentes",
     "faq1Q": "¿Funciona sin internet?",
     "faq1A": "¡Sí! La app funciona offline y sincroniza automáticamente cuando te conectes. Perfecto para obras sin Wi-Fi.",
     "faq2Q": "¿Es difícil de usar?",
-    "faq2A": "¡No! Obra Certa fue hecho para usarse con una sola mano, en la obra. Botones grandes, interfaz simple, sin complicaciones.",
+    "faq2A": "¡No! $t(brand.name) fue hecho para usarse con una sola mano, en la obra. Botones grandes, interfaz simple, sin complicaciones.",
     "faq3Q": "¿Sirve para remodelaciones pequeñas?",
     "faq3A": "Sí, cualquier tipo de obra. Desde una remodelación de baño hasta un condominio de alto nivel. El sistema se adapta a tu proyecto.",
     "faq4Q": "¿Cómo funciona el sistema de medición y retención técnica?",
     "faq4A": "Defines el valor del contrato de mano de obra por fase o ítem en el cronograma. En cada medición, ingresas el porcentaje ejecutado y el sistema calcula automáticamente el valor bruto, descuenta los anticipos pendientes y aplica la retención técnica (estándar 5%, pero puedes personalizar). El resultado es el valor neto exacto a pagar, sin sorpresas.",
     "faq5Q": "¿Necesito instalar algún programa?",
-    "faq5A": "¡No! Obra Certa funciona directamente en el navegador del celular o computadora. Solo accede, crea tu cuenta y comienza.",
+    "faq5A": "¡No! $t(brand.name) funciona directamente en el navegador del celular o computadora. Solo accede, crea tu cuenta y comienza.",
     "faq6Q": "¿Puedo cancelar en cualquier momento?",
     "faq6A": "Sí, sin burocracia. Puedes cancelar tu suscripción cuando quieras, sin cargo de cancelación.",
     "ctaTitle": "Toma el control total de tu inventario y tu dinero",

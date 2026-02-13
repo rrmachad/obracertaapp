@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,11 +21,20 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function DynamicTitle() {
+  const { t, i18n } = useTranslation();
+  useEffect(() => {
+    document.title = `${t('brand.name')} - ${t('app.tagline')}`;
+  }, [t, i18n.language]);
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
         <TooltipProvider>
+          <DynamicTitle />
           <Toaster />
           <Sonner />
           <BrowserRouter>

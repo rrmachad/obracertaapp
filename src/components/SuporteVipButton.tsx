@@ -1,4 +1,5 @@
 import { MessageCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import {
   Tooltip,
@@ -7,11 +8,13 @@ import {
 } from '@/components/ui/tooltip';
 
 const VIP_WHATSAPP_NUMBER = '5511999999999';
-const VIP_WHATSAPP_MESSAGE = encodeURIComponent('Olá! Sou cliente Business do Obra Certa e preciso de suporte.');
-const VIP_WHATSAPP_LINK = `https://wa.me/${VIP_WHATSAPP_NUMBER}?text=${VIP_WHATSAPP_MESSAGE}`;
 
 export function SuporteVipButton() {
   const { plan } = usePlanLimits();
+  const { t } = useTranslation();
+
+  const VIP_WHATSAPP_MESSAGE = encodeURIComponent(`Olá! Sou cliente Business do ${t('brand.name')} e preciso de suporte.`);
+  const VIP_WHATSAPP_LINK = `https://wa.me/${VIP_WHATSAPP_NUMBER}?text=${VIP_WHATSAPP_MESSAGE}`;
 
   if (plan !== 'premium') return null;
 
