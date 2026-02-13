@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Calendar, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,16 +10,20 @@ interface ObraCardProps {
   obra: Obra;
 }
 
-const statusConfig: Record<ObraStatus, { label: string; className: string }> = {
-  planejamento: { label: 'Planejamento', className: 'bg-muted text-muted-foreground' },
-  em_andamento: { label: 'Em Andamento', className: 'bg-primary text-primary-foreground' },
-  concluida: { label: 'Concluída', className: 'bg-success text-success-foreground' },
-  pausada: { label: 'Pausada', className: 'bg-warning text-warning-foreground' },
-};
-
 export function ObraCard({ obra }: ObraCardProps) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+
+  const statusConfig: Record<ObraStatus, { label: string; className: string }> = {
+    planejamento: { label: t('status.planning'), className: 'bg-muted text-muted-foreground' },
+    em_andamento: { label: t('status.inProgress'), className: 'bg-primary text-primary-foreground' },
+    concluida: { label: t('status.completed'), className: 'bg-success text-success-foreground' },
+    pausada: { label: t('status.paused'), className: 'bg-warning text-warning-foreground' },
+  };
+
   const status = statusConfig[obra.status];
+
+  const dateLocale = i18n.language === 'en-US' ? 'en-US' : i18n.language === 'es-ES' ? 'es-ES' : 'pt-BR';
 
   return (
     <Card 
@@ -60,7 +65,7 @@ export function ObraCard({ obra }: ObraCardProps) {
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Progresso</span>
+              <span className="text-muted-foreground">{t('admin.progress')}</span>
               <span className="font-semibold text-primary">{obra.progresso}%</span>
             </div>
             <Progress value={obra.progresso} className="h-3" />
@@ -68,7 +73,7 @@ export function ObraCard({ obra }: ObraCardProps) {
 
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Calendar className="w-3 h-3" />
-            <span>Criada em {new Date(obra.created_at).toLocaleDateString('pt-BR')}</span>
+            <span>{t('obraCard.createdAt')} {new Date(obra.created_at).toLocaleDateString(dateLocale)}</span>
           </div>
         </div>
       </CardContent>

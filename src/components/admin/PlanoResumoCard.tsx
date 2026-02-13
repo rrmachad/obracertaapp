@@ -1,4 +1,5 @@
 import { Crown, Users, Building2, CheckCircle2, Unlock, AlertTriangle, FileText, Package, Rocket, ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -14,69 +15,6 @@ interface PlanoResumoCardProps {
   isInvitedUser?: boolean;
 }
 
-const planFeatures: Record<SubscriptionPlan, { included: string[]; locked: string[]; lockedTitle: string }> = {
-  free: {
-    included: [
-      '1 obra ativa',
-      'Cronograma de fases',
-      'Controle básico de estoque',
-      '1 Usuário (Você)',
-    ],
-    lockedTitle: 'Desbloqueie no Plano Autônomo',
-    locked: [
-      'Obras Ilimitadas',
-      'Diário de Obra Digital',
-      'Controle total de estoque',
-      'Relatórios em PDF',
-    ],
-  },
-  start: {
-    included: [
-      'Obras ilimitadas',
-      'Diário de Obra Digital',
-      'Controle de Estoque completo',
-      'Cronograma Físico',
-      '1 Usuário',
-    ],
-    lockedTitle: 'Desbloqueie no Plano Construtora',
-    locked: [
-      'Medições: Pague o executado',
-      'Desconto Automático de Vales',
-      'Retenção Técnica (5%)',
-      '3 Usuários',
-    ],
-  },
-  gold: {
-    included: [
-      'Tudo do Plano Autônomo',
-      'Medições: Pague o executado',
-      'Desconto Automático de Vales',
-      'Retenção Técnica (5%)',
-      '3 Usuários',
-    ],
-    lockedTitle: 'Desbloqueie no Plano Business',
-    locked: [
-      'Portal do Cliente',
-      'Módulo de Compras',
-      'Dashboard de Lucratividade',
-      'Usuários Ilimitados',
-      'Suporte VIP 24h',
-    ],
-  },
-  premium: {
-    included: [
-      'Tudo do Plano Construtora',
-      'Portal do Cliente',
-      'Módulo de Compras',
-      'Dashboard de Lucratividade',
-      'Usuários ilimitados',
-      'Suporte VIP 24h',
-    ],
-    lockedTitle: '',
-    locked: [],
-  },
-};
-
 const planColors: Record<SubscriptionPlan, string> = {
   free: 'bg-muted text-muted-foreground',
   start: 'bg-primary/10 text-primary',
@@ -85,12 +23,76 @@ const planColors: Record<SubscriptionPlan, string> = {
 };
 
 export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: PlanoResumoCardProps) {
+  const { t } = useTranslation();
   const { plan, planName, maxUsers } = useSubscription(ownerUserId);
   const { limits, usage, getObrasPercentage } = usePlanLimits();
 
   const usersUsed = usage.usersUsed;
   const usersPercentage = (usersUsed / maxUsers) * 100;
   const obrasPercentage = getObrasPercentage();
+
+  const planFeatures: Record<SubscriptionPlan, { included: string[]; locked: string[]; lockedTitle: string }> = {
+    free: {
+      included: [
+        t('planoResumo.feat_free_1'),
+        t('planoResumo.feat_free_2'),
+        t('planoResumo.feat_free_3'),
+        t('planoResumo.feat_free_4'),
+      ],
+      lockedTitle: t('planoResumo.unlock_start'),
+      locked: [
+        t('planoResumo.lock_free_1'),
+        t('planoResumo.lock_free_2'),
+        t('planoResumo.lock_free_3'),
+        t('planoResumo.lock_free_4'),
+      ],
+    },
+    start: {
+      included: [
+        t('planoResumo.feat_start_1'),
+        t('planoResumo.feat_start_2'),
+        t('planoResumo.feat_start_3'),
+        t('planoResumo.feat_start_4'),
+        t('planoResumo.feat_start_5'),
+      ],
+      lockedTitle: t('planoResumo.unlock_gold'),
+      locked: [
+        t('planoResumo.lock_start_1'),
+        t('planoResumo.lock_start_2'),
+        t('planoResumo.lock_start_3'),
+        t('planoResumo.lock_start_4'),
+      ],
+    },
+    gold: {
+      included: [
+        t('planoResumo.feat_gold_1'),
+        t('planoResumo.feat_gold_2'),
+        t('planoResumo.feat_gold_3'),
+        t('planoResumo.feat_gold_4'),
+        t('planoResumo.feat_gold_5'),
+      ],
+      lockedTitle: t('planoResumo.unlock_premium'),
+      locked: [
+        t('planoResumo.lock_gold_1'),
+        t('planoResumo.lock_gold_2'),
+        t('planoResumo.lock_gold_3'),
+        t('planoResumo.lock_gold_4'),
+        t('planoResumo.lock_gold_5'),
+      ],
+    },
+    premium: {
+      included: [
+        t('planoResumo.feat_premium_1'),
+        t('planoResumo.feat_premium_2'),
+        t('planoResumo.feat_premium_3'),
+        t('planoResumo.feat_premium_4'),
+        t('planoResumo.feat_premium_5'),
+        t('planoResumo.feat_premium_6'),
+      ],
+      lockedTitle: '',
+      locked: [],
+    },
+  };
 
   const features = planFeatures[plan];
 
@@ -108,13 +110,19 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
     return value.toString();
   };
 
+  const upgradeCtaKey: Record<string, string> = {
+    free: 'planoResumo.ctaFree',
+    start: 'planoResumo.ctaStart',
+    gold: 'planoResumo.ctaGold',
+  };
+
   return (
     <Card className="mb-4 overflow-hidden">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Crown className="w-5 h-5 text-primary" />
-            <CardTitle className="text-base">{isInvitedUser ? 'Plano da Equipe' : 'Meu Plano'}</CardTitle>
+            <CardTitle className="text-base">{isInvitedUser ? t('admin.teamPlan') : t('admin.myPlan')}</CardTitle>
           </div>
           <Badge className={planColors[plan]}>
             {planName}
@@ -133,16 +141,16 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
             <AlertDescription className="ml-2">
               {hasAnyLimit ? (
                 <>
-                  <span className="font-semibold">Sua gestão está crescendo!</span>
+                  <span className="font-semibold">{t('admin.growingManagement')}</span>
                   <span className="block text-sm mt-0.5">
-                    Faça o upgrade para remover os limites e gerenciar múltiplas obras.
+                    {t('admin.upgradeToRemoveLimits')}
                   </span>
                 </>
               ) : (
                 <>
-                  <span className="font-semibold">Sua gestão está crescendo!</span>
+                  <span className="font-semibold">{t('admin.growingManagement')}</span>
                   <span className="block text-sm mt-0.5">
-                    Você está se aproximando do limite. Considere fazer upgrade.
+                    {t('admin.approachingLimit')}
                   </span>
                 </>
               )}
@@ -161,7 +169,7 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
                 "w-4 h-4",
                 isAtObraLimit ? "text-destructive" : isNearObraLimit ? "text-primary" : "text-muted-foreground"
               )} />
-              <span className="text-sm font-medium">Obras</span>
+              <span className="text-sm font-medium">{t('admin.worksLabel')}</span>
             </div>
             <p className="text-2xl font-bold">
               {usage.obrasUsed}
@@ -188,7 +196,7 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
                 "w-4 h-4",
                 isAtUserLimit ? "text-destructive" : isNearUserLimit ? "text-primary" : "text-muted-foreground"
               )} />
-              <span className="text-sm font-medium">Acessos</span>
+              <span className="text-sm font-medium">{t('admin.accessLabel')}</span>
             </div>
             <p className="text-2xl font-bold">
               {usersUsed}
@@ -207,22 +215,22 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-1">
               <FileText className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Diários</span>
+              <span className="text-sm font-medium">{t('admin.diariesLabel')}</span>
             </div>
             <p className="text-lg font-bold">
               {formatLimit(limits.maxDiariosPerObra)}
-              <span className="text-sm font-normal text-muted-foreground">/obra</span>
+              <span className="text-sm font-normal text-muted-foreground">{t('admin.perWork')}</span>
             </p>
           </div>
 
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-1">
               <Package className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Estoque</span>
+              <span className="text-sm font-medium">{t('admin.stockLabel')}</span>
             </div>
             <p className="text-lg font-bold">
               {formatLimit(limits.maxMateriaisPerObra)}
-              <span className="text-sm font-normal text-muted-foreground"> itens/obra</span>
+              <span className="text-sm font-normal text-muted-foreground">{t('admin.itemsPerWork')}</span>
             </p>
           </div>
         </div>
@@ -230,7 +238,7 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
         {/* Recursos incluídos */}
         <div>
           <p className="text-sm font-medium mb-2 text-muted-foreground">
-            Seu pacote atual ({planName})
+            {t('admin.currentPackage', { plan: planName })}
           </p>
           <div className="space-y-1.5">
             {features.included.map((feature) => (
@@ -272,7 +280,7 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
             size="lg"
           >
             <Rocket className="w-4 h-4 mr-2" />
-            {plan === 'free' ? 'Organizar Minhas Obras' : plan === 'start' ? 'Blindar Meu Caixa' : 'Escalar Meu Negócio'}
+            {t(upgradeCtaKey[plan] || 'planoResumo.ctaFree')}
           </Button>
         )}
       </CardContent>
