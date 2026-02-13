@@ -282,7 +282,7 @@ export function LandingPage() {
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <Hammer className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">Obra Certa</span>
+            <span className="text-xl font-bold">{t('brand.name')}</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#como-funciona" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -805,11 +805,11 @@ export function LandingPage() {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Hammer className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-bold">Obra Certa</span>
+              <span className="font-bold">{t('brand.name')}</span>
             </div>
             
             <p className="text-sm opacity-60">
-              © {new Date().getFullYear()} Obra Certa. {t('landing.footerRights')}
+              © {new Date().getFullYear()} {t('brand.name')}. {t('landing.footerRights')}
             </p>
             
             <div className="flex gap-6">

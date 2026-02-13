@@ -1,6 +1,9 @@
 {
+  "brand": {
+    "name": "BuildRight"
+  },
   "app": {
-    "name": "Obra Certa",
+    "name": "BuildRight",
     "tagline": "Construction Management Made Simple"
   },
   "nav": {
@@ -365,7 +368,7 @@
     "upgrade": "Upgrade Plan"
   },
   "landing": {
-    "whatsappMessage": "Hi! I came from the Obra Certa website and would like to learn more.",
+    "whatsappMessage": "Hi! I came from the $t(brand.name) website and would like to learn more.",
     "whatsappAriaLabel": "Chat on WhatsApp",
     "navHowItWorks": "How It Works",
     "navDemo": "See It Live",
@@ -386,7 +389,7 @@
     "heroReady": "Ready in 2 minutes",
     "painTitle": "Your construction project doesn't have to be a",
     "painTitleHighlight": "headache",
-    "painSubtitle": "No more stress. See how Obra Certa transforms your daily routine.",
+    "painSubtitle": "No more stress. See how $t(brand.name) transforms your daily routine.",
     "painLabel": "The Problem:",
     "solutionLabel": "The Solution:",
     "pain1": "Inventory shortages and expensive emergency purchases",
@@ -397,7 +400,7 @@
     "solution3": "Visual schedule and automated Daily Construction Report",
     "pain4": "Notes on scraps of paper that disappear",
     "solution4": "Everything in the cloud, accessible from anywhere",
-    "demoTitle": "See Obra Certa",
+    "demoTitle": "See $t(brand.name)",
     "demoTitleHighlight": "in Action",
     "demoSubtitle": "A quick 2-minute tour showing the main features",
     "demoWatch": "Watch Demo",
@@ -497,25 +500,25 @@
     "testimonialsTitleHighlight": "recommend it",
     "test1Name": "John Silva",
     "test1Role": "Contractor in Belo Horizonte",
-    "test1Content": "I used to lose 20% of materials. With Obra Certa, waste dropped to zero. That alone paid for the app.",
+    "test1Content": "I used to lose 20% of materials. With $t(brand.name), waste dropped to zero. That alone paid for the app.",
     "test2Name": "Mark Oliveira",
     "test2Role": "Civil Engineer",
     "test2Content": "The daily PDF report saved me from lawsuits. It's very professional. My clients are impressed.",
     "test3Name": "Carlos Mendes",
     "test3Role": "Civil Engineer",
-    "test3Content": "I used to lose track and pay the bricklayer twice. With Obra Certa's Billing system, advance deductions are automatic. I only pay what's measured. Saved $1,000 just last month.",
+    "test3Content": "I used to lose track and pay the bricklayer twice. With $t(brand.name)'s Billing system, advance deductions are automatic. I only pay what's measured. Saved $1,000 just last month.",
     "faqTitle": "Frequently Asked",
     "faqTitleHighlight": "Questions",
     "faq1Q": "Does it work offline?",
     "faq1A": "Yes! The app works offline and syncs automatically when you reconnect. Perfect for job sites without Wi-Fi.",
     "faq2Q": "Is it hard to use?",
-    "faq2A": "No! Obra Certa was built to be used one-handed, right on the job site. Big buttons, simple interface, no hassle.",
+    "faq2A": "No! $t(brand.name) was built to be used one-handed, right on the job site. Big buttons, simple interface, no hassle.",
     "faq3Q": "Does it work for small renovations?",
     "faq3A": "Yes, any type of project! From a bathroom renovation to a high-end condo. The system adapts to your project.",
     "faq4Q": "How does the billing and technical retention system work?",
     "faq4A": "You set the labor contract value per phase or item in the schedule. At each billing, enter the percentage completed and the system automatically calculates the gross value, deducts pending advances, and applies technical retention (default 5%, but you can customize). The result is the exact net amount to pay, no surprises.",
     "faq5Q": "Do I need to install any software?",
-    "faq5A": "No! Obra Certa runs directly in your phone or computer browser. Just access, create your account, and start.",
+    "faq5A": "No! $t(brand.name) runs directly in your phone or computer browser. Just access, create your account, and start.",
     "faq6Q": "Can I cancel anytime?",
     "faq6A": "Yes, no red tape. You can cancel your subscription whenever you want, with no cancellation fee.",
     "ctaTitle": "Take full control of your inventory and your money",
