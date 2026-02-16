@@ -984,5 +984,13 @@
     "attendancesLabel": "presenças",
     "climate": "Clima",
     "team": "Equipe"
+  },
+  "phases": {
+    "Serviços Preliminares": "Serviços Preliminares",
+    "Fundação": "Fundação",
+    "Estrutura": "Estrutura",
+    "Cobertura": "Cobertura",
+    "Instalações": "Instalações",
+    "Acabamento": "Acabamento"
   }
 }
