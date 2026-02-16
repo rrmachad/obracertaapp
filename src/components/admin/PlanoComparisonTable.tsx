@@ -58,9 +58,9 @@ const features: FeatureRow[] = [
 
 const planInfo: Record<SubscriptionPlan, { name: string; price: number; icon?: React.ReactNode }> = {
   free: { name: 'Iniciante', price: 0 },
-  start: { name: 'Autônomo', price: 29.90, icon: <Rocket className="w-4 h-4" /> },
-  gold: { name: 'Construtora', price: 59.90, icon: <ShieldCheck className="w-4 h-4" /> },
-  premium: { name: 'Business', price: 99.90, icon: <Crown className="w-4 h-4" /> },
+  start: { name: 'Autônomo', price: 19.90, icon: <Rocket className="w-4 h-4" /> },
+  gold: { name: 'Construtora', price: 39.90, icon: <ShieldCheck className="w-4 h-4" /> },
+  premium: { name: 'Business', price: 79.90, icon: <Crown className="w-4 h-4" /> },
 };
 
 function FeatureValue({ value }: { value: string | boolean }) {
