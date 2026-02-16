@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users, Home, ChevronRight, DollarSign, Share2 } from 'lucide-react';
@@ -29,7 +29,7 @@ import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { ObraStatus } from '@/types/database';
 
 export function ObraDetails() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -42,6 +42,15 @@ export function ObraDetails() {
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [portalDialogOpen, setPortalDialogOpen] = useState(false);
 
+  // Dynamic browser tab title with obra name
+  useEffect(() => {
+    if (obra) {
+      document.title = `${t('brand.name')} - ${obra.nome}`;
+    }
+    return () => {
+      document.title = `${t('brand.name')} - ${t('app.tagline')}`;
+    };
+  }, [obra, t, i18n.language]);
   const statusConfig: Record<ObraStatus, { label: string; className: string }> = {
     planejamento: { label: t('status.planning'), className: 'bg-muted text-muted-foreground' },
     em_andamento: { label: t('status.inProgress'), className: 'bg-primary text-primary-foreground' },
