@@ -66,7 +66,7 @@ const plans: PlanOption[] = [
   {
     id: 'start',
     name: 'Autônomo',
-    price: 29.90,
+    price: 19.90,
     features: [
       { text: 'Obras Ilimitadas', icon: 'rocket', highlight: true },
       { text: 'Diário de Obra Digital', icon: 'check' },
@@ -80,7 +80,7 @@ const plans: PlanOption[] = [
   {
     id: 'gold',
     name: 'Construtora',
-    price: 59.90,
+    price: 39.90,
     features: [
       { text: 'Tudo do Plano Autônomo', icon: 'check', highlight: true },
       { text: 'Medições: Pague o executado', icon: 'shield', highlight: true },
@@ -94,7 +94,7 @@ const plans: PlanOption[] = [
   {
     id: 'premium',
     name: 'Business',
-    price: 99.90,
+    price: 79.90,
     popular: true,
     features: [
       { text: 'Tudo do Plano Construtora', icon: 'check', highlight: true },
