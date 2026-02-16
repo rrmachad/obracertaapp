@@ -1,4 +1,5 @@
-import { Crown, Users, Building2, CheckCircle2, Unlock, AlertTriangle, FileText, Package, Rocket, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { Crown, Users, Building2, CheckCircle2, Unlock, AlertTriangle, FileText, Package, Rocket, ShieldCheck, CreditCard, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -7,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
 interface PlanoResumoCardProps {
@@ -26,6 +30,31 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
   const { t } = useTranslation();
   const { plan, planName, maxUsers } = useSubscription(ownerUserId);
   const { limits, usage, getObrasPercentage } = usePlanLimits();
+  const { session } = useAuth();
+  const { toast } = useToast();
+  const [managingSubscription, setManagingSubscription] = useState(false);
+
+  const handleManageSubscription = async () => {
+    if (!session?.access_token) return;
+    setManagingSubscription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      toast({
+        title: t('common.error'),
+        description: t('common.tryAgain'),
+        variant: 'destructive',
+      });
+    } finally {
+      setManagingSubscription(false);
+    }
+  };
 
   const usersUsed = usage.usersUsed;
   const usersPercentage = (usersUsed / maxUsers) * 100;
@@ -281,6 +310,23 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
           >
             <Rocket className="w-4 h-4 mr-2" />
             {t(upgradeCtaKey[plan] || 'planoResumo.ctaFree')}
+          </Button>
+        )}
+
+        {/* Gerenciar assinatura - only for paid plans */}
+        {plan !== 'free' && !isInvitedUser && (
+          <Button 
+            onClick={handleManageSubscription} 
+            disabled={managingSubscription}
+            variant="outline"
+            className="w-full"
+          >
+            {managingSubscription ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <CreditCard className="w-4 h-4 mr-2" />
+            )}
+            {t('planoResumo.manageSubscription')}
           </Button>
         )}
       </CardContent>
