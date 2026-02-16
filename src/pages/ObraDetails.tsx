@@ -27,6 +27,7 @@ import { FeatureBlockedOverlay } from '@/components/FeatureBlockedOverlay';
 import { useObraAccess } from '@/hooks/useUserInvites';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { ObraStatus } from '@/types/database';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export function ObraDetails() {
   const { t, i18n } = useTranslation();
@@ -118,12 +119,14 @@ export function ObraDetails() {
             <ArrowLeft className="w-5 h-5 text-primary-foreground" />
           </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="default" size="icon" className="bg-primary shadow-lg hover:bg-primary/90">
-                <MoreVertical className="w-5 h-5 text-primary-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher variant="ghost" className="bg-primary/80 text-primary-foreground shadow-lg hover:bg-primary/90" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="default" size="icon" className="bg-primary shadow-lg hover:bg-primary/90">
+                  <MoreVertical className="w-5 h-5 text-primary-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
                 <Pencil className="w-4 h-4 mr-2" /> {t('obra.editWork')}
@@ -149,6 +152,7 @@ export function ObraDetails() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
 
         <div className="container -mt-8 relative z-10">
