@@ -7,11 +7,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Mapping de product IDs para planos
+// Mapping de product IDs para planos (v2 + legacy)
 const productToPlans: Record<string, string> = {
-  "prod_TtQh5GnS7aHcXR": "start",
-  "prod_TtQhVPtDIUeOT1": "gold",
-  "prod_TtQhJHHgbtRVdm": "premium",
+  // v2 products (current)
+  "prod_TzYalnkoVY2mqM": "start",      // Autônomo v2
+  "prod_TzYak5DysG3KB5": "gold",       // Construtora v2
+  "prod_TzYa2l84ZRs1VM": "premium",    // Business v2
+  // Legacy products (backward compatibility)
+  "prod_Ty5KXzCdaVfhhq": "start",      // Autônomo v1
+  "prod_Ty5KBT7EeOhDIf": "gold",       // Construtora v1
+  "prod_Ty5Kt7Tbf3bw0b": "premium",    // Business v1
+  "prod_TtQh5GnS7aHcXR": "start",      // Start original
+  "prod_TtQhVPtDIUeOT1": "gold",       // Gold original
+  "prod_TtQhJHHgbtRVdm": "premium",    // Premium original
 };
 
 const planMaxUsers: Record<string, number> = {
