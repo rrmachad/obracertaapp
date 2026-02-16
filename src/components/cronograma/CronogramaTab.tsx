@@ -179,7 +179,7 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold">{fase.ordem}. {fase.nome}</span>
+                      <span className="font-semibold">{fase.ordem}. {t(`phases.${fase.nome}`, fase.nome)}</span>
                       <Badge variant={progresso === 100 ? 'default' : 'secondary'} className="text-xs">
                         {concluidos}/{itensFase.length}
                       </Badge>
