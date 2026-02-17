@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "robots.txt"],
+      includeAssets: ["favicon.png", "favicon.ico", "robots.txt"],
       manifest: {
         name: "Obra Certa - Gestão de Obras Descomplicada",
         short_name: "Obra Certa",
