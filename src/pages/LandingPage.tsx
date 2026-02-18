@@ -171,12 +171,16 @@ function PhoneMockup() {
 }
 
 const APP_SCREENS = [
-  { src: appScreen1, label: 'Dashboard' },
-  { src: appScreen2, label: 'Financeiro' },
-  { src: appScreen3, label: 'Diário de Obra' },
-  { src: appScreen4, label: 'Estoque' },
-  { src: appScreen5, label: 'Cronograma' },
-  { src: appScreen6, label: 'Portal do Cliente' },
+  { src: screenDashboard, label: 'Minhas Obras' },
+  { src: screenMeuPlano, label: 'Meu Plano' },
+  { src: screenCronograma, label: 'Cronograma' },
+  { src: screenFinanceiro, label: 'Financeiro' },
+  { src: screenEstoque, label: 'Estoque' },
+  { src: screenDiario, label: 'Diário de Obra' },
+  { src: screenPortalCliente, label: 'Portal do Cliente' },
+  { src: screenPortalProgresso, label: 'Progresso da Obra' },
+  { src: screenAdmin, label: 'Painel Admin' },
+  { src: screenLucratividade, label: 'Lucratividade' },
 ];
 
 function AppScreensCarousel() {
