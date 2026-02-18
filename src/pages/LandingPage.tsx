@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import appScreen1 from '@/assets/app-screen-1.png';
-import appScreen2 from '@/assets/app-screen-2.png';
-import appScreen3 from '@/assets/app-screen-3.png';
-import appScreen4 from '@/assets/app-screen-4.png';
-import appScreen5 from '@/assets/app-screen-5.png';
-import appScreen6 from '@/assets/app-screen-6.png';
+import screenDashboard from '@/assets/screen-dashboard.jpg';
+import screenMeuPlano from '@/assets/screen-meu-plano.jpg';
+import screenCronograma from '@/assets/screen-cronograma.jpg';
+import screenFinanceiro from '@/assets/screen-financeiro.jpg';
+import screenEstoque from '@/assets/screen-estoque.jpg';
+import screenDiario from '@/assets/screen-diario.jpg';
+import screenPortalCliente from '@/assets/screen-portal-cliente.jpg';
+import screenPortalProgresso from '@/assets/screen-portal-progresso.jpg';
+import screenAdmin from '@/assets/screen-admin.jpg';
+import screenLucratividade from '@/assets/screen-lucratividade.jpg';
 import { useTranslation } from 'react-i18next';
 import { 
   ArrowRight, 
