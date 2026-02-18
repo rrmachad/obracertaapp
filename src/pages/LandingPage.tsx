@@ -6,7 +6,7 @@ import screenCronograma from '@/assets/screen-cronograma.jpg';
 import screenFinanceiro from '@/assets/screen-financeiro.jpg';
 import screenEstoque from '@/assets/screen-estoque.jpg';
 import screenDiario from '@/assets/screen-diario.jpg';
-import screenPortalCliente from '@/assets/screen-portal-cliente.jpg';
+import screenPortalConfig from '@/assets/screen-portal-config.jpg';
 import screenPortalProgresso from '@/assets/screen-portal-progresso.jpg';
 import screenAdmin from '@/assets/screen-admin.jpg';
 import screenLucratividade from '@/assets/screen-lucratividade.jpg';
@@ -177,7 +177,7 @@ const APP_SCREENS_KEYS = [
   { src: screenFinanceiro, labelKey: 'carousel.financeiro' },
   { src: screenEstoque, labelKey: 'carousel.estoque' },
   { src: screenDiario, labelKey: 'carousel.diarioDeObra' },
-  { src: screenPortalCliente, labelKey: 'carousel.portalDoCliente' },
+  { src: screenPortalConfig, labelKey: 'carousel.portalDoCliente' },
   { src: screenPortalProgresso, labelKey: 'carousel.progressoDaObra' },
   { src: screenAdmin, labelKey: 'carousel.painelAdmin' },
   { src: screenLucratividade, labelKey: 'carousel.lucratividade' },
@@ -193,13 +193,16 @@ function AppScreensCarousel() {
       <div className="absolute right-0 top-0 bottom-0 w-40 z-10 bg-gradient-to-l from-background to-transparent pointer-events-none" />
 
       <div
-        className="flex gap-5 w-max"
+        className="flex gap-5 w-max carousel-track"
         style={{ animation: 'carousel-scroll 60s linear infinite' }}
       >
         <style>{`
           @keyframes carousel-scroll {
             0% { transform: translateX(0); }
             100% { transform: translateX(calc(-100% / 3)); }
+          }
+          .carousel-track:hover {
+            animation-play-state: paused;
           }
         `}</style>
         {screens.map((screen, i) => (
