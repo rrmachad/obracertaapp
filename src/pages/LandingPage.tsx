@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import appScreen1 from '@/assets/app-screen-1.png';
+import appScreen2 from '@/assets/app-screen-2.png';
+import appScreen3 from '@/assets/app-screen-3.png';
+import appScreen4 from '@/assets/app-screen-4.png';
+import appScreen5 from '@/assets/app-screen-5.png';
+import appScreen6 from '@/assets/app-screen-6.png';
 import { useTranslation } from 'react-i18next';
 import { 
   ArrowRight, 
@@ -156,6 +162,66 @@ function PhoneMockup() {
       <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-foreground/90 rounded-full" />
       <div className="absolute -top-8 -right-8 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
       <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-violet-500/10 rounded-full blur-2xl" />
+    </div>
+  );
+}
+
+const APP_SCREENS = [
+  { src: appScreen1, label: 'Dashboard' },
+  { src: appScreen2, label: 'Financeiro' },
+  { src: appScreen3, label: 'Diário de Obra' },
+  { src: appScreen4, label: 'Estoque' },
+  { src: appScreen5, label: 'Cronograma' },
+  { src: appScreen6, label: 'Portal do Cliente' },
+];
+
+function AppScreensCarousel() {
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  // Duplicate screens for seamless infinite loop
+  const screens = [...APP_SCREENS, ...APP_SCREENS, ...APP_SCREENS];
+
+  return (
+    <div className="relative w-full overflow-hidden py-8">
+      {/* Left fade */}
+      <div className="absolute left-0 top-0 bottom-0 w-32 z-10 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+      {/* Right fade */}
+      <div className="absolute right-0 top-0 bottom-0 w-32 z-10 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+
+      <div
+        ref={trackRef}
+        className="flex gap-6 w-max"
+        style={{
+          animation: 'carousel-scroll 32s linear infinite',
+        }}
+      >
+        <style>{`
+          @keyframes carousel-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-100% / 3)); }
+          }
+          .carousel-track:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+        {screens.map((screen, i) => (
+          <div
+            key={i}
+            className="flex-shrink-0 relative group"
+            style={{ width: '220px' }}
+          >
+            <div className="rounded-2xl overflow-hidden shadow-xl border border-border/50 bg-card transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl">
+              <img
+                src={screen.src}
+                alt={screen.label}
+                className="w-full object-cover"
+                style={{ height: '440px', objectPosition: 'top' }}
+              />
+            </div>
+            <p className="text-center text-sm font-medium text-muted-foreground mt-3">{screen.label}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -427,8 +493,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Video Demo Section */}
-      <section id="demo" className="py-16">
+      {/* App Screenshots Carousel Section */}
+      <section id="demo" className="py-16 overflow-hidden">
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -438,29 +504,10 @@ export function LandingPage() {
               {t('landing.demoSubtitle')}
             </p>
           </AnimatedSection>
-          
-          <AnimatedSection animation="scaleUp" delay={200} className="max-w-4xl mx-auto">
-            <div className="relative aspect-video bg-muted rounded-2xl overflow-hidden shadow-2xl border">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                <div className="text-center">
-                  <button 
-                    className="w-20 h-20 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-4 mx-auto shadow-lg hover:scale-110 transition-transform"
-                    onClick={() => {
-                      window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank');
-                    }}
-                  >
-                    <Play className="w-8 h-8 ml-1" />
-                  </button>
-                  <p className="text-lg font-semibold">{t('landing.demoWatch')}</p>
-                  <p className="text-sm text-muted-foreground">{t('landing.demoMinutes')}</p>
-                </div>
-              </div>
-              
-              <div className="absolute top-4 left-4 w-32 h-48 bg-card rounded-xl shadow-lg opacity-30 -rotate-6" />
-              <div className="absolute bottom-4 right-4 w-32 h-48 bg-card rounded-xl shadow-lg opacity-30 rotate-6" />
-            </div>
-          </AnimatedSection>
         </div>
+
+        {/* Infinite auto-scroll carousel */}
+        <AppScreensCarousel />
       </section>
 
       {/* How It Works Section */}
