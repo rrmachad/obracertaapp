@@ -993,5 +993,17 @@
     "Cobertura": "Cubierta",
     "Instalações": "Instalaciones",
     "Acabamento": "Acabados"
+  },
+  "carousel": {
+    "minhasObras": "Mis Proyectos",
+    "meuPlano": "Mi Plan",
+    "cronograma": "Cronograma",
+    "financeiro": "Finanzas",
+    "estoque": "Inventario",
+    "diarioDeObra": "Diario de Obra",
+    "portalDoCliente": "Portal del Cliente",
+    "progressoDaObra": "Progreso de la Obra",
+    "painelAdmin": "Panel Admin",
+    "lucratividade": "Rentabilidad"
   }
 }

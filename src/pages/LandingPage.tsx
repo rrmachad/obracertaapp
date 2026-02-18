@@ -170,63 +170,53 @@ function PhoneMockup() {
   );
 }
 
-const APP_SCREENS = [
-  { src: screenDashboard, label: 'Minhas Obras' },
-  { src: screenMeuPlano, label: 'Meu Plano' },
-  { src: screenCronograma, label: 'Cronograma' },
-  { src: screenFinanceiro, label: 'Financeiro' },
-  { src: screenEstoque, label: 'Estoque' },
-  { src: screenDiario, label: 'Diário de Obra' },
-  { src: screenPortalCliente, label: 'Portal do Cliente' },
-  { src: screenPortalProgresso, label: 'Progresso da Obra' },
-  { src: screenAdmin, label: 'Painel Admin' },
-  { src: screenLucratividade, label: 'Lucratividade' },
+const APP_SCREENS_KEYS = [
+  { src: screenDashboard, labelKey: 'carousel.minhasObras' },
+  { src: screenMeuPlano, labelKey: 'carousel.meuPlano' },
+  { src: screenCronograma, labelKey: 'carousel.cronograma' },
+  { src: screenFinanceiro, labelKey: 'carousel.financeiro' },
+  { src: screenEstoque, labelKey: 'carousel.estoque' },
+  { src: screenDiario, labelKey: 'carousel.diarioDeObra' },
+  { src: screenPortalCliente, labelKey: 'carousel.portalDoCliente' },
+  { src: screenPortalProgresso, labelKey: 'carousel.progressoDaObra' },
+  { src: screenAdmin, labelKey: 'carousel.painelAdmin' },
+  { src: screenLucratividade, labelKey: 'carousel.lucratividade' },
 ];
 
 function AppScreensCarousel() {
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  // Duplicate screens for seamless infinite loop
-  const screens = [...APP_SCREENS, ...APP_SCREENS, ...APP_SCREENS];
+  const { t } = useTranslation();
+  const screens = [...APP_SCREENS_KEYS, ...APP_SCREENS_KEYS, ...APP_SCREENS_KEYS];
 
   return (
     <div className="relative w-full overflow-hidden py-8">
-      {/* Left fade */}
-      <div className="absolute left-0 top-0 bottom-0 w-32 z-10 bg-gradient-to-r from-background to-transparent pointer-events-none" />
-      {/* Right fade */}
-      <div className="absolute right-0 top-0 bottom-0 w-32 z-10 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-40 z-10 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-40 z-10 bg-gradient-to-l from-background to-transparent pointer-events-none" />
 
       <div
-        ref={trackRef}
-        className="flex gap-6 w-max"
-        style={{
-          animation: 'carousel-scroll 32s linear infinite',
-        }}
+        className="flex gap-5 w-max"
+        style={{ animation: 'carousel-scroll 60s linear infinite' }}
       >
         <style>{`
           @keyframes carousel-scroll {
             0% { transform: translateX(0); }
             100% { transform: translateX(calc(-100% / 3)); }
           }
-          .carousel-track:hover {
-            animation-play-state: paused;
-          }
         `}</style>
         {screens.map((screen, i) => (
           <div
             key={i}
             className="flex-shrink-0 relative group"
-            style={{ width: '220px' }}
+            style={{ width: '300px' }}
           >
             <div className="rounded-2xl overflow-hidden shadow-xl border border-border/50 bg-card transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl">
               <img
                 src={screen.src}
-                alt={screen.label}
-                className="w-full object-cover"
-                style={{ height: '440px', objectPosition: 'top' }}
+                alt={t(screen.labelKey)}
+                className="w-full object-cover object-top"
+                style={{ height: '560px' }}
               />
             </div>
-            <p className="text-center text-sm font-medium text-muted-foreground mt-3">{screen.label}</p>
+            <p className="text-center text-sm font-semibold text-muted-foreground mt-3 tracking-wide">{t(screen.labelKey)}</p>
           </div>
         ))}
       </div>

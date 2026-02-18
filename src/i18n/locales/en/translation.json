@@ -993,5 +993,17 @@
     "Cobertura": "Roofing",
     "Instalações": "Installations",
     "Acabamento": "Finishing"
+  },
+  "carousel": {
+    "minhasObras": "My Projects",
+    "meuPlano": "My Plan",
+    "cronograma": "Schedule",
+    "financeiro": "Financials",
+    "estoque": "Inventory",
+    "diarioDeObra": "Work Diary",
+    "portalDoCliente": "Client Portal",
+    "progressoDaObra": "Project Progress",
+    "painelAdmin": "Admin Panel",
+    "lucratividade": "Profitability"
   }
 }

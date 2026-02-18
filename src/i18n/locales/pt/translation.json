@@ -993,5 +993,17 @@
     "Cobertura": "Cobertura",
     "Instalações": "Instalações",
     "Acabamento": "Acabamento"
+  },
+  "carousel": {
+    "minhasObras": "Minhas Obras",
+    "meuPlano": "Meu Plano",
+    "cronograma": "Cronograma",
+    "financeiro": "Financeiro",
+    "estoque": "Estoque",
+    "diarioDeObra": "Diário de Obra",
+    "portalDoCliente": "Portal do Cliente",
+    "progressoDaObra": "Progresso da Obra",
+    "painelAdmin": "Painel Admin",
+    "lucratividade": "Lucratividade"
   }
 }
