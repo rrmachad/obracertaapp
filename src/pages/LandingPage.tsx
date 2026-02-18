@@ -530,7 +530,7 @@ export function LandingPage() {
                   <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
                     <step.icon className="w-10 h-10 text-primary" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                  <div className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
                     {index + 1}
                   </div>
                 </div>
