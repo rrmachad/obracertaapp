@@ -765,6 +765,9 @@
     "result": "result",
     "results": "results",
     "clearFilters": "Clear filters",
+    "sortByName": "Name (A–Z)",
+    "sortByQty": "Lowest quantity",
+    "sortByAlerts": "Alerts first",
 
     "unitsMetric": "Units (un)",
     "bagsMetric": "Bags (sc)",

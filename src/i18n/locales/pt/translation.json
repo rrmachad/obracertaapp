@@ -765,6 +765,9 @@
     "result": "resultado",
     "results": "resultados",
     "clearFilters": "Limpar filtros",
+    "sortByName": "Nome (A–Z)",
+    "sortByQty": "Menor quantidade",
+    "sortByAlerts": "Alertas primeiro",
 
     "unitsMetric": "Unidades (un)",
     "bagsMetric": "Sacos (sc)",
