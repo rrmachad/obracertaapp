@@ -201,6 +201,9 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
   const touchStartY = useRef<number | null>(null);
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : true);
   const SWIPE_THRESHOLD = 50;
+  const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
+  const DURATION = '420ms';
+  const cardTransition = { transition: `opacity ${DURATION} ${EASE}, transform ${DURATION} ${EASE}` };
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -215,7 +218,7 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
       setCurrentIndex(newIndex);
       setDisplayIndex(newIndex);
       setFadingOut(false);
-    }, 400);
+    }, 420);
   };
 
   useEffect(() => {
@@ -298,7 +301,7 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
     </Card>
   );
 
-  // ── Mobile: flat peek carousel ──────────────────────────────────────────────
+  // Mobile: peek carousel
   if (isMobile) {
     const prev = (currentIndex - 1 + total) % total;
     const next = (currentIndex + 1) % total;
@@ -311,17 +314,15 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
         onMouseLeave={() => setIsPaused(false)}
       >
         <div className="flex items-stretch justify-center gap-3 px-4">
-          {/* Previous peek */}
           <div className="flex-shrink-0 w-16 opacity-30 cursor-pointer" onClick={goPrev}>
             <TestimonialCard t={testimonials[prev]} dimmed />
           </div>
-          {/* Active card — fade transition */}
           <div
-            className={`flex-1 max-w-xs transition-all duration-400 ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+            className={`flex-1 max-w-xs ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+            style={cardTransition}
           >
             <TestimonialCard t={testimonials[currentIndex]} />
           </div>
-          {/* Next peek */}
           <div className="flex-shrink-0 w-16 opacity-30 cursor-pointer" onClick={goNext}>
             <TestimonialCard t={testimonials[next]} dimmed />
           </div>
@@ -336,7 +337,7 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
     );
   }
 
-  // ── Desktop: 3 visíveis com fade ──────────────────────────────────────────
+  // Desktop: 3 cards com fade elegante
   const visibleCount = 3;
   const visibleIndices = Array.from({ length: visibleCount }, (_, i) => (currentIndex + i) % total);
 
@@ -346,7 +347,10 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className={`grid grid-cols-3 gap-6 max-w-5xl mx-auto transition-all duration-400 ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+      <div
+        className={`grid grid-cols-3 gap-6 max-w-5xl mx-auto ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+        style={cardTransition}
+      >
         {visibleIndices.map((idx) => (
           <div key={idx}>
             <TestimonialCard t={testimonials[idx]} />
@@ -364,7 +368,7 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
       <button
         onClick={goNext}
         className="hidden md:flex absolute -right-6 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-11 h-11 rounded-full bg-background/80 border border-border shadow-lg backdrop-blur-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
-        aria-label="Próximo depoimento"
+        aria-label="Proximo depoimento"
       >
         <ChevronRight className="w-5 h-5" />
       </button>
