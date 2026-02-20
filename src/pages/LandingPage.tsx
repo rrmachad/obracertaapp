@@ -61,6 +61,38 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AnimatedSection } from '@/hooks/useScrollAnimation';
 
 const WHATSAPP_NUMBER = '5511999999999';
+const STAGGER_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
+
+// Wrapper que aplica fade+scale+stagger ao entrar na viewport
+function StaggerCard({ children, index, className = '' }: { children: React.ReactNode; index: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.unobserve(el); } },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${className}`}
+      style={{
+        transition: `opacity 480ms ${STAGGER_EASE}, transform 480ms ${STAGGER_EASE}`,
+        transitionDelay: visible ? `${index * 80}ms` : '0ms',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 
 function CountUp({ target, active }: { target: number; active: boolean }) {
   const [value, setValue] = useState(0);
@@ -813,7 +845,7 @@ export function LandingPage() {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {painPoints.map((item, index) => (
-              <AnimatedSection key={index} animation="fadeUp" delay={index * 100}>
+              <StaggerCard key={index} index={index}>
                 <Card className="overflow-hidden h-full">
                   <CardContent className="p-0">
                     <div className="bg-destructive/10 p-6 border-b border-destructive/20">
@@ -827,13 +859,11 @@ export function LandingPage() {
                         </div>
                       </div>
                     </div>
-                    
                     <div className="flex justify-center -my-3 relative z-10">
                       <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg">
                         <ChevronDown className="w-5 h-5 text-primary-foreground" />
                       </div>
                     </div>
-                    
                     <div className="bg-primary/5 p-6">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -847,9 +877,10 @@ export function LandingPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </AnimatedSection>
+              </StaggerCard>
             ))}
           </div>
+
         </div>
       </section>
 
@@ -860,32 +891,29 @@ export function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               {t('landing.demoTitle')} <span className="text-primary">{t('landing.demoTitleHighlight')}</span>
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               {t('landing.demoSubtitle')}
             </p>
           </AnimatedSection>
         </div>
-
-        {/* Infinite auto-scroll carousel */}
         <AppScreensCarousel />
       </section>
 
-      {/* How It Works Section */}
+      {/* Como Funciona Section */}
       <section id="como-funciona" className="py-16 bg-muted/30">
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               {t('landing.stepsTitle')} <span className="text-primary">{t('landing.stepsTitleHighlight')}</span>
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               {t('landing.stepsSubtitle')}
             </p>
           </AnimatedSection>
-          
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {steps.map((step, index) => (
-              <AnimatedSection key={index} animation="fadeUp" delay={index * 150}>
-                {/* Mobile: número à esquerda + ícone + texto em linha */}
+              <StaggerCard key={index} index={index}>
+                {/* Mobile: numero a esquerda + icone + texto em linha */}
                 <div className="flex items-start gap-4 md:hidden">
                   <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm flex-shrink-0 mt-1">
                     {index + 1}
@@ -900,7 +928,7 @@ export function LandingPage() {
                     </div>
                   </div>
                 </div>
-                {/* Desktop: centralizado com número no canto do ícone */}
+                {/* Desktop: centralizado com numero no canto do icone */}
                 <div className="hidden md:flex flex-col items-center text-center">
                   <div className="relative mb-6">
                     <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -913,7 +941,7 @@ export function LandingPage() {
                   <h3 className="text-xl font-bold mb-2">{step.title}</h3>
                   <p className="text-muted-foreground">{step.description}</p>
                 </div>
-              </AnimatedSection>
+              </StaggerCard>
             ))}
           </div>
         </div>
@@ -937,15 +965,17 @@ export function LandingPage() {
           <div ref={counterRef} className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-12">
             {[
               { value: 100, suffix: '%', label: t('landing.stat1Label') },
-              { value: 5, suffix: '%', label: t('landing.stat2Label') },
-              { value: 0, suffix: '', label: t('landing.stat3Label') },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <p className="text-4xl md:text-5xl font-extrabold text-primary">
-                  <CountUp target={stat.value} active={countersVisible} />{stat.suffix}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-              </div>
+              { value: 40, suffix: '%', label: t('landing.stat2Label') },
+              { value: 500, suffix: '+', label: t('landing.stat3Label') },
+            ].map((stat, index) => (
+              <AnimatedSection key={index} animation="scaleUp" delay={index * 150}>
+                <div className="text-center">
+                  <p className="text-4xl md:text-5xl font-extrabold text-primary">
+                    <CountUp target={stat.value} active={countersVisible} />{stat.suffix}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">{stat.label}</p>
+                </div>
+              </AnimatedSection>
             ))}
           </div>
 
@@ -956,7 +986,7 @@ export function LandingPage() {
               { icon: ShieldCheck, title: t('landing.finCard3Title'), text: t('landing.finCard3Text') },
               { icon: FileText, title: t('landing.finCard4Title'), text: t('landing.finCard4Text') },
             ].map((item, index) => (
-              <AnimatedSection key={index} animation="scaleUp" delay={index * 100}>
+              <StaggerCard key={index} index={index}>
                 <Card className="h-full hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
@@ -966,7 +996,7 @@ export function LandingPage() {
                     <p className="text-sm text-muted-foreground">{item.text}</p>
                   </CardContent>
                 </Card>
-              </AnimatedSection>
+              </StaggerCard>
             ))}
           </div>
         </div>
@@ -980,10 +1010,9 @@ export function LandingPage() {
               {t('landing.featuresTitle')} <span className="text-primary">{t('landing.featuresTitleHighlight')}</span>
             </h2>
           </AnimatedSection>
-          
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
-              <AnimatedSection key={index} animation="scaleUp" delay={index * 100}>
+              <StaggerCard key={index} index={index}>
                 <Card className="text-center hover:shadow-lg transition-shadow h-full">
                   <CardContent className="p-6">
                     <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -993,13 +1022,13 @@ export function LandingPage() {
                     <p className="text-sm text-muted-foreground">{feature.description}</p>
                   </CardContent>
                 </Card>
-              </AnimatedSection>
+              </StaggerCard>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══════ DIFERENCIAIS BUSINESS SECTION ═══════ */}
+      {/* Diferenciais Business Section */}
       <section className="py-16 bg-violet-500/5 border-y border-violet-500/10">
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
@@ -1021,7 +1050,7 @@ export function LandingPage() {
               { icon: ShoppingCart, title: t('landing.biz2Title'), description: t('landing.biz2Desc') },
               { icon: PieChart, title: t('landing.biz3Title'), description: t('landing.biz3Desc') },
             ].map((item, index) => (
-              <AnimatedSection key={index} animation="scaleUp" delay={index * 150}>
+              <StaggerCard key={index} index={index}>
                 <Card className="h-full border-violet-500/20 hover:shadow-xl hover:shadow-violet-500/5 transition-all">
                   <CardContent className="p-8 text-center">
                     <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-6">
@@ -1031,7 +1060,7 @@ export function LandingPage() {
                     <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
                   </CardContent>
                 </Card>
-              </AnimatedSection>
+              </StaggerCard>
             ))}
           </div>
 
@@ -1045,6 +1074,7 @@ export function LandingPage() {
           </AnimatedSection>
         </div>
       </section>
+
 
       {/* Pricing Section */}
       <section id="precos" className="py-16 bg-muted/30">
