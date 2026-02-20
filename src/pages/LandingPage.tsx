@@ -489,7 +489,7 @@ export function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" itemScope itemType="https://schema.org/WebPage">
       {/* Floating WhatsApp Button */}
       <a
         href={WHATSAPP_LINK}
@@ -541,7 +541,7 @@ export function LandingPage() {
       </header>
 
       {/* ═══════ HERO SECTION ═══════ */}
-      <section className="py-16 md:py-24 overflow-hidden">
+      <section className="py-16 md:py-24 overflow-hidden" aria-label="Introdução">
         <div className="container">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <AnimatedSection animation="fadeUp" className="text-center lg:text-left">
@@ -931,7 +931,7 @@ export function LandingPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section id="depoimentos" className="py-16 bg-muted/20">
+      <section id="depoimentos" className="py-16 bg-muted/20" aria-label="Depoimentos de clientes">
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 gap-1 px-4 py-1.5">
@@ -972,8 +972,11 @@ export function LandingPage() {
                       <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/20 flex-shrink-0">
                         <img
                           src={testimonial.photo}
-                          alt={testimonial.name}
+                          alt={`Foto de ${testimonial.name}, ${testimonial.role}`}
                           className="w-full h-full object-cover"
+                          loading="lazy"
+                          width={48}
+                          height={48}
                         />
                       </div>
                       <div>
