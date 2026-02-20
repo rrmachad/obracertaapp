@@ -215,7 +215,7 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
       setCurrentIndex(newIndex);
       setDisplayIndex(newIndex);
       setFadingOut(false);
-    }, 300);
+    }, 400);
   };
 
   useEffect(() => {
@@ -317,7 +317,7 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
           </div>
           {/* Active card — fade transition */}
           <div
-            className={`flex-1 max-w-xs transition-all duration-300 ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+            className={`flex-1 max-w-xs transition-all duration-400 ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
           >
             <TestimonialCard t={testimonials[currentIndex]} />
           </div>
@@ -346,7 +346,7 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className={`grid grid-cols-3 gap-6 max-w-5xl mx-auto transition-all duration-300 ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+      <div className={`grid grid-cols-3 gap-6 max-w-5xl mx-auto transition-all duration-400 ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
         {visibleIndices.map((idx) => (
           <div key={idx}>
             <TestimonialCard t={testimonials[idx]} />
