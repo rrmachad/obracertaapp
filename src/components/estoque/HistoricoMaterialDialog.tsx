@@ -2,8 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { ptBR, type Locale } from 'date-fns/locale';
-import { ArrowDownCircle, ArrowUpCircle, History } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, History, FileDown, Sheet } from 'lucide-react';
+import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -98,15 +101,94 @@ export function HistoricoMaterialDialog({ material, open, onOpenChange }: Props)
       ? buildChartData(movimentacoes, material.qtd_atual, dateLocale)
       : [];
 
+  const materialName = material ? translateMaterialName(material.nome, lang) : '';
+
+  function exportPDF() {
+    if (!material || !movimentacoes?.length) return;
+    const doc = new jsPDF();
+    const unidade = material.unidade;
+
+    doc.setFontSize(16);
+    doc.text(`Historico: ${materialName}`, 14, 18);
+    doc.setFontSize(10);
+    doc.text(`Unidade: ${unidade}  |  Estoque atual: ${formatQty(material.qtd_atual, unidade)} ${unidade}`, 14, 26);
+    doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 32);
+
+    // Table header
+    let y = 42;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Data', 14, y);
+    doc.text('Tipo', 70, y);
+    doc.text('Quantidade', 110, y);
+    doc.text('Observacao', 150, y);
+    y += 4;
+    doc.line(14, y, 196, y);
+    y += 5;
+
+    doc.setFont('helvetica', 'normal');
+    const rows = [...movimentacoes].reverse();
+    for (const mov of rows) {
+      if (y > 275) {
+        doc.addPage();
+        y = 14;
+      }
+      const data = format(parseISO(mov.created_at), 'dd/MM/yyyy HH:mm');
+      const tipo = mov.tipo === 'entrada' ? 'Entrada' : 'Saida';
+      const qty = `${mov.tipo === 'entrada' ? '+' : '-'}${formatQty(mov.quantidade, unidade)} ${unidade}`;
+      const obs = mov.observacao ?? '-';
+      doc.text(data, 14, y);
+      doc.text(tipo, 70, y);
+      doc.text(qty, 110, y);
+      doc.text(obs.substring(0, 35), 150, y);
+      y += 7;
+    }
+
+    doc.save(`historico-${material.nome}.pdf`);
+  }
+
+  function exportExcel() {
+    if (!material || !movimentacoes?.length) return;
+    const unidade = material.unidade;
+    const rows = [...movimentacoes].reverse().map((mov) => ({
+      Data: format(parseISO(mov.created_at), 'dd/MM/yyyy HH:mm'),
+      Tipo: mov.tipo === 'entrada' ? 'Entrada' : 'Saída',
+      Quantidade: `${mov.tipo === 'entrada' ? '+' : '-'}${formatQty(mov.quantidade, unidade)}`,
+      Unidade: unidade,
+      Observação: mov.observacao ?? '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Histórico');
+    XLSX.writeFile(wb, `historico-${material.nome}.xlsx`);
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <History className="w-5 h-5" />
-            {material ? translateMaterialName(material.nome, lang) : ''}
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground">{t('inventory.movementHistory')}</p>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <DialogTitle className="flex items-center gap-2">
+                <History className="w-5 h-5" />
+                {materialName}
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground mt-0.5">{t('inventory.movementHistory')}</p>
+            </div>
+            {!!movimentacoes?.length && (
+              <div className="flex gap-2 shrink-0">
+                <Button variant="outline" size="sm" onClick={exportExcel} className="gap-1.5 text-xs">
+                  <Sheet className="w-3.5 h-3.5" />
+                  Excel
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5 text-xs">
+                  <FileDown className="w-3.5 h-3.5" />
+                  PDF
+                </Button>
+              </div>
+            )}
+          </div>
         </DialogHeader>
 
         {/* Stock evolution chart */}
