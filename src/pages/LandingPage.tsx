@@ -340,16 +340,16 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
   );
 
   const TestimonialCard = ({ t, dimmed = false }: { t: typeof testimonials[0]; dimmed?: boolean }) => (
-    <Card className={`overflow-hidden h-full border-border/50 transition-all duration-500 ${dimmed ? 'opacity-50 scale-95' : 'border-primary/30 shadow-xl'}`}>
-      <CardContent className="p-6 flex flex-col h-full">
+    <Card className={`overflow-hidden border-border/50 transition-all duration-500 ${dimmed ? 'opacity-50 scale-95 h-full' : 'border-primary/30 shadow-xl'}`}>
+      <CardContent className={`p-5 flex flex-col ${dimmed ? 'h-full' : ''}`}>
         <div className="flex gap-0.5 mb-4">
           {Array.from({ length: t.stars }).map((_, i) => (
             <Star key={i} className="w-4 h-4 text-amber-500 fill-amber-500" />
           ))}
         </div>
-        <div className="relative flex-1 mb-6">
+        <div className="relative flex-1 mb-4">
           <span className="absolute -top-2 -left-1 text-5xl leading-none text-primary/20 font-serif select-none">"</span>
-          <p className="text-base leading-relaxed text-muted-foreground pl-4 italic">{t.content}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground pl-4 italic">{t.content}</p>
         </div>
         <div className="flex items-center gap-3 pt-4 border-t border-border/50">
           <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/20 flex-shrink-0">
@@ -376,18 +376,18 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        <div className="flex items-stretch justify-center gap-3 px-4">
-          <div className="flex-shrink-0 w-16 opacity-30 cursor-pointer" onClick={goPrev}>
-            <TestimonialCard t={testimonials[prev]} dimmed />
+        <div className="flex items-center justify-center gap-2 px-2">
+          <div className="flex-shrink-0 w-8 opacity-20 cursor-pointer overflow-hidden rounded-lg self-stretch" onClick={goPrev}>
+            <div className="h-full bg-muted/30 rounded-lg" />
           </div>
           <div
-            className={`flex-1 max-w-xs ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+            className={`flex-1 min-w-0 ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
             style={cardTransition}
           >
             <TestimonialCard t={testimonials[currentIndex]} />
           </div>
-          <div className="flex-shrink-0 w-16 opacity-30 cursor-pointer" onClick={goNext}>
-            <TestimonialCard t={testimonials[next]} dimmed />
+          <div className="flex-shrink-0 w-8 opacity-20 cursor-pointer overflow-hidden rounded-lg self-stretch" onClick={goNext}>
+            <div className="h-full bg-muted/30 rounded-lg" />
           </div>
         </div>
         <div className="flex justify-center items-center gap-3 mt-2">
