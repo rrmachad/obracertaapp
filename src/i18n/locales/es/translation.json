@@ -762,6 +762,9 @@
     "editMaterial": "Editar Material",
     "editMaterialDesc": "Cambie el nombre, la unidad o la cantidad mínima.",
     "errorAdding": "Error al agregar",
+    "result": "resultado",
+    "results": "resultados",
+    "clearFilters": "Limpiar filtros",
 
     "unitsMetric": "Unidades (un)",
     "bagsMetric": "Bolsas (sc)",
