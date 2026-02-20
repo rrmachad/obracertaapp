@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import testimonialJoao from '@/assets/testimonial-joao.jpg';
+import testimonialMarcos from '@/assets/testimonial-marcos.jpg';
+import testimonialCarlos from '@/assets/testimonial-carlos.jpg';
 import { Link } from 'react-router-dom';
 import screenDashboard from '@/assets/screen-dashboard.jpg';
 import screenMeuPlano from '@/assets/screen-meu-plano.jpg';
@@ -471,9 +474,9 @@ export function LandingPage() {
   ];
 
   const testimonials = [
-    { name: t('landing.test1Name'), role: t('landing.test1Role'), content: t('landing.test1Content'), avatar: '👷' },
-    { name: t('landing.test2Name'), role: t('landing.test2Role'), content: t('landing.test2Content'), avatar: '👨‍💼' },
-    { name: t('landing.test3Name'), role: t('landing.test3Role'), content: t('landing.test3Content'), avatar: '👨‍🔧' },
+    { name: t('landing.test1Name'), role: t('landing.test1Role'), content: t('landing.test1Content'), photo: testimonialJoao, stars: 5 },
+    { name: t('landing.test2Name'), role: t('landing.test2Role'), content: t('landing.test2Content'), photo: testimonialMarcos, stars: 5 },
+    { name: t('landing.test3Name'), role: t('landing.test3Role'), content: t('landing.test3Content'), photo: testimonialCarlos, stars: 5 },
   ];
 
   const faqs = [
@@ -925,32 +928,54 @@ export function LandingPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16">
+      <section id="depoimentos" className="py-16 bg-muted/20">
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4 gap-1 px-4 py-1.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+              ))}
+            </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               {t('landing.testimonialsTitle')} <span className="text-primary">{t('landing.testimonialsTitleHighlight')}</span>
             </h2>
+            <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+              {t('landing.testimonialsSubtitle')}
+            </p>
           </AnimatedSection>
           
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {testimonials.map((testimonial, index) => (
-              <AnimatedSection key={index} animation="fadeUp" delay={index * 100}>
-                <Card className="overflow-hidden h-full">
-                  <CardContent className="p-6">
-                    <div className="flex gap-1 mb-4">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="w-5 h-5 text-amber-500 fill-amber-500" />
+              <AnimatedSection key={index} animation="fadeUp" delay={index * 120}>
+                <Card className="overflow-hidden h-full hover:shadow-xl transition-shadow duration-300 border-border/50">
+                  <CardContent className="p-6 flex flex-col h-full">
+                    {/* Stars */}
+                    <div className="flex gap-0.5 mb-4">
+                      {Array.from({ length: testimonial.stars }).map((_, i) => (
+                        <Star key={i} className="w-4 h-4 text-amber-500 fill-amber-500" />
                       ))}
                     </div>
-                    <p className="text-lg mb-6 italic">"{testimonial.content}"</p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
-                        {testimonial.avatar}
+
+                    {/* Quote */}
+                    <div className="relative flex-1 mb-6">
+                      <span className="absolute -top-2 -left-1 text-5xl leading-none text-primary/20 font-serif select-none">"</span>
+                      <p className="text-base leading-relaxed text-muted-foreground pl-4 italic">
+                        {testimonial.content}
+                      </p>
+                    </div>
+
+                    {/* Author */}
+                    <div className="flex items-center gap-3 pt-4 border-t border-border/50">
+                      <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/20 flex-shrink-0">
+                        <img
+                          src={testimonial.photo}
+                          alt={testimonial.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div>
-                        <p className="font-bold">{testimonial.name}</p>
-                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                        <p className="font-bold text-sm">{testimonial.name}</p>
+                        <p className="text-xs text-muted-foreground">{testimonial.role}</p>
                       </div>
                     </div>
                   </CardContent>
