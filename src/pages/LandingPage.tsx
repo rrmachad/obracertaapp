@@ -88,7 +88,14 @@ function StaggerCard({ children, index, className = '' }: { children: React.Reac
         transitionDelay: visible ? `${index * 80}ms` : '0ms',
       }}
     >
-      {children}
+      <div
+        className="h-full"
+        style={{ transition: `transform 300ms ${STAGGER_EASE}` }}
+        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0px)'; }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
