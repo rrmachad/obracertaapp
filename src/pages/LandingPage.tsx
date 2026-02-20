@@ -185,42 +185,130 @@ const APP_SCREENS_KEYS = [
 
 function AppScreensCarousel() {
   const { t } = useTranslation();
-  const screens = [...APP_SCREENS_KEYS, ...APP_SCREENS_KEYS, ...APP_SCREENS_KEYS];
+  const total = APP_SCREENS_KEYS.length;
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isPaused) return;
+    intervalRef.current = setInterval(() => {
+      setCurrentIndex(prev => (prev + 1) % total);
+    }, 2800);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [isPaused, total]);
+
+  const getCardStyle = (i: number): React.CSSProperties => {
+    const angleStep = 360 / total;
+    // offset so card i's angle relative to currentIndex
+    const rawAngle = ((i - currentIndex) * angleStep + 360) % 360;
+    // normalize to [-180, 180]
+    const angle = rawAngle > 180 ? rawAngle - 360 : rawAngle;
+    const angleRad = (angle * Math.PI) / 180;
+
+    // Ellipse radii - horizontal spread, vertical is much smaller (depth)
+    const rx = 420; // horizontal radius
+    const rz = 180; // depth radius
+
+    const x = Math.sin(angleRad) * rx;
+    const z = Math.cos(angleRad) * rz - rz; // offset so front card is at z=0
+
+    // Scale: front = 1, back = 0.55
+    const scale = 0.55 + 0.45 * ((Math.cos(angleRad) + 1) / 2);
+    // Opacity: front = 1, back = 0.35
+    const opacity = 0.35 + 0.65 * ((Math.cos(angleRad) + 1) / 2);
+    // zIndex: front card on top
+    const zIndex = Math.round(scale * 100);
+
+    return {
+      transform: `translateX(${x}px) translateZ(${z}px) scale(${scale})`,
+      opacity,
+      zIndex,
+      transition: 'transform 0.7s cubic-bezier(0.4,0,0.2,1), opacity 0.7s ease',
+    };
+  };
+
+  const isFront = (i: number) => i === currentIndex;
 
   return (
-    <div className="relative w-full overflow-hidden py-8">
-      <div className="absolute left-0 top-0 bottom-0 w-40 z-10 bg-gradient-to-r from-background to-transparent pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-40 z-10 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+    <div
+      className="relative w-full py-12 flex justify-center"
+      style={{ perspective: '1200px', minHeight: '520px' }}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <style>{`
+        .ciranda-stage {
+          position: relative;
+          width: 320px;
+          height: 480px;
+          transform-style: preserve-3d;
+        }
+        .ciranda-card {
+          position: absolute;
+          width: 240px;
+          left: 50%;
+          top: 50%;
+          margin-left: -120px;
+          margin-top: -240px;
+          cursor: pointer;
+        }
+        @media (min-width: 768px) {
+          .ciranda-stage {
+            width: 380px;
+            height: 560px;
+          }
+          .ciranda-card {
+            width: 280px;
+            margin-left: -140px;
+            margin-top: -280px;
+          }
+        }
+      `}</style>
 
-      <div
-        className="flex gap-5 w-max carousel-track"
-        style={{ animation: 'carousel-scroll 60s linear infinite' }}
-      >
-        <style>{`
-          @keyframes carousel-scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(calc(-100% / 3)); }
-          }
-          .carousel-track:hover {
-            animation-play-state: paused;
-          }
-        `}</style>
-        {screens.map((screen, i) => (
+      <div className="ciranda-stage" style={{ transformStyle: 'preserve-3d' }}>
+        {APP_SCREENS_KEYS.map((screen, i) => (
           <div
             key={i}
-            className="flex-shrink-0 relative group"
-            style={{ width: '300px' }}
+            className="ciranda-card"
+            style={getCardStyle(i)}
+            onClick={() => setCurrentIndex(i)}
           >
-            <div className="rounded-2xl overflow-hidden shadow-xl border border-border/50 bg-card transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl">
+            <div
+              className={`rounded-2xl overflow-hidden border shadow-2xl bg-card transition-shadow duration-300 ${
+                isFront(i) ? 'border-primary/60 shadow-primary/20' : 'border-border/40'
+              }`}
+            >
               <img
                 src={screen.src}
                 alt={t(screen.labelKey)}
                 className="w-full object-cover object-top"
-                style={{ height: '560px' }}
+                style={{ height: '100%', maxHeight: '460px', display: 'block' }}
+                draggable={false}
               />
             </div>
-            <p className="text-center text-sm font-semibold text-muted-foreground mt-3 tracking-wide">{t(screen.labelKey)}</p>
+            {isFront(i) && (
+              <p className="text-center text-sm font-semibold text-primary mt-3 tracking-wide">
+                {t(screen.labelKey)}
+              </p>
+            )}
           </div>
+        ))}
+      </div>
+
+      {/* Navigation dots */}
+      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+        {APP_SCREENS_KEYS.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => { setCurrentIndex(i); setIsPaused(true); setTimeout(() => setIsPaused(false), 4000); }}
+            className={`rounded-full transition-all duration-300 ${
+              i === currentIndex
+                ? 'w-6 h-2 bg-primary'
+                : 'w-2 h-2 bg-muted-foreground/40 hover:bg-muted-foreground/70'
+            }`}
+            aria-label={`Ir para screenshot ${i + 1}`}
+          />
         ))}
       </div>
     </div>
