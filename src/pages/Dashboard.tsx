@@ -17,6 +17,7 @@ import { useObras } from '@/hooks/useObras';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
+import { useEstoqueAlertas } from '@/hooks/useEstoqueAlertas';
 
 export function Dashboard() {
   const { t } = useTranslation();
@@ -25,6 +26,7 @@ export function Dashboard() {
   const { signOut, user } = useAuth();
   const { planName, plan } = useSubscription(isInvitedUser ? ownerUserId : undefined);
   const { limits } = usePlanLimits();
+  const { data: estoqueAlertas = {} } = useEstoqueAlertas(obras.map(o => o.id));
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -172,7 +174,7 @@ export function Dashboard() {
         ) : (
           <div className="grid gap-4">
             {filteredObras.map((obra) => (
-              <ObraCard key={obra.id} obra={obra} />
+              <ObraCard key={obra.id} obra={obra} lowStockCount={estoqueAlertas[obra.id] ?? 0} />
             ))}
           </div>
         )}
