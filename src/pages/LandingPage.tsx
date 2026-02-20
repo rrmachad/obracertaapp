@@ -809,10 +809,15 @@ export function LandingPage() {
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
                 {t('landing.heroTitle1')}{' '}
-                <span className="text-primary">{t('landing.heroHighlight1')}</span>,{' '}
-                <span className="text-primary">{t('landing.heroHighlight2')}</span>{' '}
-                {'& '}
-                <span className="text-violet-600 dark:text-violet-400">{t('landing.heroHighlight3')}</span>.
+                <span className="text-primary">{t('landing.heroHighlight1')}</span>
+                {t('landing.heroHighlight2') && (
+                  <>
+                    {', '}
+                    <span className="text-primary">{t('landing.heroHighlight2')}</span>
+                    {' & '}
+                    <span className="text-violet-600 dark:text-violet-400">{t('landing.heroHighlight3')}</span>
+                  </>
+                )}
               </h1>
               <p className="text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
                 {t('landing.heroSubtitle')}
