@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
 import { useCurrency } from '@/hooks/useCurrency';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface PlanoComparisonTableProps {
@@ -56,11 +57,11 @@ const features: FeatureRow[] = [
   { category: 'Business', name: 'Suporte VIP 24h', free: false, start: false, gold: false, premium: true },
 ];
 
-const planInfo: Record<SubscriptionPlan, { name: string; price: number; icon?: React.ReactNode }> = {
-  free: { name: 'Iniciante', price: 0 },
-  start: { name: 'Autônomo', price: 19.90, icon: <Rocket className="w-4 h-4" /> },
-  gold: { name: 'Construtora', price: 39.90, icon: <ShieldCheck className="w-4 h-4" /> },
-  premium: { name: 'Business', price: 79.90, icon: <Crown className="w-4 h-4" /> },
+const planInfo: Record<SubscriptionPlan, { name: string; price: number; priceBRL: number; icon?: React.ReactNode }> = {
+  free: { name: 'Iniciante', price: 0, priceBRL: 0 },
+  start: { name: 'Autônomo', price: 19.90, priceBRL: 29.90, icon: <Rocket className="w-4 h-4" /> },
+  gold: { name: 'Construtora', price: 39.90, priceBRL: 59.90, icon: <ShieldCheck className="w-4 h-4" /> },
+  premium: { name: 'Business', price: 79.90, priceBRL: 99.90, icon: <Crown className="w-4 h-4" /> },
 };
 
 function FeatureValue({ value }: { value: string | boolean }) {
@@ -77,6 +78,8 @@ function FeatureValue({ value }: { value: string | boolean }) {
 export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoComparisonTableProps) {
   const { plan: currentPlan } = useSubscription();
   const { formatCurrency } = useCurrency();
+  const { i18n } = useTranslation();
+  const isBRL = i18n.language === 'pt-BR';
   const planKeys: SubscriptionPlan[] = ['free', 'start', 'gold', 'premium'];
 
   const categories = [...new Set(features.map(f => f.category))];
@@ -119,7 +122,7 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
                       {info.name}
                     </div>
                     <div className="text-lg font-bold">
-                      {info.price === 0 ? 'Grátis' : formatCurrency(info.price)}
+                      {info.price === 0 ? 'Grátis' : formatCurrency(isBRL ? info.priceBRL : info.price)}
                       {info.price > 0 && <span className="text-xs font-normal text-muted-foreground">/mês</span>}
                     </div>
                   </div>
