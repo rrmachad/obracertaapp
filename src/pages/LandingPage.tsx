@@ -89,7 +89,7 @@ function StaggerCard({ children, index, className = '' }: { children: React.Reac
       }}
     >
       <div
-        className="h-full rounded-lg"
+        className="h-full rounded-lg stagger-hover-card"
         style={{
           transition: `transform 300ms ${STAGGER_EASE}, box-shadow 300ms ${STAGGER_EASE}, border-color 300ms ${STAGGER_EASE}`,
           border: '1px solid transparent',
@@ -738,6 +738,15 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background" itemScope itemType="https://schema.org/WebPage">
+      {/* Stagger card icon pulse on hover */}
+      <style>{`
+        .stagger-hover-card svg {
+          transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), color 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .stagger-hover-card:hover svg {
+          transform: scale(1.18);
+        }
+      `}</style>
       {/* Floating WhatsApp Button */}
       <a
         href={WHATSAPP_LINK}
