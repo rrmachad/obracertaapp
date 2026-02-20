@@ -190,6 +190,179 @@ const APP_SCREENS_KEYS = [
   { src: screenLucratividade, labelKey: 'carousel.lucratividade' },
 ];
 
+function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; role: string; content: string; photo: string; stars: number }[] }) {
+  const total = testimonials.length;
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : true);
+  const SWIPE_THRESHOLD = 50;
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  useEffect(() => {
+    if (isPaused) return;
+    intervalRef.current = setInterval(() => {
+      setCurrentIndex(prev => (prev + 1) % total);
+    }, 4000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [isPaused, total]);
+
+  const goNext = () => {
+    setCurrentIndex(prev => (prev + 1) % total);
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), 5000);
+  };
+
+  const goPrev = () => {
+    setCurrentIndex(prev => (prev - 1 + total) % total);
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), 5000);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    setIsPaused(true);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_THRESHOLD) {
+      if (dx < 0) goNext();
+      else goPrev();
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+    setTimeout(() => setIsPaused(false), 5000);
+  };
+
+  const dots = (
+    <div className="flex justify-center gap-2 mt-6">
+      {testimonials.map((_, i) => (
+        <button
+          key={i}
+          onClick={() => { setCurrentIndex(i); setIsPaused(true); setTimeout(() => setIsPaused(false), 5000); }}
+          className={`rounded-full transition-all duration-300 ${
+            i === currentIndex ? 'w-6 h-2 bg-primary' : 'w-2 h-2 bg-muted-foreground/40 hover:bg-muted-foreground/70'
+          }`}
+          aria-label={`Depoimento ${i + 1}`}
+        />
+      ))}
+    </div>
+  );
+
+  const TestimonialCard = ({ t, dimmed = false }: { t: typeof testimonials[0]; dimmed?: boolean }) => (
+    <Card className={`overflow-hidden h-full border-border/50 transition-all duration-500 ${dimmed ? 'opacity-50 scale-95' : 'border-primary/30 shadow-xl'}`}>
+      <CardContent className="p-6 flex flex-col h-full">
+        <div className="flex gap-0.5 mb-4">
+          {Array.from({ length: t.stars }).map((_, i) => (
+            <Star key={i} className="w-4 h-4 text-amber-500 fill-amber-500" />
+          ))}
+        </div>
+        <div className="relative flex-1 mb-6">
+          <span className="absolute -top-2 -left-1 text-5xl leading-none text-primary/20 font-serif select-none">"</span>
+          <p className="text-base leading-relaxed text-muted-foreground pl-4 italic">{t.content}</p>
+        </div>
+        <div className="flex items-center gap-3 pt-4 border-t border-border/50">
+          <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/20 flex-shrink-0">
+            <img src={t.photo} alt={`Foto de ${t.name}`} className="w-full h-full object-cover" loading="lazy" width={48} height={48} />
+          </div>
+          <div>
+            <p className="font-bold text-sm">{t.name}</p>
+            <p className="text-xs text-muted-foreground">{t.role}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // ── Mobile: flat peek carousel ──────────────────────────────────────────────
+  if (isMobile) {
+    const prev = (currentIndex - 1 + total) % total;
+    const next = (currentIndex + 1) % total;
+    return (
+      <div
+        className="w-full py-4"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <div className="flex items-stretch justify-center gap-3 px-4">
+          {/* Previous peek */}
+          <div className="flex-shrink-0 w-16 opacity-30 cursor-pointer" onClick={goPrev}>
+            <TestimonialCard t={testimonials[prev]} dimmed />
+          </div>
+          {/* Active card */}
+          <div className="flex-1 max-w-xs">
+            <TestimonialCard t={testimonials[currentIndex]} />
+          </div>
+          {/* Next peek */}
+          <div className="flex-shrink-0 w-16 opacity-30 cursor-pointer" onClick={goNext}>
+            <TestimonialCard t={testimonials[next]} dimmed />
+          </div>
+        </div>
+        <div className="flex justify-center items-center gap-3 mt-2">
+          <span className="text-xs text-muted-foreground/60 flex items-center gap-1">
+            <ChevronLeft className="w-3 h-3" /> deslize <ChevronRight className="w-3 h-3" />
+          </span>
+        </div>
+        {dots}
+      </div>
+    );
+  }
+
+  // ── Desktop: 3 visíveis com slide ──────────────────────────────────────────
+  const visibleCount = 3;
+  const visibleIndices = Array.from({ length: visibleCount }, (_, i) => (currentIndex + i) % total);
+
+  return (
+    <div
+      className="relative w-full"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div className="grid grid-cols-3 gap-6 max-w-5xl mx-auto">
+        {visibleIndices.map((idx, pos) => (
+          <div
+            key={idx}
+            className={`transition-all duration-500 ${pos === 0 ? 'opacity-100' : pos === 1 ? 'opacity-100' : 'opacity-100'}`}
+          >
+            <TestimonialCard t={testimonials[idx]} />
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={goPrev}
+        className="hidden md:flex absolute -left-6 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-11 h-11 rounded-full bg-background/80 border border-border shadow-lg backdrop-blur-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
+        aria-label="Depoimento anterior"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      <button
+        onClick={goNext}
+        className="hidden md:flex absolute -right-6 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-11 h-11 rounded-full bg-background/80 border border-border shadow-lg backdrop-blur-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
+        aria-label="Próximo depoimento"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+
+      {dots}
+    </div>
+  );
+}
+
 function AppScreensCarousel() {
   const { t } = useTranslation();
   const total = APP_SCREENS_KEYS.length;
@@ -951,47 +1124,8 @@ export function LandingPage() {
             </p>
           </AnimatedSection>
           
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <AnimatedSection key={index} animation="fadeUp" delay={index * 120}>
-                <Card className="overflow-hidden h-full hover:shadow-xl transition-shadow duration-300 border-border/50">
-                  <CardContent className="p-6 flex flex-col h-full">
-                    {/* Stars */}
-                    <div className="flex gap-0.5 mb-4">
-                      {Array.from({ length: testimonial.stars }).map((_, i) => (
-                        <Star key={i} className="w-4 h-4 text-amber-500 fill-amber-500" />
-                      ))}
-                    </div>
-
-                    {/* Quote */}
-                    <div className="relative flex-1 mb-6">
-                      <span className="absolute -top-2 -left-1 text-5xl leading-none text-primary/20 font-serif select-none">"</span>
-                      <p className="text-base leading-relaxed text-muted-foreground pl-4 italic">
-                        {testimonial.content}
-                      </p>
-                    </div>
-
-                    {/* Author */}
-                    <div className="flex items-center gap-3 pt-4 border-t border-border/50">
-                      <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/20 flex-shrink-0">
-                        <img
-                          src={testimonial.photo}
-                          alt={`Foto de ${testimonial.name}, ${testimonial.role}`}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                          width={48}
-                          height={48}
-                        />
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm">{testimonial.name}</p>
-                        <p className="text-xs text-muted-foreground">{testimonial.role}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedSection>
-            ))}
+          <div className="relative px-8">
+            <TestimonialsCarousel testimonials={testimonials} />
           </div>
         </div>
       </section>
