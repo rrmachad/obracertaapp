@@ -7,11 +7,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Mapping de planos para price IDs do Stripe
+// Mapping de planos para price IDs do Stripe (USD - padrão)
 const planPrices: Record<string, string> = {
   start: "price_1T1ZT9DaZO2bVcEocF85HvE9",
   gold: "price_1T1ZTNDaZO2bVcEoNZ0I2aAN",
   premium: "price_1T1ZTbDaZO2bVcEo2L157ZsN",
+};
+
+// Mapping de planos para price IDs do Stripe (BRL)
+const planPricesBRL: Record<string, string> = {
+  start: "price_1T2zPuDaZO2bVcEooFDUqa1r",
+  gold: "price_1T2zQ8DaZO2bVcEodg84mxt8",
+  premium: "price_1T2zQLDaZO2bVcEoRulgHg6W",
 };
 
 const logStep = (step: string, details?: Record<string, unknown>) => {
@@ -32,12 +39,17 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { plan } = await req.json();
-    logStep("Request body parsed", { plan });
+    const { plan, currency } = await req.json();
+    logStep("Request body parsed", { plan, currency });
 
     if (!plan || !planPrices[plan]) {
       throw new Error(`Invalid plan: ${plan}`);
     }
+
+    // Seleciona o price ID correto com base na moeda
+    const useBRL = currency === 'BRL';
+    const priceId = useBRL ? planPricesBRL[plan] : planPrices[plan];
+    logStep("Price selected", { priceId, currency: useBRL ? 'BRL' : 'USD' });
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
@@ -66,7 +78,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: planPrices[plan],
+          price: priceId,
           quantity: 1,
         },
       ],

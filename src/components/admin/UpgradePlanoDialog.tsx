@@ -1,4 +1,5 @@
 import { Check, Crown, Sparkles, Zap, Settings, Rocket, Users, Star, MessageCircle, Table2, ShieldCheck, ShoppingCart, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -135,6 +136,8 @@ function FeatureIcon({ icon, highlight }: { icon: PlanFeature['icon']; highlight
 
 export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogProps) {
   const { plan: currentPlan } = useSubscription();
+  const { i18n } = useTranslation();
+  const currency = i18n.language === 'pt-BR' ? 'BRL' : 'USD';
   const { session } = useAuth();
   const { toast } = useToast();
   const { formatCurrency } = useCurrency();
@@ -180,7 +183,7 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
 
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { plan: selectedPlan },
+        body: { plan: selectedPlan, currency },
       });
 
       if (error) throw error;
