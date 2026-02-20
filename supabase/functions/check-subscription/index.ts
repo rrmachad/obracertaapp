@@ -7,9 +7,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Mapping de product IDs para planos (v2 + legacy)
+// Mapping de product IDs para planos (v3 BRL + v2 USD + legacy)
 const productToPlans: Record<string, string> = {
-  // v2 products (current)
+  // v3 BRL products (current - prices in BRL)
+  "prod_U11STgWm4m9tUW": "start",      // Autônomo R$29,90/mês
+  "prod_U11T4TqaTmwfdI": "gold",       // Construtora R$59,90/mês
+  "prod_U11TuB6H4fpSp4": "premium",    // Business R$99,90/mês
+  // v2 USD products (current - prices in USD)
   "prod_TzYalnkoVY2mqM": "start",      // Autônomo v2
   "prod_TzYak5DysG3KB5": "gold",       // Construtora v2
   "prod_TzYa2l84ZRs1VM": "premium",    // Business v2
