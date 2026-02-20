@@ -360,9 +360,11 @@ export type Database = {
         Row: {
           categoria: string | null
           created_at: string
+          data_prevista_chegada: string | null
           id: string
           nome: string
           obra_id: string
+          pedido: boolean
           preco_unitario: number | null
           qtd_atual: number
           qtd_minima: number
@@ -372,9 +374,11 @@ export type Database = {
         Insert: {
           categoria?: string | null
           created_at?: string
+          data_prevista_chegada?: string | null
           id?: string
           nome: string
           obra_id: string
+          pedido?: boolean
           preco_unitario?: number | null
           qtd_atual?: number
           qtd_minima?: number
@@ -384,9 +388,11 @@ export type Database = {
         Update: {
           categoria?: string | null
           created_at?: string
+          data_prevista_chegada?: string | null
           id?: string
           nome?: string
           obra_id?: string
+          pedido?: boolean
           preco_unitario?: number | null
           qtd_atual?: number
           qtd_minima?: number
