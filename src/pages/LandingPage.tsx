@@ -189,6 +189,9 @@ function AppScreensCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const SWIPE_THRESHOLD = 50;
 
   useEffect(() => {
     if (isPaused) return;
@@ -198,26 +201,54 @@ function AppScreensCarousel() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isPaused, total]);
 
+  const goNext = () => {
+    setCurrentIndex(prev => (prev + 1) % total);
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), 4000);
+  };
+
+  const goPrev = () => {
+    setCurrentIndex(prev => (prev - 1 + total) % total);
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), 4000);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    setIsPaused(true);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+
+    // Only trigger if horizontal swipe dominates
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_THRESHOLD) {
+      if (dx < 0) goNext();
+      else goPrev();
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+    setTimeout(() => setIsPaused(false), 4000);
+  };
+
   const getCardStyle = (i: number): React.CSSProperties => {
     const angleStep = 360 / total;
-    // offset so card i's angle relative to currentIndex
     const rawAngle = ((i - currentIndex) * angleStep + 360) % 360;
-    // normalize to [-180, 180]
     const angle = rawAngle > 180 ? rawAngle - 360 : rawAngle;
     const angleRad = (angle * Math.PI) / 180;
 
-    // Ellipse radii - horizontal spread, vertical is much smaller (depth)
-    const rx = 420; // horizontal radius
-    const rz = 180; // depth radius
+    const rx = 420;
+    const rz = 180;
 
     const x = Math.sin(angleRad) * rx;
-    const z = Math.cos(angleRad) * rz - rz; // offset so front card is at z=0
+    const z = Math.cos(angleRad) * rz - rz;
 
-    // Scale: front = 1, back = 0.55
     const scale = 0.55 + 0.45 * ((Math.cos(angleRad) + 1) / 2);
-    // Opacity: front = 1, back = 0.35
     const opacity = 0.35 + 0.65 * ((Math.cos(angleRad) + 1) / 2);
-    // zIndex: front card on top
     const zIndex = Math.round(scale * 100);
 
     return {
@@ -236,6 +267,8 @@ function AppScreensCarousel() {
       style={{ perspective: '1200px', minHeight: '520px' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       <style>{`
         .ciranda-stage {
