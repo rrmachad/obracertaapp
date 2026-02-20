@@ -193,7 +193,15 @@ function AppScreensCarousel() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : true);
   const SWIPE_THRESHOLD = 50;
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   useEffect(() => {
     if (isPaused) return;
@@ -225,148 +233,155 @@ function AppScreensCarousel() {
     if (touchStartX.current === null || touchStartY.current === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     const dy = e.changedTouches[0].clientY - touchStartY.current;
-
-    // Only trigger if horizontal swipe dominates
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_THRESHOLD) {
       if (dx < 0) goNext();
       else goPrev();
     }
-
     touchStartX.current = null;
     touchStartY.current = null;
     setTimeout(() => setIsPaused(false), 4000);
   };
 
-  const getCardStyle = (i: number): React.CSSProperties => {
+  // Desktop 3D ciranda
+  const getCardStyleDesktop = (i: number): React.CSSProperties => {
     const angleStep = 360 / total;
     const rawAngle = ((i - currentIndex) * angleStep + 360) % 360;
     const angle = rawAngle > 180 ? rawAngle - 360 : rawAngle;
     const angleRad = (angle * Math.PI) / 180;
-
     const rx = 420;
     const rz = 180;
-
     const x = Math.sin(angleRad) * rx;
     const z = Math.cos(angleRad) * rz - rz;
-
     const scale = 0.55 + 0.45 * ((Math.cos(angleRad) + 1) / 2);
     const opacity = 0.35 + 0.65 * ((Math.cos(angleRad) + 1) / 2);
     const zIndex = Math.round(scale * 100);
-
     return {
       transform: `translateX(${x}px) translateZ(${z}px) scale(${scale})`,
       opacity,
       zIndex,
       transition: 'transform 0.7s cubic-bezier(0.4,0,0.2,1), opacity 0.7s ease',
+      position: 'absolute',
+      width: '280px',
+      left: '50%',
+      top: '50%',
+      marginLeft: '-140px',
+      marginTop: '-250px',
+      cursor: 'pointer',
     };
   };
 
   const isFront = (i: number) => i === currentIndex;
+  const dots = (
+    <div className="flex justify-center gap-2 mt-4">
+      {APP_SCREENS_KEYS.map((_, i) => (
+        <button
+          key={i}
+          onClick={() => { setCurrentIndex(i); setIsPaused(true); setTimeout(() => setIsPaused(false), 4000); }}
+          className={`rounded-full transition-all duration-300 ${
+            i === currentIndex ? 'w-6 h-2 bg-primary' : 'w-2 h-2 bg-muted-foreground/40 hover:bg-muted-foreground/70'
+          }`}
+          aria-label={`Screenshot ${i + 1}`}
+        />
+      ))}
+    </div>
+  );
 
+  // ── Mobile: flat peek carousel ──────────────────────────────────────────────
+  if (isMobile) {
+    const prev = (currentIndex - 1 + total) % total;
+    const next = (currentIndex + 1) % total;
+    return (
+      <div
+        className="w-full py-8"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <div className="flex items-center justify-center gap-3 px-4">
+          {/* Previous peek */}
+          <div
+            className="flex-shrink-0 rounded-xl overflow-hidden border border-border/30 opacity-40 cursor-pointer"
+            style={{ width: '72px', height: '128px' }}
+            onClick={goPrev}
+          >
+            <img src={APP_SCREENS_KEYS[prev].src} alt="" className="w-full h-full object-cover object-top" draggable={false} />
+          </div>
+
+          {/* Active card */}
+          <div className="flex-shrink-0 rounded-2xl overflow-hidden border border-primary/60 shadow-2xl shadow-primary/20" style={{ width: '220px', height: '390px' }}>
+            <img
+              src={APP_SCREENS_KEYS[currentIndex].src}
+              alt={t(APP_SCREENS_KEYS[currentIndex].labelKey)}
+              className="w-full h-full object-cover object-top"
+              draggable={false}
+            />
+          </div>
+
+          {/* Next peek */}
+          <div
+            className="flex-shrink-0 rounded-xl overflow-hidden border border-border/30 opacity-40 cursor-pointer"
+            style={{ width: '72px', height: '128px' }}
+            onClick={goNext}
+          >
+            <img src={APP_SCREENS_KEYS[next].src} alt="" className="w-full h-full object-cover object-top" draggable={false} />
+          </div>
+        </div>
+
+        <p className="text-center text-sm font-semibold text-primary mt-3 tracking-wide">
+          {t(APP_SCREENS_KEYS[currentIndex].labelKey)}
+        </p>
+
+        <div className="flex justify-center items-center gap-3 mt-2">
+          <span className="text-xs text-muted-foreground/60 flex items-center gap-1">
+            <ChevronLeft className="w-3 h-3" /> deslize <ChevronRight className="w-3 h-3" />
+          </span>
+        </div>
+        {dots}
+      </div>
+    );
+  }
+
+  // ── Desktop: 3D ciranda ─────────────────────────────────────────────────────
   return (
     <div
       className="relative w-full py-12 flex justify-center"
-      style={{ perspective: '1200px', minHeight: '520px' }}
+      style={{ perspective: '1200px', minHeight: '580px' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
     >
-      <style>{`
-        .ciranda-stage {
-          position: relative;
-          width: 320px;
-          height: 480px;
-          transform-style: preserve-3d;
-        }
-        .ciranda-card {
-          position: absolute;
-          width: 240px;
-          left: 50%;
-          top: 50%;
-          margin-left: -120px;
-          margin-top: -240px;
-          cursor: pointer;
-        }
-        @media (min-width: 768px) {
-          .ciranda-stage {
-            width: 380px;
-            height: 560px;
-          }
-          .ciranda-card {
-            width: 280px;
-            margin-left: -140px;
-            margin-top: -280px;
-          }
-        }
-      `}</style>
-
-      <div className="ciranda-stage" style={{ transformStyle: 'preserve-3d' }}>
+      <div style={{ position: 'relative', width: '380px', height: '500px', transformStyle: 'preserve-3d' }}>
         {APP_SCREENS_KEYS.map((screen, i) => (
-          <div
-            key={i}
-            className="ciranda-card"
-            style={getCardStyle(i)}
-            onClick={() => setCurrentIndex(i)}
-          >
+          <div key={i} style={getCardStyleDesktop(i)} onClick={() => setCurrentIndex(i)}>
             <div
-              className={`rounded-2xl overflow-hidden border shadow-2xl bg-card transition-shadow duration-300 ${
+              className={`rounded-2xl overflow-hidden border shadow-2xl bg-card ${
                 isFront(i) ? 'border-primary/60 shadow-primary/20' : 'border-border/40'
               }`}
+              style={{ height: '500px' }}
             >
-              <img
-                src={screen.src}
-                alt={t(screen.labelKey)}
-                className="w-full object-cover object-top"
-                style={{ height: '100%', maxHeight: '460px', display: 'block' }}
-                draggable={false}
-              />
+              <img src={screen.src} alt={t(screen.labelKey)} className="w-full h-full object-cover object-top" draggable={false} />
             </div>
             {isFront(i) && (
-              <p className="text-center text-sm font-semibold text-primary mt-3 tracking-wide">
-                {t(screen.labelKey)}
-              </p>
+              <p className="text-center text-sm font-semibold text-primary mt-3 tracking-wide">{t(screen.labelKey)}</p>
             )}
           </div>
         ))}
       </div>
 
-      {/* Left arrow — hidden on mobile (swipe instead) */}
-      <button
-        onClick={goPrev}
-        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-50 items-center justify-center w-11 h-11 rounded-full bg-background/80 border border-border shadow-lg backdrop-blur-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
-        aria-label="Screenshot anterior"
-      >
+      <button onClick={goPrev} className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-50 items-center justify-center w-11 h-11 rounded-full bg-background/80 border border-border shadow-lg backdrop-blur-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200" aria-label="Screenshot anterior">
         <ChevronLeft className="w-5 h-5" />
       </button>
-
-      {/* Right arrow — hidden on mobile (swipe instead) */}
-      <button
-        onClick={goNext}
-        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-50 items-center justify-center w-11 h-11 rounded-full bg-background/80 border border-border shadow-lg backdrop-blur-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
-        aria-label="Próxima screenshot"
-      >
+      <button onClick={goNext} className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-50 items-center justify-center w-11 h-11 rounded-full bg-background/80 border border-border shadow-lg backdrop-blur-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200" aria-label="Próxima screenshot">
         <ChevronRight className="w-5 h-5" />
       </button>
 
-      {/* Navigation dots */}
-      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
-        {APP_SCREENS_KEYS.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => { setCurrentIndex(i); setIsPaused(true); setTimeout(() => setIsPaused(false), 4000); }}
-            className={`rounded-full transition-all duration-300 ${
-              i === currentIndex
-                ? 'w-6 h-2 bg-primary'
-                : 'w-2 h-2 bg-muted-foreground/40 hover:bg-muted-foreground/70'
-            }`}
-            aria-label={`Ir para screenshot ${i + 1}`}
-          />
-        ))}
+      <div className="absolute bottom-2 left-0 right-0">
+        {dots}
       </div>
     </div>
   );
 }
+
 
 export function LandingPage() {
   const { t } = useTranslation();
@@ -636,7 +651,7 @@ export function LandingPage() {
       </section>
 
       {/* App Screenshots Carousel Section */}
-      <section id="demo" className="py-16 overflow-hidden">
+      <section id="demo" className="py-16 overflow-x-hidden">
         <div className="container">
           <AnimatedSection animation="fadeUp" className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
