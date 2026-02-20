@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { NovoMaterialDialog, isUnidadeInteira } from './NovoMaterialDialog';
 import { EditarMaterialDialog } from './EditarMaterialDialog';
-
+import { HistoricoMaterialDialog } from './HistoricoMaterialDialog';
 import { AjusteQuantidadePopover } from './AjusteQuantidadePopover';
 import { Material } from '@/types/database';
 
@@ -125,6 +125,7 @@ export function EstoqueTab({ obraId, obraNome = '', sistemaMedidas = 'metrico', 
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMaterial, setEditMaterial] = useState<Material | null>(null);
+  const [historicoMaterial, setHistoricoMaterial] = useState<Material | null>(null);
   const [categoriaFiltro, setCategoriaFiltro] = useState('all');
   const [busca, setBusca] = useState('');
   const [ordenacao, setOrdenacao] = useState<'nome' | 'quantidade' | 'alertas'>('nome');
@@ -455,14 +456,22 @@ export function EstoqueTab({ obraId, obraNome = '', sistemaMedidas = 'metrico', 
               >
                 <CardContent className="p-4">
                   <div className="flex flex-col gap-2">
-                    {/* Nome e badge de alerta — clicável para editar */}
-                    <div
-                      className="flex items-center gap-2 min-w-0 cursor-pointer hover:opacity-70 transition-opacity"
-                      onClick={() => setEditMaterial(material)}
-                      title={t('inventory.editMaterial')}
-                    >
-                      <span className="text-lg shrink-0">{categoriaInfo.icon}</span>
-                      <h4 className="font-semibold flex-1 min-w-0 break-words">{translateMaterialName(material.nome, lang)}</h4>
+                    {/* Ícone clica para editar; nome clica para histórico */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <button
+                        className="text-lg shrink-0 hover:opacity-60 transition-opacity"
+                        onClick={() => setEditMaterial(material)}
+                        title={t('inventory.editMaterial')}
+                      >
+                        {categoriaInfo.icon}
+                      </button>
+                      <h4
+                        className="font-semibold flex-1 min-w-0 break-words cursor-pointer hover:underline hover:text-primary transition-colors"
+                        onClick={() => setHistoricoMaterial(material)}
+                        title={t('inventory.movementHistory')}
+                      >
+                        {translateMaterialName(material.nome, lang)}
+                      </h4>
                       {isLow && (
                         <Badge variant="destructive" className="flex items-center gap-1 shrink-0">
                           <AlertTriangle className="w-3 h-3" />
@@ -531,6 +540,11 @@ export function EstoqueTab({ obraId, obraNome = '', sistemaMedidas = 'metrico', 
         onOpenChange={(open) => { if (!open) setEditMaterial(null); }}
         obraId={obraId}
         sistemaMedidas={sistemaMedidas}
+      />
+      <HistoricoMaterialDialog
+        material={historicoMaterial}
+        open={!!historicoMaterial}
+        onOpenChange={(open) => { if (!open) setHistoricoMaterial(null); }}
       />
     </div>
   );

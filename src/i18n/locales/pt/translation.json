@@ -776,6 +776,10 @@
     "exportStatusOk": "OK",
     "exportPage": "Página",
     "exportOf": "de",
+    "movementHistory": "Histórico de movimentações",
+    "noMovements": "Nenhuma movimentação registrada",
+    "entry": "Entrada",
+    "exit": "Saída",
 
     "unitsMetric": "Unidades (un)",
     "bagsMetric": "Sacos (sc)",
