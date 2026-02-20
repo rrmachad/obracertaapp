@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Calendar, ChevronRight } from 'lucide-react';
+import { MapPin, Calendar, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -8,9 +8,10 @@ import { Obra, ObraStatus } from '@/types/database';
 
 interface ObraCardProps {
   obra: Obra;
+  lowStockCount?: number;
 }
 
-export function ObraCard({ obra }: ObraCardProps) {
+export function ObraCard({ obra, lowStockCount = 0 }: ObraCardProps) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
@@ -71,9 +72,17 @@ export function ObraCard({ obra }: ObraCardProps) {
             <Progress value={obra.progresso} className="h-3" />
           </div>
 
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Calendar className="w-3 h-3" />
-            <span>{t('obraCard.createdAt')} {new Date(obra.created_at).toLocaleDateString(dateLocale)}</span>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Calendar className="w-3 h-3" />
+              <span>{t('obraCard.createdAt')} {new Date(obra.created_at).toLocaleDateString(dateLocale)}</span>
+            </div>
+            {lowStockCount > 0 && (
+              <Badge variant="destructive" className="flex items-center gap-1 text-xs shrink-0">
+                <AlertTriangle className="w-3 h-3" />
+                {lowStockCount}
+              </Badge>
+            )}
           </div>
         </div>
       </CardContent>
