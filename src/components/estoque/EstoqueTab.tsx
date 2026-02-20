@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Package, Plus, AlertTriangle, Trash2, Filter, Ruler, Search, X } from 'lucide-react';
+import { Package, Plus, AlertTriangle, Trash2, Filter, Ruler, Search, X, ArrowUpDown } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
 import { translateMaterialName } from '@/lib/translateMaterial';
@@ -120,8 +120,8 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMaterial, setEditMaterial] = useState<Material | null>(null);
   const [categoriaFiltro, setCategoriaFiltro] = useState('all');
-
   const [busca, setBusca] = useState('');
+  const [ordenacao, setOrdenacao] = useState<'nome' | 'quantidade' | 'alertas'>('nome');
 
 
   // Agrupar materiais por categoria
@@ -135,7 +135,7 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
     return grupos;
   }, [materiais]);
 
-  // Filtrar por categoria selecionada
+  // Filtrar e ordenar materiais
   const materiaisFiltrados = useMemo(() => {
     let lista = materiais;
     if (categoriaFiltro !== 'all') {
@@ -152,8 +152,24 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
         return nomeOriginal.includes(buscaLower) || nomeTraduzido.includes(buscaLower);
       });
     }
+    // Ordenação
+    lista = [...lista].sort((a, b) => {
+      if (ordenacao === 'nome') {
+        return translateMaterialName(a.nome, lang).localeCompare(translateMaterialName(b.nome, lang));
+      }
+      if (ordenacao === 'quantidade') {
+        return a.qtd_atual - b.qtd_atual;
+      }
+      if (ordenacao === 'alertas') {
+        const aLow = a.qtd_atual < a.qtd_minima ? 0 : 1;
+        const bLow = b.qtd_atual < b.qtd_minima ? 0 : 1;
+        if (aLow !== bLow) return aLow - bLow;
+        return translateMaterialName(a.nome, lang).localeCompare(translateMaterialName(b.nome, lang));
+      }
+      return 0;
+    });
     return lista;
-  }, [materiais, categoriaFiltro, busca, lang]);
+  }, [materiais, categoriaFiltro, busca, lang, ordenacao]);
 
   // Contadores por categoria
   const contadorCategorias = useMemo(() => {
@@ -253,11 +269,10 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
         </div>
       )}
 
-      {/* Filtro por categoria */}
+      {/* Filtro por categoria + Ordenação */}
       {materiais.length > 0 && (
-
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-muted-foreground" />
+          <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
           <Select value={categoriaFiltro} onValueChange={setCategoriaFiltro}>
             <SelectTrigger className="flex-1">
               <SelectValue />
@@ -276,6 +291,17 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                   </span>
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <ArrowUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
+          <Select value={ordenacao} onValueChange={(v) => setOrdenacao(v as typeof ordenacao)}>
+            <SelectTrigger className="flex-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="nome">{t('inventory.sortByName')}</SelectItem>
+              <SelectItem value="quantidade">{t('inventory.sortByQty')}</SelectItem>
+              <SelectItem value="alertas">{t('inventory.sortByAlerts')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
