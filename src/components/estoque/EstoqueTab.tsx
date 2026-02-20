@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMateriais } from '@/hooks/useMateriais';
 import { useToast } from '@/hooks/use-toast';
 import { NovoMaterialDialog, isUnidadeInteira } from './NovoMaterialDialog';
+import { EditarMaterialDialog } from './EditarMaterialDialog';
+
 import { AjusteQuantidadePopover } from './AjusteQuantidadePopover';
 import { Material } from '@/types/database';
 
@@ -116,7 +118,9 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
   const lang = i18n.language;
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editMaterial, setEditMaterial] = useState<Material | null>(null);
   const [categoriaFiltro, setCategoriaFiltro] = useState('all');
+
   const [busca, setBusca] = useState('');
 
 
@@ -335,8 +339,12 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
               >
                 <CardContent className="p-4">
                   <div className="flex flex-col gap-2">
-                    {/* Nome e badge de alerta */}
-                    <div className="flex items-center gap-2 min-w-0">
+                    {/* Nome e badge de alerta — clicável para editar */}
+                    <div
+                      className="flex items-center gap-2 min-w-0 cursor-pointer hover:opacity-70 transition-opacity"
+                      onClick={() => setEditMaterial(material)}
+                      title={t('inventory.editMaterial')}
+                    >
                       <span className="text-lg shrink-0">{categoriaInfo.icon}</span>
                       <h4 className="font-semibold flex-1 min-w-0 break-words">{translateMaterialName(material.nome, lang)}</h4>
                       {isLow && (
@@ -349,6 +357,7 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                     <p className="text-sm text-muted-foreground">
                       {t('inventory.minimum')} {formatarQuantidade(material.qtd_minima, material.unidade)} {material.unidade}
                     </p>
+
 
                     {/* Controles de quantidade */}
                     <div className="flex items-center justify-between gap-2">
@@ -400,6 +409,14 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
         sistemaMedidas={sistemaMedidas}
         onUpgradeClick={onUpgradeClick}
       />
+      <EditarMaterialDialog
+        material={editMaterial}
+        open={!!editMaterial}
+        onOpenChange={(open) => { if (!open) setEditMaterial(null); }}
+        obraId={obraId}
+        sistemaMedidas={sistemaMedidas}
+      />
     </div>
   );
 }
+
