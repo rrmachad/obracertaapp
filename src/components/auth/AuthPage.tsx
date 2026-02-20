@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Analytics } from '@/lib/analytics';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HardHat, Eye, EyeOff, Mail, Lock, User, Key, ArrowLeft } from 'lucide-react';
@@ -62,6 +63,7 @@ export function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
           const message = error.message.includes('already registered') ? t('auth.alreadyRegistered') : error.message;
           toast({ title: t('auth.signupError'), description: message, variant: 'destructive' });
         } else {
+          Analytics.signupCompleted('email');
           toast({ title: t('auth.accountCreated'), description: t('auth.signupSuccess') });
           navigate('/dashboard');
         }
@@ -132,6 +134,7 @@ export function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
       }
 
       toast({ title: t('auth.accountCreated'), description: t('auth.loggingIn') });
+      Analytics.signupCompleted('pin');
       
       const { error: signInError } = await signIn(email, password);
       if (signInError) {

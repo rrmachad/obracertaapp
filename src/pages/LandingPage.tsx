@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Analytics } from '@/lib/analytics';
 import testimonialJoao from '@/assets/testimonial-joao.jpg';
 import testimonialMarcos from '@/assets/testimonial-marcos.jpg';
 import testimonialCarlos from '@/assets/testimonial-carlos.jpg';
@@ -495,6 +496,7 @@ export function LandingPage() {
         href={WHATSAPP_LINK}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => Analytics.clickWhatsapp('floating')}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#20bd5a] rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
         aria-label={t('landing.whatsappAriaLabel')}
       >
@@ -530,10 +532,10 @@ export function LandingPage() {
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <ThemeToggle />
-            <Link to="/auth">
+            <Link to="/auth" onClick={() => Analytics.clickNavLogin()}>
               <Button variant="ghost" size="sm">{t('nav.login')}</Button>
             </Link>
-            <Link to="/auth?mode=signup" className="hidden sm:block">
+            <Link to="/auth?mode=signup" className="hidden sm:block" onClick={() => Analytics.clickNavSignup()}>
               <Button size="sm">{t('nav.signup')}</Button>
             </Link>
           </div>
@@ -576,7 +578,7 @@ export function LandingPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link to="/auth?mode=signup">
+                <Link to="/auth?mode=signup" onClick={() => Analytics.clickStartFree('hero')}>
                   <Button size="lg" className="gap-2 text-lg px-8 h-14 w-full sm:w-auto">
                     {t('landing.heroCta')}
                     <ArrowRight className="w-5 h-5" />
@@ -913,7 +915,7 @@ export function LandingPage() {
                       ))}
                     </ul>
                     
-                    <Link to="/auth?mode=signup" className="block mt-auto">
+                     <Link to="/auth?mode=signup" className="block mt-auto" onClick={() => Analytics.clickPlanCta(plan.name)}>
                       <Button 
                         className={`w-full ${plan.premium ? 'text-lg py-6 bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-500/25' : ''}`}
                         variant={plan.premium ? 'default' : plan.variant}
@@ -1033,13 +1035,13 @@ export function LandingPage() {
               {t('landing.ctaSubtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/auth?mode=signup">
+              <Link to="/auth?mode=signup" onClick={() => Analytics.clickStartFree('final_cta')}>
                 <Button size="lg" variant="default" className="gap-2 text-lg px-8 h-14">
                   {t('landing.ctaButton')}
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
-              <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+              <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" onClick={() => Analytics.clickWhatsapp('final_cta')}>
                 <Button size="lg" variant="secondary" className="gap-2 text-lg px-8 h-14 bg-[#25D366] hover:bg-[#20bd5a] text-white border-0">
                   <MessageCircle className="w-5 h-5" />
                   {t('landing.ctaWhatsapp')}
