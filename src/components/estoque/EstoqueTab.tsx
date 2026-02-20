@@ -237,7 +237,7 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar material..."
+            placeholder={t('inventory.searchMaterial')}
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="pl-9 pr-9"
@@ -313,15 +313,23 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
       ) : materiaisFiltrados.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-            <Filter className="w-10 h-10 mb-3 opacity-50" />
-            <p className="font-medium">{t('inventory.noMaterialsInCategory')}</p>
-            <Button 
-              variant="link" 
-              size="sm"
-              onClick={() => setCategoriaFiltro('all')}
-            >
-              {t('common.viewAll')}
-            </Button>
+            {busca.trim() ? (
+              <>
+                <Search className="w-10 h-10 mb-3 opacity-50" />
+                <p className="font-medium">{t('inventory.materialNotFound')}</p>
+                <Button variant="link" size="sm" onClick={() => setBusca('')}>
+                  {t('common.viewAll')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Filter className="w-10 h-10 mb-3 opacity-50" />
+                <p className="font-medium">{t('inventory.noMaterialsInCategory')}</p>
+                <Button variant="link" size="sm" onClick={() => setCategoriaFiltro('all')}>
+                  {t('common.viewAll')}
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       ) : (
