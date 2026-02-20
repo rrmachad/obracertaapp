@@ -526,8 +526,24 @@ export function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {steps.map((step, index) => (
               <AnimatedSection key={index} animation="fadeUp" delay={index * 150}>
-                <div className="flex items-start gap-4 md:flex-col md:items-center md:text-center">
-                  <div className="relative flex-shrink-0">
+                {/* Mobile: número à esquerda + ícone + texto em linha */}
+                <div className="flex items-start gap-4 md:hidden">
+                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm flex-shrink-0 mt-1">
+                    {index + 1}
+                  </div>
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <step.icon className="w-7 h-7 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold mb-2">{step.title}</h3>
+                      <p className="text-muted-foreground">{step.description}</p>
+                    </div>
+                  </div>
+                </div>
+                {/* Desktop: centralizado com número no canto do ícone */}
+                <div className="hidden md:flex flex-col items-center text-center">
+                  <div className="relative mb-6">
                     <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
                       <step.icon className="w-10 h-10 text-primary" />
                     </div>
@@ -535,10 +551,8 @@ export function LandingPage() {
                       {index + 1}
                     </div>
                   </div>
-                  <div className="pt-1">
-                    <h3 className="text-xl font-bold mb-2">{step.title}</h3>
-                    <p className="text-muted-foreground">{step.description}</p>
-                  </div>
+                  <h3 className="text-xl font-bold mb-2">{step.title}</h3>
+                  <p className="text-muted-foreground">{step.description}</p>
                 </div>
               </AnimatedSection>
             ))}
