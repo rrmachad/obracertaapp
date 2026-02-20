@@ -3,6 +3,7 @@ import { Analytics } from '@/lib/analytics';
 import testimonialRoberto from '@/assets/testimonial-roberto.jpg';
 import testimonialMarcos from '@/assets/testimonial-marcos-new.jpg';
 import testimonialCarlos from '@/assets/testimonial-carlos-new.jpg';
+import testimonialAna from '@/assets/testimonial-ana.jpg';
 import { Link } from 'react-router-dom';
 import screenDashboard from '@/assets/screen-dashboard.jpg';
 import screenMeuPlano from '@/assets/screen-meu-plano.jpg';
@@ -478,6 +479,7 @@ export function LandingPage() {
     { name: t('landing.test1Name'), role: t('landing.test1Role'), content: t('landing.test1Content'), photo: testimonialRoberto, stars: 5 },
     { name: t('landing.test2Name'), role: t('landing.test2Role'), content: t('landing.test2Content'), photo: testimonialMarcos, stars: 5 },
     { name: t('landing.test3Name'), role: t('landing.test3Role'), content: t('landing.test3Content'), photo: testimonialCarlos, stars: 5 },
+    { name: t('landing.test4Name'), role: t('landing.test4Role'), content: t('landing.test4Content'), photo: testimonialAna, stars: 5 },
   ];
 
   const faqs = [
