@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import { Package, Plus, AlertTriangle, Trash2, Filter, Ruler, Search, X } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
+import { translateMaterialName } from '@/lib/translateMaterial';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -69,7 +71,9 @@ interface EstoqueTabProps {
 export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick }: EstoqueTabProps) {
   const { materiais, isLoading, ajustarQuantidade, deleteMaterial } = useMateriais(obraId);
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [categoriaFiltro, setCategoriaFiltro] = useState('all');
   const [busca, setBusca] = useState('');
@@ -100,10 +104,14 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
       });
     }
     if (busca.trim()) {
-      lista = lista.filter(m =>
-        m.nome.toLowerCase().includes(busca.trim().toLowerCase())
-      );
+      const buscaLower = busca.trim().toLowerCase();
+      lista = lista.filter(m => {
+        const nomeOriginal = m.nome.toLowerCase();
+        const nomeTraduzido = translateMaterialName(m.nome, lang).toLowerCase();
+        return nomeOriginal.includes(buscaLower) || nomeTraduzido.includes(buscaLower);
+      });
     }
+
     return lista;
   }, [materiais, categoriaFiltro, busca]);
 
@@ -293,7 +301,7 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                     {/* Nome e badge de alerta */}
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-lg shrink-0">{categoriaInfo.icon}</span>
-                      <h4 className="font-semibold flex-1 min-w-0 break-words">{material.nome}</h4>
+                      <h4 className="font-semibold flex-1 min-w-0 break-words">{translateMaterialName(material.nome, lang)}</h4>
                       {isLow && (
                         <Badge variant="destructive" className="flex items-center gap-1 shrink-0">
                           <AlertTriangle className="w-3 h-3" />
