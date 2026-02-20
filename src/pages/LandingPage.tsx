@@ -1,9 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { Analytics } from '@/lib/analytics';
-import testimonialRoberto from '@/assets/testimonial-roberto.jpg';
-import testimonialMarcos from '@/assets/testimonial-marcos-new.jpg';
-import testimonialCarlos from '@/assets/testimonial-carlos-new.jpg';
-import testimonialAna from '@/assets/testimonial-ana.jpg';
+// PT-BR testimonial photos
+import testimonialPt1 from '@/assets/testimonial-pt-1.jpg';
+import testimonialPt2 from '@/assets/testimonial-pt-2.jpg';
+import testimonialPt3 from '@/assets/testimonial-pt-3.jpg';
+import testimonialPt4 from '@/assets/testimonial-pt-4.jpg';
+// ES testimonial photos
+import testimonialEs1 from '@/assets/testimonial-es-1.jpg';
+import testimonialEs2 from '@/assets/testimonial-es-2.jpg';
+import testimonialEs3 from '@/assets/testimonial-es-3.jpg';
+import testimonialEs4 from '@/assets/testimonial-es-4.jpg';
+// EN testimonial photos
+import testimonialEn1 from '@/assets/testimonial-en-1.jpg';
+import testimonialEn2 from '@/assets/testimonial-en-2.jpg';
+import testimonialEn3 from '@/assets/testimonial-en-3.jpg';
+import testimonialEn4 from '@/assets/testimonial-en-4.jpg';
 import { Link } from 'react-router-dom';
 import screenDashboard from '@/assets/screen-dashboard.jpg';
 import screenMeuPlano from '@/assets/screen-meu-plano.jpg';
@@ -634,7 +645,7 @@ function AppScreensCarousel() {
 
 
 export function LandingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const counterRef = useRef<HTMLDivElement>(null);
   const [countersVisible, setCountersVisible] = useState(false);
 
@@ -720,11 +731,18 @@ export function LandingPage() {
     },
   ];
 
+  const lang = i18n.language;
+  const photosByLang = lang.startsWith('es')
+    ? [testimonialEs1, testimonialEs2, testimonialEs3, testimonialEs4]
+    : lang.startsWith('en')
+    ? [testimonialEn1, testimonialEn2, testimonialEn3, testimonialEn4]
+    : [testimonialPt1, testimonialPt2, testimonialPt3, testimonialPt4];
+
   const testimonials = [
-    { name: t('landing.test1Name'), role: t('landing.test1Role'), content: t('landing.test1Content'), photo: testimonialRoberto, stars: 5 },
-    { name: t('landing.test2Name'), role: t('landing.test2Role'), content: t('landing.test2Content'), photo: testimonialMarcos, stars: 5 },
-    { name: t('landing.test3Name'), role: t('landing.test3Role'), content: t('landing.test3Content'), photo: testimonialCarlos, stars: 5 },
-    { name: t('landing.test4Name'), role: t('landing.test4Role'), content: t('landing.test4Content'), photo: testimonialAna, stars: 5 },
+    { name: t('landing.test1Name'), role: t('landing.test1Role'), content: t('landing.test1Content'), photo: photosByLang[0], stars: 5 },
+    { name: t('landing.test2Name'), role: t('landing.test2Role'), content: t('landing.test2Content'), photo: photosByLang[1], stars: 5 },
+    { name: t('landing.test3Name'), role: t('landing.test3Role'), content: t('landing.test3Content'), photo: photosByLang[2], stars: 5 },
+    { name: t('landing.test4Name'), role: t('landing.test4Role'), content: t('landing.test4Content'), photo: photosByLang[3], stars: 5 },
   ];
 
   const faqs = [
