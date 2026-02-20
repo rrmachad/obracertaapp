@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, AlertTriangle, Package, Search, Filter, ChevronRight,
+  ShoppingCart, CalendarClock, X, Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,12 +11,19 @@ import { Input } from '@/components/ui/input';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { useAuth } from '@/hooks/useAuth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { SuporteVipButton } from '@/components/SuporteVipButton';
 import { useObras } from '@/hooks/useObras';
 import { isUnidadeInteira } from '@/components/estoque/NovoMaterialDialog';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 interface MaterialAlerta {
   id: string;
@@ -28,6 +35,8 @@ interface MaterialAlerta {
   qtd_faltante: number;
   obra_nome: string;
   obra_id: string;
+  pedido: boolean;
+  data_prevista_chegada: string | null;
 }
 
 function formatQty(qtd: number, unidade: string): string {
@@ -35,13 +44,17 @@ function formatQty(qtd: number, unidade: string): string {
 }
 
 export function EstoqueAlertasPage() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { obras } = useObras();
+  const queryClient = useQueryClient();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [obraFiltro, setObraFiltro] = useState<string>('todas');
+  // popover state: materialId -> open
+  const [popoverOpen, setPopoverOpen] = useState<Record<string, boolean>>({});
+  // local date selection per material
+  const [dateSelected, setDateSelected] = useState<Record<string, Date | undefined>>({});
 
   const obraIds = obras.map(o => o.id);
 
@@ -52,9 +65,8 @@ export function EstoqueAlertasPage() {
 
       const { data: materiais, error } = await supabase
         .from('materiais')
-        .select('id, nome, unidade, categoria, qtd_atual, qtd_minima, obra_id')
-        .in('obra_id', obraIds)
-        .filter('qtd_atual', 'lt', 'qtd_minima');
+        .select('id, nome, unidade, categoria, qtd_atual, qtd_minima, obra_id, pedido, data_prevista_chegada')
+        .in('obra_id', obraIds);
 
       if (error) throw error;
 
@@ -72,10 +84,64 @@ export function EstoqueAlertasPage() {
           qtd_faltante: Number(m.qtd_minima) - Number(m.qtd_atual),
           obra_nome: obraMap[m.obra_id] ?? 'Obra',
           obra_id: m.obra_id,
+          pedido: (m as any).pedido ?? false,
+          data_prevista_chegada: (m as any).data_prevista_chegada ?? null,
         })) as MaterialAlerta[];
     },
     enabled: !!user?.id && obraIds.length > 0,
   });
+
+  const marcarPedidoMutation = useMutation({
+    mutationFn: async ({
+      materialId,
+      pedido,
+      dataPrevista,
+    }: {
+      materialId: string;
+      pedido: boolean;
+      dataPrevista: string | null;
+    }) => {
+      const { error } = await supabase
+        .from('materiais')
+        .update({
+          pedido,
+          data_prevista_chegada: dataPrevista,
+        } as any)
+        .eq('id', materialId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estoque-alertas-page'] });
+    },
+  });
+
+  function handleMarcarPedido(materialId: string) {
+    const date = dateSelected[materialId];
+    marcarPedidoMutation.mutate(
+      {
+        materialId,
+        pedido: true,
+        dataPrevista: date ? format(date, 'yyyy-MM-dd') : null,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Material marcado como pedido!');
+          setPopoverOpen(p => ({ ...p, [materialId]: false }));
+        },
+        onError: () => toast.error('Erro ao salvar. Tente novamente.'),
+      },
+    );
+  }
+
+  function handleCancelarPedido(materialId: string) {
+    marcarPedidoMutation.mutate(
+      { materialId, pedido: false, dataPrevista: null },
+      {
+        onSuccess: () => toast.success('Pedido cancelado.'),
+        onError: () => toast.error('Erro ao salvar. Tente novamente.'),
+      },
+    );
+  }
 
   const alertas = alertasQuery.data ?? [];
 
@@ -96,7 +162,6 @@ export function EstoqueAlertasPage() {
     });
   }, [alertas, obraFiltro, searchTerm]);
 
-  // Group by obra for display
   const porObra = useMemo(() => {
     const grouped: Record<string, { obraNome: string; items: MaterialAlerta[] }> = {};
     filtrados.forEach(item => {
@@ -156,10 +221,12 @@ export function EstoqueAlertasPage() {
           <Card>
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-primary shrink-0" />
+                <ShoppingCart className="w-4 h-4 text-primary shrink-0" />
                 <div>
-                  <p className="text-2xl font-bold">{obrasComAlertas.length}</p>
-                  <p className="text-xs text-muted-foreground leading-tight">Obras com alertas</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {alertas.filter(a => a.pedido).length}
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-tight">Pedidos realizados</p>
                 </div>
               </div>
             </CardContent>
@@ -205,13 +272,13 @@ export function EstoqueAlertasPage() {
             </div>
             <h2 className="text-lg font-semibold mb-1">Nenhum alerta de estoque</h2>
             <p className="text-sm text-muted-foreground">
-              Todos os materiais estão acima do nível mínimo. 
+              Todos os materiais estão acima do nível mínimo.
             </p>
           </div>
         ) : filtrados.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Search className="w-10 h-10 text-muted-foreground mb-3 opacity-40" />
-            <p className="text-sm text-muted-foreground">Nenhum resultado encontrado para os filtros aplicados.</p>
+            <p className="text-sm text-muted-foreground">Nenhum resultado para os filtros aplicados.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -237,10 +304,14 @@ export function EstoqueAlertasPage() {
                     const pctAtual = item.qtd_minima > 0
                       ? Math.min(100, Math.round((item.qtd_atual / item.qtd_minima) * 100))
                       : 0;
+                    const isPedido = item.pedido;
+                    const cardBorder = isPedido ? 'border-primary/40 bg-primary/5' : 'border-destructive/30';
+
                     return (
-                      <Card key={item.id} className="border-destructive/30">
+                      <Card key={item.id} className={cardBorder}>
                         <CardContent className="py-3 px-4">
-                          <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-3">
+                            {/* Info */}
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-medium text-sm truncate">{item.nome}</span>
@@ -249,31 +320,121 @@ export function EstoqueAlertasPage() {
                                     {item.categoria}
                                   </Badge>
                                 )}
+                                {isPedido && (
+                                  <Badge className="text-[10px] px-1.5 shrink-0 bg-primary/20 text-primary border-primary/30 hover:bg-primary/20">
+                                    <ShoppingCart className="w-2.5 h-2.5 mr-1" />
+                                    Pedido
+                                  </Badge>
+                                )}
                               </div>
-                              <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
                                 <span>
-                                  Atual: <span className="font-semibold text-destructive">
+                                  Atual:{' '}
+                                  <span className="font-semibold text-destructive">
                                     {formatQty(item.qtd_atual, item.unidade)} {item.unidade}
                                   </span>
                                 </span>
                                 <span>
-                                  Mín: <span className="font-semibold">
+                                  Mín:{' '}
+                                  <span className="font-semibold">
                                     {formatQty(item.qtd_minima, item.unidade)} {item.unidade}
                                   </span>
                                 </span>
                               </div>
+
+                              {/* Arrival date if pedido */}
+                              {isPedido && item.data_prevista_chegada && (
+                                <div className="flex items-center gap-1 mt-1 text-xs text-primary">
+                                  <CalendarClock className="w-3 h-3" />
+                                  <span>
+                                    Previsão:{' '}
+                                    {format(parseISO(item.data_prevista_chegada), "dd 'de' MMM yyyy", { locale: ptBR })}
+                                  </span>
+                                </div>
+                              )}
+
                               {/* Progress bar */}
                               <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
                                 <div
-                                  className="h-full rounded-full bg-destructive transition-all"
+                                  className={`h-full rounded-full transition-all ${isPedido ? 'bg-primary' : 'bg-destructive'}`}
                                   style={{ width: `${pctAtual}%` }}
                                 />
                               </div>
                             </div>
-                            <div className="shrink-0 text-right">
+
+                            {/* Right side: faltante + action */}
+                            <div className="shrink-0 flex flex-col items-end gap-2">
                               <Badge variant="destructive" className="text-xs">
                                 -{formatQty(item.qtd_faltante, item.unidade)} {item.unidade}
                               </Badge>
+
+                              {isPedido ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                                  onClick={() => handleCancelarPedido(item.id)}
+                                  disabled={marcarPedidoMutation.isPending}
+                                >
+                                  <X className="w-3 h-3 mr-1" />
+                                  Cancelar
+                                </Button>
+                              ) : (
+                                <Popover
+                                  open={popoverOpen[item.id] ?? false}
+                                  onOpenChange={open =>
+                                    setPopoverOpen(p => ({ ...p, [item.id]: open }))
+                                  }
+                                >
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 px-2 text-xs gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                                    >
+                                      <ShoppingCart className="w-3 h-3" />
+                                      Pedido
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-3" align="end">
+                                    <p className="text-sm font-medium mb-2">Data prevista de chegada</p>
+                                    <p className="text-xs text-muted-foreground mb-3">
+                                      Opcional — selecione a data ou confirme sem data.
+                                    </p>
+                                    <Calendar
+                                      mode="single"
+                                      selected={dateSelected[item.id]}
+                                      onSelect={date =>
+                                        setDateSelected(d => ({ ...d, [item.id]: date }))
+                                      }
+                                      locale={ptBR}
+                                      disabled={d => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                                      className="rounded-md border mb-3"
+                                    />
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1"
+                                        onClick={() =>
+                                          setPopoverOpen(p => ({ ...p, [item.id]: false }))
+                                        }
+                                      >
+                                        Cancelar
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        className="flex-1 gap-1"
+                                        onClick={() => handleMarcarPedido(item.id)}
+                                        disabled={marcarPedidoMutation.isPending}
+                                      >
+                                        <Check className="w-3.5 h-3.5" />
+                                        Confirmar
+                                      </Button>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+                              )}
                             </div>
                           </div>
                         </CardContent>
