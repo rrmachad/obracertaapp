@@ -17,6 +17,7 @@ import { AdminPanel } from "./pages/AdminPanel";
 import { PortalCliente } from "./pages/PortalCliente";
 import { ComprasPage } from "./pages/ComprasPage";
 import { LucratividadePage } from "./pages/LucratividadePage";
+import { EstoqueAlertasPage } from "./pages/EstoqueAlertasPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,11 @@ const App = () => (
                 <Route path="/compras" element={
                   <ProtectedRoute>
                     <ComprasPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/estoque-alertas" element={
+                  <ProtectedRoute>
+                    <EstoqueAlertasPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/lucratividade" element={

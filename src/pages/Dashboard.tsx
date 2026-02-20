@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp } from 'lucide-react';
+import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,7 @@ export function Dashboard() {
   const { planName, plan } = useSubscription(isInvitedUser ? ownerUserId : undefined);
   const { limits } = usePlanLimits();
   const { data: estoqueAlertas = {} } = useEstoqueAlertas(obras.map(o => o.id));
+  const totalAlertas = Object.values(estoqueAlertas).reduce((acc, n) => acc + n, 0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -108,6 +109,20 @@ export function Dashboard() {
                 <span className="hidden xs:inline">{t('nav.profitability')}</span>
               </Button>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/estoque-alertas')}
+              className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5 h-8 px-2 shrink-0 text-xs relative"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              <span className="hidden xs:inline">Alertas</span>
+              {totalAlertas > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                  {totalAlertas}
+                </span>
+              )}
+            </Button>
             {!isInvitedUser && (
               <Button
                 variant="ghost"
