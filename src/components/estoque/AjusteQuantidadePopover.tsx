@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Plus, Minus, Hash } from 'lucide-react';
+import { Plus, Minus, Hash, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AjusteQuantidadePopoverProps {
-  onAjuste: (delta: number) => Promise<void>;
+  onAjuste: (delta: number, observacao?: string) => Promise<void>;
   tipo: 'entrada' | 'saida';
   disabled?: boolean;
   unidade: string;
@@ -24,21 +24,25 @@ export function AjusteQuantidadePopover({
 }: AjusteQuantidadePopoverProps) {
   const [open, setOpen] = useState(false);
   const [customValue, setCustomValue] = useState('');
+  const [observacao, setObservacao] = useState('');
   const [loading, setLoading] = useState(false);
 
   const isEntrada = tipo === 'entrada';
   const Icon = isEntrada ? Plus : Minus;
   const multiplier = isEntrada ? 1 : -1;
 
+  const handleClose = () => {
+    setOpen(false);
+    setCustomValue('');
+    setObservacao('');
+  };
+
   const handleQuickAjuste = async (value: number) => {
-    if (tipo === 'saida' && value > qtdAtual) {
-      return; // Não permite saída maior que estoque
-    }
-    
+    if (tipo === 'saida' && value > qtdAtual) return;
     setLoading(true);
     try {
-      await onAjuste(value * multiplier);
-      setOpen(false);
+      await onAjuste(value * multiplier, observacao.trim() || undefined);
+      handleClose();
     } finally {
       setLoading(false);
     }
@@ -47,23 +51,18 @@ export function AjusteQuantidadePopover({
   const handleCustomAjuste = async () => {
     const value = parseFloat(customValue);
     if (isNaN(value) || value <= 0) return;
-    
-    if (tipo === 'saida' && value > qtdAtual) {
-      return;
-    }
-
+    if (tipo === 'saida' && value > qtdAtual) return;
     setLoading(true);
     try {
-      await onAjuste(value * multiplier);
-      setCustomValue('');
-      setOpen(false);
+      await onAjuste(value * multiplier, observacao.trim() || undefined);
+      handleClose();
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(o) => { if (!o) handleClose(); else setOpen(true); }}>
       <PopoverTrigger asChild>
         <Button
           variant={isEntrada ? 'default' : 'outline'}
@@ -127,9 +126,7 @@ export function AjusteQuantidadePopover({
                 min={0}
                 max={tipo === 'saida' ? qtdAtual : undefined}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleCustomAjuste();
-                  }
+                  if (e.key === 'Enter') handleCustomAjuste();
                 }}
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
@@ -148,6 +145,21 @@ export function AjusteQuantidadePopover({
                 <Icon className="w-4 h-4" />
               )}
             </Button>
+          </div>
+
+          {/* Campo de observação */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Observação (opcional)</span>
+            </div>
+            <Textarea
+              placeholder="Ex: compra NF 1234, consumo fundação..."
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
+              className="text-sm resize-none min-h-0 h-16"
+              maxLength={200}
+            />
           </div>
 
           {tipo === 'saida' && (
