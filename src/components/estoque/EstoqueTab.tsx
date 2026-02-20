@@ -253,24 +253,24 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                 className={`border-2 ${isLow ? 'border-destructive/50 bg-destructive/5' : ''}`}
               >
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{categoriaInfo.icon}</span>
-                        <h4 className="font-semibold truncate">{material.nome}</h4>
-                        {isLow && (
-                          <Badge variant="destructive" className="flex items-center gap-1">
-                            <AlertTriangle className="w-3 h-3" />
-                            {t('inventory.low')}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {t('inventory.minimum')} {formatarQuantidade(material.qtd_minima, material.unidade)} {material.unidade}
-                      </p>
+                  <div className="flex flex-col gap-2">
+                    {/* Nome e badge de alerta */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-lg shrink-0">{categoriaInfo.icon}</span>
+                      <h4 className="font-semibold flex-1 min-w-0 break-words">{material.nome}</h4>
+                      {isLow && (
+                        <Badge variant="destructive" className="flex items-center gap-1 shrink-0">
+                          <AlertTriangle className="w-3 h-3" />
+                          {t('inventory.low')}
+                        </Badge>
+                      )}
                     </div>
+                    <p className="text-sm text-muted-foreground">
+                      {t('inventory.minimum')} {formatarQuantidade(material.qtd_minima, material.unidade)} {material.unidade}
+                    </p>
 
-                    <div className="flex items-center gap-2">
+                    {/* Controles de quantidade */}
+                    <div className="flex items-center justify-between gap-2">
                       <AjusteQuantidadePopover
                         tipo="saida"
                         onAjuste={(delta) => handleAjuste(material, delta)}
@@ -279,7 +279,7 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                         qtdAtual={material.qtd_atual}
                       />
 
-                      <div className="w-20 text-center">
+                      <div className="flex-1 text-center">
                         <div className={`text-2xl font-bold ${isLow ? 'text-destructive' : ''}`}>
                           {formatarQuantidade(material.qtd_atual, material.unidade)}
                         </div>
@@ -298,7 +298,7 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-10 h-10 text-muted-foreground hover:text-destructive"
+                        className="w-10 h-10 text-muted-foreground hover:text-destructive shrink-0"
                         onClick={() => handleDelete(material)}
                       >
                         <Trash2 className="w-4 h-4" />
