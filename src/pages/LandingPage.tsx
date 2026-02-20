@@ -27,6 +27,8 @@ import {
   Bell,
   DollarSign,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Play,
   MessageCircle,
   Hammer,
@@ -328,6 +330,24 @@ function AppScreensCarousel() {
           </div>
         ))}
       </div>
+
+      {/* Left arrow — hidden on mobile (swipe instead) */}
+      <button
+        onClick={goPrev}
+        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-50 items-center justify-center w-11 h-11 rounded-full bg-background/80 border border-border shadow-lg backdrop-blur-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
+        aria-label="Screenshot anterior"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+
+      {/* Right arrow — hidden on mobile (swipe instead) */}
+      <button
+        onClick={goNext}
+        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-50 items-center justify-center w-11 h-11 rounded-full bg-background/80 border border-border shadow-lg backdrop-blur-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
+        aria-label="Próxima screenshot"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
 
       {/* Navigation dots */}
       <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
