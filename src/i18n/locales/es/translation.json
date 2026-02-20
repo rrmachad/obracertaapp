@@ -757,7 +757,12 @@
     "nameRequired": "Nombre obligatorio",
     "enterMaterialName": "Ingrese el nombre del material.",
     "materialAdded": "¡Material agregado!",
+    "materialUpdated": "¡Material actualizado!",
+    "errorUpdating": "Error al actualizar",
+    "editMaterial": "Editar Material",
+    "editMaterialDesc": "Cambie el nombre, la unidad o la cantidad mínima.",
     "errorAdding": "Error al agregar",
+
     "unitsMetric": "Unidades (un)",
     "bagsMetric": "Bolsas (sc)",
     "kgMetric": "Kilos (kg)",
