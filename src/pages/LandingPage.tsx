@@ -193,6 +193,8 @@ const APP_SCREENS_KEYS = [
 function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; role: string; content: string; photo: string; stars: number }[] }) {
   const total = testimonials.length;
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [fadingOut, setFadingOut] = useState(false);
+  const [displayIndex, setDisplayIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchStartX = useRef<number | null>(null);
@@ -207,22 +209,32 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  const changeIndex = (newIndex: number) => {
+    setFadingOut(true);
+    setTimeout(() => {
+      setCurrentIndex(newIndex);
+      setDisplayIndex(newIndex);
+      setFadingOut(false);
+    }, 300);
+  };
+
   useEffect(() => {
     if (isPaused) return;
     intervalRef.current = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % total);
+      const next = (currentIndex + 1) % total;
+      changeIndex(next);
     }, 4000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [isPaused, total]);
+  }, [isPaused, total, currentIndex]);
 
   const goNext = () => {
-    setCurrentIndex(prev => (prev + 1) % total);
+    changeIndex((currentIndex + 1) % total);
     setIsPaused(true);
     setTimeout(() => setIsPaused(false), 5000);
   };
 
   const goPrev = () => {
-    setCurrentIndex(prev => (prev - 1 + total) % total);
+    changeIndex((currentIndex - 1 + total) % total);
     setIsPaused(true);
     setTimeout(() => setIsPaused(false), 5000);
   };
@@ -251,7 +263,7 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
       {testimonials.map((_, i) => (
         <button
           key={i}
-          onClick={() => { setCurrentIndex(i); setIsPaused(true); setTimeout(() => setIsPaused(false), 5000); }}
+          onClick={() => { changeIndex(i); setIsPaused(true); setTimeout(() => setIsPaused(false), 5000); }}
           className={`rounded-full transition-all duration-300 ${
             i === currentIndex ? 'w-6 h-2 bg-primary' : 'w-2 h-2 bg-muted-foreground/40 hover:bg-muted-foreground/70'
           }`}
@@ -303,8 +315,10 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
           <div className="flex-shrink-0 w-16 opacity-30 cursor-pointer" onClick={goPrev}>
             <TestimonialCard t={testimonials[prev]} dimmed />
           </div>
-          {/* Active card */}
-          <div className="flex-1 max-w-xs">
+          {/* Active card — fade transition */}
+          <div
+            className={`flex-1 max-w-xs transition-opacity duration-300 ${fadingOut ? 'opacity-0' : 'opacity-100'}`}
+          >
             <TestimonialCard t={testimonials[currentIndex]} />
           </div>
           {/* Next peek */}
@@ -322,7 +336,7 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
     );
   }
 
-  // ── Desktop: 3 visíveis com slide ──────────────────────────────────────────
+  // ── Desktop: 3 visíveis com fade ──────────────────────────────────────────
   const visibleCount = 3;
   const visibleIndices = Array.from({ length: visibleCount }, (_, i) => (currentIndex + i) % total);
 
@@ -332,12 +346,9 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="grid grid-cols-3 gap-6 max-w-5xl mx-auto">
-        {visibleIndices.map((idx, pos) => (
-          <div
-            key={idx}
-            className={`transition-all duration-500 ${pos === 0 ? 'opacity-100' : pos === 1 ? 'opacity-100' : 'opacity-100'}`}
-          >
+      <div className={`grid grid-cols-3 gap-6 max-w-5xl mx-auto transition-opacity duration-300 ${fadingOut ? 'opacity-0' : 'opacity-100'}`}>
+        {visibleIndices.map((idx) => (
+          <div key={idx}>
             <TestimonialCard t={testimonials[idx]} />
           </div>
         ))}
@@ -362,6 +373,7 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
     </div>
   );
 }
+
 
 function AppScreensCarousel() {
   const { t } = useTranslation();
