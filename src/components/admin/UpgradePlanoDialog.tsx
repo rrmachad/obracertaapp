@@ -44,6 +44,7 @@ interface PlanOption {
   id: SubscriptionPlan;
   name: string;
   price: number;
+  priceBRL: number;
   features: PlanFeature[];
   popular?: boolean;
   buttonText: string;
@@ -55,6 +56,7 @@ const plans: PlanOption[] = [
     id: 'free',
     name: 'Iniciante',
     price: 0,
+    priceBRL: 0,
     features: [
       { text: '1 Obra Ativa', icon: 'check' },
       { text: 'Cronograma de Fases', icon: 'check' },
@@ -68,6 +70,7 @@ const plans: PlanOption[] = [
     id: 'start',
     name: 'Autônomo',
     price: 19.90,
+    priceBRL: 29.90,
     features: [
       { text: 'Obras Ilimitadas', icon: 'rocket', highlight: true },
       { text: 'Diário de Obra Digital', icon: 'check' },
@@ -82,6 +85,7 @@ const plans: PlanOption[] = [
     id: 'gold',
     name: 'Construtora',
     price: 39.90,
+    priceBRL: 59.90,
     features: [
       { text: 'Tudo do Plano Autônomo', icon: 'check', highlight: true },
       { text: 'Medições: Pague o executado', icon: 'shield', highlight: true },
@@ -96,6 +100,7 @@ const plans: PlanOption[] = [
     id: 'premium',
     name: 'Business',
     price: 79.90,
+    priceBRL: 99.90,
     popular: true,
     features: [
       { text: 'Tudo do Plano Construtora', icon: 'check', highlight: true },
@@ -298,7 +303,7 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
                       </CardTitle>
                       <div className="mt-3">
                         <span className="text-3xl font-bold">
-                          {planOption.price === 0 ? 'Grátis' : formatCurrency(planOption.price)}
+                          {planOption.price === 0 ? 'Grátis' : formatCurrency(currency === 'BRL' ? planOption.priceBRL : planOption.price)}
                         </span>
                         {planOption.price > 0 && (
                           <span className="text-muted-foreground text-sm">/mês</span>
