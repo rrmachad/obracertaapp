@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Analytics } from '@/lib/analytics';
-import testimonialJoao from '@/assets/testimonial-joao.jpg';
-import testimonialMarcos from '@/assets/testimonial-marcos.jpg';
-import testimonialCarlos from '@/assets/testimonial-carlos.jpg';
+import testimonialRoberto from '@/assets/testimonial-roberto.jpg';
+import testimonialMarcos from '@/assets/testimonial-marcos-new.jpg';
+import testimonialCarlos from '@/assets/testimonial-carlos-new.jpg';
 import { Link } from 'react-router-dom';
 import screenDashboard from '@/assets/screen-dashboard.jpg';
 import screenMeuPlano from '@/assets/screen-meu-plano.jpg';
@@ -475,7 +475,7 @@ export function LandingPage() {
   ];
 
   const testimonials = [
-    { name: t('landing.test1Name'), role: t('landing.test1Role'), content: t('landing.test1Content'), photo: testimonialJoao, stars: 5 },
+    { name: t('landing.test1Name'), role: t('landing.test1Role'), content: t('landing.test1Content'), photo: testimonialRoberto, stars: 5 },
     { name: t('landing.test2Name'), role: t('landing.test2Role'), content: t('landing.test2Content'), photo: testimonialMarcos, stars: 5 },
     { name: t('landing.test3Name'), role: t('landing.test3Role'), content: t('landing.test3Content'), photo: testimonialCarlos, stars: 5 },
   ];
