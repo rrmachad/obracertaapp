@@ -89,17 +89,22 @@ function StaggerCard({ children, index, className = '' }: { children: React.Reac
       }}
     >
       <div
-        className="h-full"
-        style={{ transition: `transform 300ms ${STAGGER_EASE}, box-shadow 300ms ${STAGGER_EASE}` }}
+        className="h-full rounded-lg"
+        style={{
+          transition: `transform 300ms ${STAGGER_EASE}, box-shadow 300ms ${STAGGER_EASE}, border-color 300ms ${STAGGER_EASE}`,
+          border: '1px solid transparent',
+        }}
         onMouseEnter={e => {
           const el = e.currentTarget as HTMLDivElement;
           el.style.transform = 'translateY(-4px)';
           el.style.boxShadow = '0 12px 32px -8px hsl(var(--primary) / 0.18), 0 4px 12px -4px hsl(var(--foreground) / 0.08)';
+          el.style.borderColor = 'hsl(var(--primary) / 0.35)';
         }}
         onMouseLeave={e => {
           const el = e.currentTarget as HTMLDivElement;
           el.style.transform = 'translateY(0px)';
           el.style.boxShadow = '';
+          el.style.borderColor = 'transparent';
         }}
       >
         {children}
