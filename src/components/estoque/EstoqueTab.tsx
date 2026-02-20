@@ -36,6 +36,47 @@ const CATEGORIA_KEYS: { value: string; i18nKey: string; icon: string }[] = [
   { value: 'outros', i18nKey: 'inventory.other', icon: '📋' },
 ];
 
+// Mapa de strings brutas do banco → value normalizado (inclui variantes PT/EN/ES)
+const CATEGORIA_NORMALIZE_MAP: Record<string, string> = {
+  // Alvenaria / Masonry / Albañilería
+  'alvenaria': 'alvenaria', 'masonry': 'alvenaria', 'albañilería': 'alvenaria',
+  'concreto': 'alvenaria', 'concrete': 'alvenaria', 'hormigón': 'alvenaria',
+  'agregado': 'alvenaria', 'aggregate': 'alvenaria',
+  'terraplanagem': 'alvenaria', 'earthwork': 'alvenaria', 'movimiento de tierras': 'alvenaria',
+  'forma': 'alvenaria', 'formwork': 'alvenaria', 'encofrado': 'alvenaria',
+  'amarração': 'alvenaria', 'ties': 'alvenaria', 'amarre': 'alvenaria',
+  'telhas': 'alvenaria', 'tiles': 'alvenaria', 'tejas': 'alvenaria',
+  // Hidráulica / Plumbing
+  'hidráulica': 'hidraulica', 'hidraulica': 'hidraulica', 'plumbing': 'hidraulica', 'hidráulico': 'hidraulica',
+  'reservatório': 'hidraulica', 'tank': 'hidraulica', 'depósito': 'hidraulica',
+  'metais': 'hidraulica', 'fixtures': 'hidraulica', 'grifería': 'hidraulica',
+  // Elétrica / Electrical
+  'elétrica': 'eletrica', 'eletrica': 'eletrica', 'electrical': 'eletrica', 'eléctrica': 'eletrica',
+  // Estrutural / Structural
+  'estrutural': 'estrutural', 'structural': 'estrutural',
+  'ferragem': 'estrutural', 'rebar': 'estrutural', 'acero': 'estrutural',
+  'fixação': 'estrutural', 'fasteners': 'estrutural', 'fijación': 'estrutural',
+  'infraestrutura': 'estrutural', 'infrastructure': 'estrutural', 'infraestructura': 'estrutural',
+  // Acabamento / Finishing
+  'acabamento': 'acabamento', 'finishing': 'acabamento', 'acabados': 'acabamento',
+  'revestimento': 'acabamento', 'coating': 'acabamento', 'revestimiento': 'acabamento',
+  'vedação': 'acabamento', 'sealing': 'acabamento', 'sellado': 'acabamento',
+  'vidros': 'acabamento', 'glass': 'acabamento', 'vidrios': 'acabamento',
+  // Ferramentas / Tools
+  'ferramentas': 'ferramentas', 'tools': 'ferramentas', 'herramientas': 'ferramentas',
+  // Outros
+  'esquadrias': 'outros', 'doors & windows': 'outros', 'carpintería': 'outros',
+  'louças': 'outros', 'sanitarios': 'outros',
+  'segurança': 'outros', 'security': 'outros', 'seguridad': 'outros',
+  'lazer': 'outros', 'leisure': 'outros', 'ocio': 'outros',
+};
+
+function normalizarCategoria(categoria: string): string {
+  const key = categoria.toLowerCase().trim();
+  return CATEGORIA_NORMALIZE_MAP[key] ?? 'outros';
+}
+
+
 // Detectar categoria com base no nome do material
 const detectarCategoria = (nome: string): string => {
   const nomeLower = nome.toLowerCase();
@@ -82,15 +123,11 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
   // Agrupar materiais por categoria
   const materiaisAgrupados = useMemo(() => {
     const grupos: Record<string, Material[]> = {};
-    
     materiais.forEach(material => {
-      const categoria = material.categoria || detectarCategoria(material.nome);
-      if (!grupos[categoria]) {
-        grupos[categoria] = [];
-      }
+      const categoria = normalizarCategoria(material.categoria || detectarCategoria(material.nome));
+      if (!grupos[categoria]) grupos[categoria] = [];
       grupos[categoria].push(material);
     });
-    
     return grupos;
   }, [materiais]);
 
@@ -99,7 +136,7 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
     let lista = materiais;
     if (categoriaFiltro !== 'all') {
       lista = lista.filter(m => {
-        const categoria = m.categoria || detectarCategoria(m.nome);
+        const categoria = normalizarCategoria(m.categoria || detectarCategoria(m.nome));
         return categoria === categoriaFiltro;
       });
     }
@@ -111,20 +148,19 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
         return nomeOriginal.includes(buscaLower) || nomeTraduzido.includes(buscaLower);
       });
     }
-
     return lista;
-  }, [materiais, categoriaFiltro, busca]);
-
+  }, [materiais, categoriaFiltro, busca, lang]);
 
   // Contadores por categoria
   const contadorCategorias = useMemo(() => {
     const contagem: Record<string, number> = {};
     materiais.forEach(material => {
-      const categoria = material.categoria || detectarCategoria(material.nome);
+      const categoria = normalizarCategoria(material.categoria || detectarCategoria(material.nome));
       contagem[categoria] = (contagem[categoria] || 0) + 1;
     });
     return contagem;
   }, [materiais]);
+
 
   const handleAjuste = async (material: Material, delta: number) => {
     try {
@@ -288,8 +324,9 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
         <div className="space-y-3">
           {materiaisFiltrados.map((material) => {
             const isLow = material.qtd_atual < material.qtd_minima;
-            const categoria = material.categoria || detectarCategoria(material.nome);
+            const categoria = normalizarCategoria(material.categoria || detectarCategoria(material.nome));
             const categoriaInfo = getCategoriaInfo(categoria);
+
             
             return (
               <Card 
