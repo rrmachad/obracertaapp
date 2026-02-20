@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Package, Plus, AlertTriangle, Trash2, Filter, Ruler, Search, X, ArrowUpDown } from 'lucide-react';
+import { Package, Plus, AlertTriangle, Trash2, Filter, Ruler, Search, X, ArrowUpDown, Download, FileSpreadsheet, FileText } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
 import { translateMaterialName } from '@/lib/translateMaterial';
+import { exportEstoquePDF, exportEstoqueXLSX } from '@/lib/estoqueExport';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useMateriais } from '@/hooks/useMateriais';
 import { useToast } from '@/hooks/use-toast';
+import { useUserSettings } from '@/hooks/useUserSettings';
 import { NovoMaterialDialog, isUnidadeInteira } from './NovoMaterialDialog';
 import { EditarMaterialDialog } from './EditarMaterialDialog';
 
@@ -107,15 +110,18 @@ const detectarCategoria = (nome: string): string => {
 
 interface EstoqueTabProps {
   obraId: string;
+  obraNome?: string;
   sistemaMedidas?: 'metrico' | 'imperial';
   onUpgradeClick?: () => void;
 }
 
-export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick }: EstoqueTabProps) {
+export function EstoqueTab({ obraId, obraNome = '', sistemaMedidas = 'metrico', onUpgradeClick }: EstoqueTabProps) {
   const { materiais, isLoading, ajustarQuantidade, deleteMaterial } = useMateriais(obraId);
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  const { settings } = useUserSettings();
+  const [isExporting, setIsExporting] = useState(false);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMaterial, setEditMaterial] = useState<Material | null>(null);
@@ -221,6 +227,44 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
     return CATEGORIA_KEYS.find(c => c.value === categoria) || CATEGORIA_KEYS[CATEGORIA_KEYS.length - 1];
   };
 
+  const buildExportOptions = () => ({
+    obraNome: obraNome || 'obra',
+    empresaNome: settings?.empresa_nome ?? undefined,
+    logoUrl: settings?.empresa_logo_url ?? undefined,
+    translateName: (nome: string) => translateMaterialName(nome, lang),
+    formatQty: (qtd: number, unidade: string) => formatarQuantidade(qtd, unidade),
+    labels: {
+      title: t('inventory.exportTitle'),
+      material: t('inventory.materialName'),
+      unit: t('inventory.unitLabel'),
+      currentQty: t('inventory.currentQty'),
+      minQty: t('inventory.minQty'),
+      status: t('inventory.status') || 'Status',
+      low: t('inventory.low'),
+      ok: t('inventory.exportStatusOk'),
+      generatedAt: t('inventory.exportGeneratedAt'),
+      page: t('inventory.exportPage'),
+      of: t('inventory.exportOf'),
+    },
+  });
+
+  const handleExportPDF = async () => {
+    if (!materiais.length) return;
+    setIsExporting(true);
+    try {
+      await exportEstoquePDF(materiaisFiltrados, buildExportOptions());
+    } catch {
+      toast({ title: t('common.error'), variant: 'destructive' });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportXLSX = () => {
+    if (!materiais.length) return;
+    exportEstoqueXLSX(materiaisFiltrados, buildExportOptions());
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -240,6 +284,25 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
           <Plus className="w-5 h-5 mr-2" />
           {t('inventory.addMaterial')}
         </Button>
+        {materiais.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-14 w-14 shrink-0" disabled={isExporting}>
+                <Download className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportPDF}>
+                <FileText className="w-4 h-4 mr-2" />
+                {t('inventory.exportPDF')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportXLSX}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                {t('inventory.exportXLSX')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         <Badge variant="outline" className="h-14 px-3 flex items-center gap-1.5 shrink-0">
           <Ruler className="w-4 h-4" />
           <span className="text-xs font-medium">
