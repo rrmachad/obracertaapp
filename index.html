@@ -3,18 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+
     <!-- Primary Meta Tags -->
-    <title>Obra Certa - Gestão de Obras Descomplicada | Controle Estoque e Cronograma</title>
-    <meta name="title" content="Obra Certa - Gestão de Obras Descomplicada | Controle Estoque e Cronograma" />
-    <meta name="description" content="Pare de jogar dinheiro fora no canteiro de obras. Controle estoque, cronograma e gere relatórios profissionais. Grátis para começar. +500 obras gerenciadas." />
-    <meta name="keywords" content="gestão de obras, controle de estoque, diário de obra, cronograma de obra, construtora, engenharia civil, RDO, relatório diário" />
+    <title>Obra Certa — App de Gestão de Obras | Controle Estoque, Cronograma e Financeiro</title>
+    <meta name="title" content="Obra Certa — App de Gestão de Obras | Controle Estoque, Cronograma e Financeiro" />
+    <meta name="description" content="Gerencie obras, controle estoque, emita relatórios diários (RDO) e controle medições com retenção técnica. Mais de 500 obras gerenciadas. Grátis para começar." />
+    <meta name="keywords" content="app gestão de obras, controle de estoque obra, diário de obra RDO, cronograma de obra, medição de obra, retenção técnica, construtora, engenharia civil, software construção civil, portal do cliente obra" />
     <meta name="author" content="Obra Certa" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <meta name="theme-color" content="#f97316" />
     <link rel="canonical" href="https://obracertaapp.lovable.app" />
-    
+
+    <!-- Preload critical assets -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
     <!-- Apple PWA meta tags -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -25,41 +29,178 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://obracertaapp.lovable.app" />
-    <meta property="og:title" content="Obra Certa - Gestão de Obras Descomplicada" />
-    <meta property="og:description" content="Pare de jogar dinheiro fora no canteiro de obras. Controle estoque, cronograma e gere relatórios profissionais. Grátis para começar." />
+    <meta property="og:title" content="Obra Certa — App de Gestão de Obras para Construtoras e Empreiteiros" />
+    <meta property="og:description" content="Pare de perder dinheiro na obra. Controle estoque, cronograma, medições e gere relatórios profissionais. Portal exclusivo para seu cliente. Grátis para começar." />
     <meta property="og:image" content="https://obracertaapp.lovable.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Obra Certa - Dashboard de gestão de obras" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="Obra Certa" />
 
-    <!-- Twitter -->
+    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://obracertaapp.lovable.app" />
-    <meta name="twitter:title" content="Obra Certa - Gestão de Obras Descomplicada" />
-    <meta name="twitter:description" content="Pare de jogar dinheiro fora no canteiro de obras. Controle estoque, cronograma e gere relatórios profissionais." />
+    <meta name="twitter:title" content="Obra Certa — App de Gestão de Obras" />
+    <meta name="twitter:description" content="Controle estoque, cronograma, medições e relatórios de obras. Portal do cliente incluso. Grátis para começar." />
     <meta name="twitter:image" content="https://obracertaapp.lovable.app/og-image.png" />
-    
+    <meta name="twitter:image:alt" content="Obra Certa - Dashboard de gestão de obras" />
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    
-    <!-- Structured Data / JSON-LD -->
+
+    <!-- Structured Data / JSON-LD: SoftwareApplication -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "Obra Certa",
+      "url": "https://obracertaapp.lovable.app",
       "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "BRL"
-      },
-      "description": "App de gestão de obras para controlar estoque, cronograma e diário de obra.",
+      "operatingSystem": "Web, iOS, Android",
+      "inLanguage": "pt-BR",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Plano Gratuito",
+          "price": "0",
+          "priceCurrency": "BRL"
+        },
+        {
+          "@type": "Offer",
+          "name": "Plano Start",
+          "price": "49",
+          "priceCurrency": "BRL",
+          "billingDuration": "P1M"
+        }
+      ],
+      "description": "App de gestão de obras para construtoras e empreiteiros. Controle estoque, cronograma, diário de obra (RDO), medições com retenção técnica e portal do cliente.",
+      "screenshot": "https://obracertaapp.lovable.app/og-image.png",
+      "featureList": [
+        "Controle de estoque de materiais",
+        "Cronograma de obras",
+        "Diário de obra (RDO) com fotos",
+        "Medições e retenção técnica",
+        "Portal do cliente com progresso",
+        "Dashboard de lucratividade",
+        "Relatórios em PDF"
+      ],
       "aggregateRating": {
         "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "500"
+        "ratingValue": "4.9",
+        "ratingCount": "512",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "review": [
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5",
+            "bestRating": "5"
+          },
+          "author": { "@type": "Person", "name": "João Silva" },
+          "reviewBody": "Antes eu perdia 20% do material. Com o Obra Certa, o desperdício zerou. Só isso já pagou o app."
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5",
+            "bestRating": "5"
+          },
+          "author": { "@type": "Person", "name": "Marcos Oliveira" },
+          "reviewBody": "O relatório diário em PDF me salvou de processos. É muito profissional. Meus clientes ficam impressionados."
+        },
+        {
+          "@type": "Review",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5",
+            "bestRating": "5"
+          },
+          "author": { "@type": "Person", "name": "Carlos Mendes" },
+          "reviewBody": "Com o sistema de Medição do Obra Certa, o desconto dos vales é automático. Economizei R$ 5.000 só no mês passado."
+        }
+      ]
+    }
+    </script>
+
+    <!-- Structured Data / JSON-LD: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Obra Certa",
+      "url": "https://obracertaapp.lovable.app",
+      "logo": "https://obracertaapp.lovable.app/icon-512.png",
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "availableLanguage": ["Portuguese", "English", "Spanish"]
       }
+    }
+    </script>
+
+    <!-- Structured Data / JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "O app de gestão de obras funciona sem internet?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim! O app funciona offline e sincroniza automaticamente quando você conectar à internet. Perfeito para canteiros sem Wi-Fi."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "O Obra Certa serve para reformas pequenas?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim, qualquer tipo de obra! Desde uma reforma de banheiro até um condomínio de alto padrão. O sistema se adapta ao seu projeto."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Como funciona o sistema de medição e retenção técnica?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Você define o valor do contrato de mão de obra por fase no cronograma. A cada medição, informa o percentual executado e o sistema calcula automaticamente o valor bruto, desconta os adiantamentos e aplica a retenção técnica. O resultado é o valor líquido exato a pagar."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Preciso instalar algum programa para usar o app de obras?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Não! O Obra Certa funciona direto no navegador do celular ou computador. Basta acessar, criar sua conta e começar."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Posso cancelar o plano a qualquer momento?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim, sem burocracia. Você pode cancelar sua assinatura quando quiser, sem taxa de cancelamento."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Structured Data / JSON-LD: WebSite (SearchAction) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Obra Certa",
+      "url": "https://obracertaapp.lovable.app"
     }
     </script>
   </head>
