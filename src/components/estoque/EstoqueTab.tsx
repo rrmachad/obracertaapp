@@ -301,6 +301,25 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
         </div>
       )}
 
+      {/* Contador de resultados */}
+      {materiais.length > 0 && (busca.trim() || categoriaFiltro !== 'all') && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            {materiaisFiltrados.length} {materiaisFiltrados.length === 1 ? t('inventory.result') : t('inventory.results')}
+            {materiais.length !== materiaisFiltrados.length && (
+              <span className="ml-1 opacity-60">/ {materiais.length}</span>
+            )}
+          </span>
+          <button
+            onClick={() => { setBusca(''); setCategoriaFiltro('all'); }}
+            className="flex items-center gap-1 hover:text-foreground transition-colors"
+          >
+            <X className="w-3 h-3" />
+            {t('inventory.clearFilters')}
+          </button>
+        </div>
+      )}
+
       {/* Lista de materiais */}
       {materiais.length === 0 ? (
         <Card className="border-dashed">
