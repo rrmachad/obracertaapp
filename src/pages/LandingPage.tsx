@@ -520,6 +520,9 @@ export function LandingPage() {
             <a href="#precos" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               {t('landing.navPricing')}
             </a>
+            <a href="#depoimentos" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              {t('landing.navTestimonials')}
+            </a>
             <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               {t('landing.navFaq')}
             </a>
