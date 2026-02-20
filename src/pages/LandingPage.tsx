@@ -347,12 +347,16 @@ function TestimonialsCarousel({ testimonials }: { testimonials: { name: string; 
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div
-        className={`grid grid-cols-3 gap-6 max-w-5xl mx-auto ${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
-        style={cardTransition}
-      >
-        {visibleIndices.map((idx) => (
-          <div key={idx}>
+      <div className="grid grid-cols-3 gap-6 max-w-5xl mx-auto">
+        {visibleIndices.map((idx, pos) => (
+          <div
+            key={idx}
+            className={`${fadingOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+            style={{
+              transition: `opacity 420ms cubic-bezier(0.4, 0, 0.2, 1), transform 420ms cubic-bezier(0.4, 0, 0.2, 1)`,
+              transitionDelay: fadingOut ? '0ms' : `${pos * 80}ms`,
+            }}
+          >
             <TestimonialCard t={testimonials[idx]} />
           </div>
         ))}
