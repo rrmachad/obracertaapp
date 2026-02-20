@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react';
-import { Package, Plus, AlertTriangle, Trash2, Filter, Ruler } from 'lucide-react';
+import { Package, Plus, AlertTriangle, Trash2, Filter, Ruler, Search, X } from 'lucide-react';
+
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -69,6 +72,8 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [categoriaFiltro, setCategoriaFiltro] = useState('all');
+  const [busca, setBusca] = useState('');
+
 
   // Agrupar materiais por categoria
   const materiaisAgrupados = useMemo(() => {
@@ -87,12 +92,21 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
 
   // Filtrar por categoria selecionada
   const materiaisFiltrados = useMemo(() => {
-    if (categoriaFiltro === 'all') return materiais;
-    return materiais.filter(m => {
-      const categoria = m.categoria || detectarCategoria(m.nome);
-      return categoria === categoriaFiltro;
-    });
-  }, [materiais, categoriaFiltro]);
+    let lista = materiais;
+    if (categoriaFiltro !== 'all') {
+      lista = lista.filter(m => {
+        const categoria = m.categoria || detectarCategoria(m.nome);
+        return categoria === categoriaFiltro;
+      });
+    }
+    if (busca.trim()) {
+      lista = lista.filter(m =>
+        m.nome.toLowerCase().includes(busca.trim().toLowerCase())
+      );
+    }
+    return lista;
+  }, [materiais, categoriaFiltro, busca]);
+
 
   // Contadores por categoria
   const contadorCategorias = useMemo(() => {
@@ -170,8 +184,30 @@ export function EstoqueTab({ obraId, sistemaMedidas = 'metrico', onUpgradeClick 
         </Badge>
       </div>
 
+      {/* Campo de busca */}
+      {materiais.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar material..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="pl-9 pr-9"
+          />
+          {busca && (
+            <button
+              onClick={() => setBusca('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Filtro por categoria */}
       {materiais.length > 0 && (
+
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-muted-foreground" />
           <Select value={categoriaFiltro} onValueChange={setCategoriaFiltro}>
