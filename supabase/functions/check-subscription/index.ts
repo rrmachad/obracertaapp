@@ -90,6 +90,27 @@ serve(async (req) => {
     });
 
     if (subscriptions.data.length === 0) {
+      logStep("No active subscription found in Stripe, checking database");
+
+      // Check what plan is stored in the database (e.g. manually activated plans)
+      const { data: dbSub } = await supabaseClient
+        .from("subscriptions")
+        .select("plan, max_users, status")
+        .eq("user_id", user.id)
+        .single();
+
+      if (dbSub && dbSub.plan !== "free" && dbSub.status === "active") {
+        logStep("User has manually activated plan in DB, respecting it", { plan: dbSub.plan });
+        return new Response(JSON.stringify({ 
+          subscribed: true, 
+          plan: dbSub.plan,
+          max_users: dbSub.max_users
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
       logStep("No active subscription found, returning free plan");
       return new Response(JSON.stringify({ 
         subscribed: false, 
