@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { DiarioLog, ClimaTipo, Profissional, FotoComLegenda } from '@/types/database';
+import { DiarioLog, ClimaTipo, Profissional, FotoComLegenda, Equipamento } from '@/types/database';
 import { format } from 'date-fns';
 import { Json } from '@/integrations/supabase/types';
 
@@ -36,6 +36,20 @@ function parseFotos(json: Json | null | undefined): FotoComLegenda[] {
   }).filter(f => f.url);
 }
 
+// Helper para converter Json para Equipamento[]
+function parseEquipamentos(json: Json | null | undefined): Equipamento[] {
+  if (!json || !Array.isArray(json)) return [];
+  return json.filter(
+    (item): item is { nome: string; quantidade: number } =>
+      typeof item === 'object' &&
+      item !== null &&
+      'nome' in item &&
+      'quantidade' in item &&
+      typeof (item as Record<string, unknown>).nome === 'string' &&
+      typeof (item as Record<string, unknown>).quantidade === 'number'
+  );
+}
+
 export function useDiario(obraId: string) {
   const queryClient = useQueryClient();
 
@@ -53,8 +67,9 @@ export function useDiario(obraId: string) {
       return (data ?? []).map(item => ({
         ...item,
         fotos: parseFotos(item.fotos),
-        profissionais: parseProfissionais(item.profissionais)
-      })) as DiarioLog[];
+        profissionais: parseProfissionais(item.profissionais),
+        equipamentos: parseEquipamentos(item.equipamentos)
+      })) as unknown as DiarioLog[];
     },
     enabled: !!obraId,
   });
@@ -67,6 +82,7 @@ export function useDiario(obraId: string) {
       observacoes?: string;
       fotos?: FotoComLegenda[];
       profissionais?: Profissional[];
+      equipamentos?: Equipamento[];
     }) => {
       const { data, error } = await supabase
         .from('diario_log')
@@ -77,7 +93,8 @@ export function useDiario(obraId: string) {
           observacoes: diario.observacoes,
           data: format(new Date(), 'yyyy-MM-dd'),
           fotos: (diario.fotos ?? []) as unknown as Json,
-          profissionais: (diario.profissionais ?? []) as unknown as Json
+          profissionais: (diario.profissionais ?? []) as unknown as Json,
+          equipamentos: (diario.equipamentos ?? []) as unknown as Json
         })
         .select()
         .single();
@@ -86,8 +103,9 @@ export function useDiario(obraId: string) {
       return {
         ...data,
         fotos: parseFotos(data.fotos),
-        profissionais: parseProfissionais(data.profissionais)
-      } as DiarioLog;
+        profissionais: parseProfissionais(data.profissionais),
+        equipamentos: parseEquipamentos(data.equipamentos)
+      } as unknown as DiarioLog;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['diario', obraId] });
@@ -95,13 +113,16 @@ export function useDiario(obraId: string) {
   });
 
   const updateDiario = useMutation({
-    mutationFn: async ({ id, profissionais, fotos, ...updates }: Partial<DiarioLog> & { id: string }) => {
+    mutationFn: async ({ id, profissionais, fotos, equipamentos, ...updates }: Partial<DiarioLog> & { id: string }) => {
       const updateData: Record<string, unknown> = { ...updates };
       if (profissionais !== undefined) {
         updateData.profissionais = profissionais as unknown as Json;
       }
       if (fotos !== undefined) {
         updateData.fotos = fotos as unknown as Json;
+      }
+      if (equipamentos !== undefined) {
+        updateData.equipamentos = equipamentos as unknown as Json;
       }
       
       const { data, error } = await supabase
@@ -115,8 +136,9 @@ export function useDiario(obraId: string) {
       return {
         ...data,
         fotos: parseFotos(data.fotos),
-        profissionais: parseProfissionais(data.profissionais)
-      } as DiarioLog;
+        profissionais: parseProfissionais(data.profissionais),
+        equipamentos: parseEquipamentos(data.equipamentos)
+      } as unknown as DiarioLog;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['diario', obraId] });

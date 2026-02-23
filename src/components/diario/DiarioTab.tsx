@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
-import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText, Share2, Building2, Crown, AlertTriangle } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSun, Calendar, Save, Loader2, ChevronDown, Image as ImageIcon, Pencil, Settings, History, ArrowUpDown, Users, FileText, Share2, Building2, Crown, AlertTriangle, Wrench, PackagePlus, PackageMinus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -26,11 +26,12 @@ import { useDiarioAlteracoes } from '@/hooks/useDiarioAlteracoes';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useToast } from '@/hooks/use-toast';
-import { ClimaTipo, DiarioLog, Profissional, FotoComLegenda } from '@/types/database';
+import { ClimaTipo, DiarioLog, Profissional, FotoComLegenda, Equipamento } from '@/types/database';
 import { FotoUpload } from './FotoUpload';
 import { PinDialog } from './PinDialog';
 import { EditarDiarioDialog } from './EditarDiarioDialog';
 import { ProfissionaisInput } from './ProfissionaisInput';
+import { EquipamentosInput } from './EquipamentosInput';
 import { RelatorioSemanalDialog } from './RelatorioSemanalDialog';
 import { RelatorioMensalDialog } from './RelatorioMensalDialog';
 import { ConfiguracaoEmpresaDialog } from './ConfiguracaoEmpresaDialog';
@@ -79,6 +80,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
   const [observacoes, setObservacoes] = useState('');
   const [fotos, setFotos] = useState<FotoComLegenda[]>([]);
   const [profissionais, setProfissionais] = useState<Profissional[]>([]);
+  const [equipamentos, setEquipamentos] = useState<Equipamento[]>([]);
   const [saving, setSaving] = useState(false);
   const [relatorioSemanalOpen, setRelatorioSemanalOpen] = useState(false);
   const [relatorioMensalOpen, setRelatorioMensalOpen] = useState(false);
@@ -122,14 +124,31 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
       });
     }
 
-    if (movsRecentes.length > 0) {
+    const movsEntrada = movimentacoes.filter(
+      m => (m.data === yesterday || m.data === today) && m.tipo === 'entrada'
+    );
+    const movsSaida = movimentacoes.filter(
+      m => (m.data === yesterday || m.data === today) && m.tipo === 'saida'
+    );
+
+    if (movsEntrada.length > 0) {
       if (linhas.length > 0) linhas.push('');
-      linhas.push(t('diary.materialMovements'));
-      movsRecentes.forEach(mov => {
+      linhas.push(`📦 ${t('diary.materialsReceived', 'Materiais Recebidos')}:`);
+      movsEntrada.forEach(mov => {
         const material = materiais.find(m => m.id === mov.material_id);
         if (material) {
-          const emoji = mov.tipo === 'entrada' ? '➕' : '➖';
-          linhas.push(`${emoji} ${material.nome}: ${mov.quantidade} ${material.unidade} (${mov.tipo})`);
+          linhas.push(`  ➕ ${material.nome}: ${mov.quantidade} ${material.unidade}`);
+        }
+      });
+    }
+
+    if (movsSaida.length > 0) {
+      if (linhas.length > 0) linhas.push('');
+      linhas.push(`🔧 ${t('diary.materialsUsed', 'Materiais Utilizados')}:`);
+      movsSaida.forEach(mov => {
+        const material = materiais.find(m => m.id === mov.material_id);
+        if (material) {
+          linhas.push(`  ➖ ${material.nome}: ${mov.quantidade} ${material.unidade}`);
         }
       });
     }
@@ -159,6 +178,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
         observacoes: observacoes.trim() || undefined,
         fotos: fotos,
         profissionais: profissionais,
+        equipamentos: equipamentos,
       });
 
       toast({
@@ -170,6 +190,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
       setObservacoes('');
       setFotos([]);
       setProfissionais([]);
+      setEquipamentos([]);
       setClima('ensolarado');
     } catch (error) {
       toast({
@@ -230,6 +251,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
       atividades_realizadas?: string;
       observacoes?: string;
       profissionais?: Profissional[];
+      equipamentos?: Equipamento[];
     },
     motivo?: string
   ) => {
@@ -237,8 +259,8 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
 
     try {
       for (const [campo, valorNovo] of Object.entries(updates)) {
-        if (campo === 'profissionais') {
-          const valorAnterior = JSON.stringify(selectedRegistro.profissionais || []);
+        if (campo === 'profissionais' || campo === 'equipamentos') {
+          const valorAnterior = JSON.stringify((selectedRegistro as any)[campo] || []);
           const valorNovoStr = JSON.stringify(valorNovo || []);
           if (valorAnterior !== valorNovoStr) {
             await registrarAlteracao.mutateAsync({
@@ -502,6 +524,13 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
             disabled={saving || !canCreate}
           />
 
+          {/* Máquinas e Equipamentos */}
+          <EquipamentosInput
+            value={equipamentos}
+            onChange={setEquipamentos}
+            disabled={saving || !canCreate}
+          />
+
           {/* Upload de fotos */}
           <div className="space-y-2">
             <Label className="text-base font-medium">{t('diary.sitePhotos')}</Label>
@@ -618,6 +647,21 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
                           {registro.profissionais.map((prof, index) => (
                             <Badge key={index} variant="secondary">
                               {prof.quantidade} {prof.funcao}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {registro.equipamentos && registro.equipamentos.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                          <Wrench className="w-4 h-4" />
+                          {t('diary.equipment', 'Equipamentos')} ({registro.equipamentos.reduce((sum, e) => sum + e.quantidade, 0)})
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {registro.equipamentos.map((equip, index) => (
+                            <Badge key={index} variant="outline" className="border-primary/30">
+                              {equip.quantidade} {equip.nome}
                             </Badge>
                           ))}
                         </div>

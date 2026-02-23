@@ -10,8 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { DiarioLog, ClimaTipo } from '@/types/database';
+import { DiarioLog, ClimaTipo, Equipamento } from '@/types/database';
 import { ProfissionaisInput, Profissional } from './ProfissionaisInput';
+import { EquipamentosInput } from './EquipamentosInput';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
@@ -25,6 +26,7 @@ interface EditarDiarioDialogProps {
     atividades_realizadas?: string;
     observacoes?: string;
     profissionais?: Profissional[];
+    equipamentos?: Equipamento[];
   }, motivo?: string) => Promise<void>;
   requiresMotivo?: boolean;
 }
@@ -36,6 +38,7 @@ export function EditarDiarioDialog({ open, onOpenChange, registro, onSave, requi
   const [atividades, setAtividades] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [profissionais, setProfissionais] = useState<Profissional[]>([]);
+  const [equipamentos, setEquipamentos] = useState<Equipamento[]>([]);
   const [motivo, setMotivo] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -57,6 +60,8 @@ export function EditarDiarioDialog({ open, onOpenChange, registro, onSave, requi
       setObservacoes(registro.observacoes || '');
       const profs = Array.isArray(registro.profissionais) ? (registro.profissionais as Profissional[]) : [];
       setProfissionais(profs);
+      const equips = Array.isArray(registro.equipamentos) ? (registro.equipamentos as Equipamento[]) : [];
+      setEquipamentos(equips);
       setMotivo('');
     }
   }, [registro]);
@@ -67,7 +72,7 @@ export function EditarDiarioDialog({ open, onOpenChange, registro, onSave, requi
 
     setSaving(true);
     try {
-      const updates: { data?: string; clima?: ClimaTipo; atividades_realizadas?: string; observacoes?: string; profissionais?: Profissional[] } = {};
+      const updates: { data?: string; clima?: ClimaTipo; atividades_realizadas?: string; observacoes?: string; profissionais?: Profissional[]; equipamentos?: Equipamento[] } = {};
       const newDataStr = data ? format(data, 'yyyy-MM-dd') : registro.data;
       if (newDataStr !== registro.data) updates.data = newDataStr;
       if (clima !== registro.clima) updates.clima = clima;
@@ -75,6 +80,8 @@ export function EditarDiarioDialog({ open, onOpenChange, registro, onSave, requi
       if (observacoes !== (registro.observacoes || '')) updates.observacoes = observacoes || undefined;
       const originalProfs = Array.isArray(registro.profissionais) ? (registro.profissionais as Profissional[]) : [];
       if (JSON.stringify(profissionais) !== JSON.stringify(originalProfs)) updates.profissionais = profissionais;
+      const originalEquips = Array.isArray(registro.equipamentos) ? (registro.equipamentos as Equipamento[]) : [];
+      if (JSON.stringify(equipamentos) !== JSON.stringify(originalEquips)) updates.equipamentos = equipamentos;
       await onSave(updates, motivo.trim());
       onOpenChange(false);
     } finally {
@@ -131,6 +138,8 @@ export function EditarDiarioDialog({ open, onOpenChange, registro, onSave, requi
           </div>
 
           <ProfissionaisInput value={profissionais} onChange={setProfissionais} />
+
+          <EquipamentosInput value={equipamentos} onChange={setEquipamentos} />
 
           {requiresMotivo && (
             <div className="space-y-2">

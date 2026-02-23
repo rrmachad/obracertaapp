@@ -1,0 +1,1 @@
+ALTER TABLE public.diario_log ADD COLUMN equipamentos JSONB DEFAULT NULL;
