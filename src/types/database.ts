@@ -69,6 +69,11 @@ export interface Profissional {
   quantidade: number;
 }
 
+export interface Equipamento {
+  nome: string;
+  quantidade: number;
+}
+
 export interface FotoComLegenda {
   url: string;
   legenda: string;
@@ -83,6 +88,7 @@ export interface DiarioLog {
   observacoes?: string;
   fotos: FotoComLegenda[];
   profissionais?: Profissional[];
+  equipamentos?: Equipamento[];
   created_at: string;
   updated_at: string;
 }
