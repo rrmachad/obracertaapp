@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { DiarioLog, ClimaTipo, Profissional, FotoComLegenda } from '@/types/database';
+import { DiarioLog, ClimaTipo, Profissional, FotoComLegenda, Equipamento } from '@/types/database';
 
 const climaLabels: Record<ClimaTipo, string> = {
   ensolarado: 'Ensolarado',
@@ -67,6 +67,7 @@ interface DailyReportData {
   atividades_realizadas: string;
   observacoes?: string | null;
   profissionais?: Profissional[] | null;
+  equipamentos?: Equipamento[] | null;
   fotos?: FotoComLegenda[] | null;
 }
 
@@ -378,6 +379,24 @@ export async function generateDailyReportPDF(
     y += lineHeight / 2;
   }
 
+  // Equipment
+  if (registro.equipamentos && registro.equipamentos.length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.text('MÁQUINAS E EQUIPAMENTOS', margin, y);
+    y += lineHeight;
+
+    doc.setFont('helvetica', 'normal');
+    const totalEquip = registro.equipamentos.reduce((sum, e) => sum + e.quantidade, 0);
+    doc.text(`Total: ${totalEquip} equipamento(s)`, margin, y);
+    y += lineHeight;
+
+    registro.equipamentos.forEach((equip) => {
+      doc.text(`• ${equip.quantidade} ${equip.nome}`, margin + 5, y);
+      y += lineHeight;
+    });
+    y += lineHeight / 2;
+  }
+
   // Observations
   if (registro.observacoes) {
     doc.setFont('helvetica', 'bold');
@@ -528,6 +547,14 @@ export async function generateWeeklyReportPDF(
     if (registro.observacoes) {
       doc.setFont('helvetica', 'italic');
       y = addWrappedText(doc, `Obs: ${registro.observacoes}`, margin, y, maxWidth, 6);
+    }
+
+    // Equipment per day
+    if (registro.equipamentos && registro.equipamentos.length > 0) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      const equipText = registro.equipamentos.map(e => `${e.quantidade}x ${e.nome}`).join(', ');
+      y = addWrappedText(doc, `Equipamentos: ${equipText}`, margin + 5, y, maxWidth - 5, 5);
     }
 
     y += lineHeight;
@@ -700,6 +727,14 @@ export async function generateMonthlyReportPDF(
       y = addWrappedText(doc, `Obs: ${registro.observacoes}`, margin, y, maxWidth, 6);
     }
 
+    // Equipment per day
+    if (registro.equipamentos && registro.equipamentos.length > 0) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      const equipText = registro.equipamentos.map(e => `${e.quantidade}x ${e.nome}`).join(', ');
+      y = addWrappedText(doc, `Equipamentos: ${equipText}`, margin + 5, y, maxWidth - 5, 5);
+    }
+
     y += lineHeight;
   });
 
@@ -773,6 +808,14 @@ export function generateDailyShareText(
     });
   }
 
+  if (registro.equipamentos && registro.equipamentos.length > 0) {
+    linhas.push('');
+    linhas.push('🔧 EQUIPAMENTOS:');
+    registro.equipamentos.forEach((equip) => {
+      linhas.push(`• ${equip.quantidade} ${equip.nome}`);
+    });
+  }
+
   if (registro.observacoes) {
     linhas.push('');
     linhas.push('📌 OBSERVAÇÕES:');
@@ -824,6 +867,9 @@ export function generateWeeklyShareText(data: WeeklyReportData): string {
     linhas.push('');
     linhas.push(`📌 ${diaFormatado.toUpperCase()}`);
     linhas.push(registro.atividades_realizadas);
+    if (registro.equipamentos && registro.equipamentos.length > 0) {
+      linhas.push(`Equipamentos: ${registro.equipamentos.map(e => `${e.quantidade}x ${e.nome}`).join(', ')}`);
+    }
     if (registro.observacoes) {
       linhas.push(`Obs: ${registro.observacoes}`);
     }
@@ -874,6 +920,9 @@ export function generateMonthlyShareText(data: MonthlyReportData): string {
     linhas.push('');
     linhas.push(`📌 ${diaFormatado.toUpperCase()}`);
     linhas.push(registro.atividades_realizadas);
+    if (registro.equipamentos && registro.equipamentos.length > 0) {
+      linhas.push(`Equipamentos: ${registro.equipamentos.map(e => `${e.quantidade}x ${e.nome}`).join(', ')}`);
+    }
     if (registro.observacoes) {
       linhas.push(`Obs: ${registro.observacoes}`);
     }
