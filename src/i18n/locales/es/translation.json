@@ -717,7 +717,11 @@
     "errorGeneratingPDF": "Error al generar PDF",
     "couldNotGeneratePDF": "No fue posible generar el reporte. Inténtelo de nuevo.",
     "diaryReport": "Diario de Obra",
-    "photo": "Foto"
+    "photo": "Foto",
+    "equipmentOnSite": "Máquinas y Equipos",
+    "selectEquipment": "Seleccione el equipo...",
+    "materialsReceived": "Materiales Recibidos",
+    "materialsUsed": "Materiales Utilizados"
   },
   "inventory": {
     "addMaterial": "Agregar Material",

@@ -717,7 +717,11 @@
     "errorGeneratingPDF": "Error generating PDF",
     "couldNotGeneratePDF": "Could not generate the report. Try again.",
     "diaryReport": "Daily Construction Report",
-    "photo": "Photo"
+    "photo": "Photo",
+    "equipmentOnSite": "Machines and Equipment",
+    "selectEquipment": "Select equipment...",
+    "materialsReceived": "Materials Received",
+    "materialsUsed": "Materials Used"
   },
   "inventory": {
     "addMaterial": "Add Material",
