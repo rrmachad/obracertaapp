@@ -17,6 +17,7 @@ import { useObras } from '@/hooks/useObras';
 import { useFases, getDefaultItemsForFase } from '@/hooks/useCronograma';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { supabase } from '@/integrations/supabase/client';
+import { compressImage } from '@/lib/imageCompression';
 
 interface NovaObraDialogProps {
   open: boolean;
@@ -39,11 +40,12 @@ export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraD
 
   const canCreate = canCreateObra();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFotoCapa(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      const compressed = await compressImage(file);
+      setFotoCapa(compressed);
+      setPreviewUrl(URL.createObjectURL(compressed));
     }
   };
 
