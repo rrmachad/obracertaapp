@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp, AlertTriangle } from 'lucide-react';
+import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp, AlertTriangle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -69,8 +69,9 @@ export function Dashboard() {
                 </Button>
               )}
               {isInvitedUser && (
-                <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground text-[10px] px-1.5">
-                  {t('nav.team')} · {planName}
+                <Badge variant="outline" className="border-secondary-foreground/30 text-secondary-foreground text-[10px] px-1.5 gap-1">
+                  <Users className="w-3 h-3" />
+                  {t('nav.roleGuest')} · {planName}
                 </Badge>
               )}
               <LanguageSwitcher variant="ghost" className="text-secondary-foreground hover:bg-secondary-foreground/10" />

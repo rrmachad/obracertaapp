@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users, Home, ChevronRight, DollarSign, Share2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users, Home, ChevronRight, DollarSign, Share2, Eye, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +36,7 @@ export function ObraDetails() {
   const { toast } = useToast();
   const { data: obra, isLoading, refetch } = useObra(id!);
   const { deleteObra, updateObra } = useObras();
-  const { canManageUsers, isAdmin } = useObraAccess(id!);
+  const { canManageUsers, isAdmin, isOwner } = useObraAccess(id!);
   const { limits } = usePlanLimits();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [acessosDialogOpen, setAcessosDialogOpen] = useState(false);
@@ -127,29 +127,55 @@ export function ObraDetails() {
                   <MoreVertical className="w-5 h-5 text-primary-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                <Pencil className="w-4 h-4 mr-2" /> {t('obra.editWork')}
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-56">
+              {/* Role indicator */}
+              <div className="px-2 py-1.5 text-xs text-muted-foreground flex items-center gap-1.5 border-b mb-1">
+                {isOwner ? (
+                  <><ShieldCheck className="w-3.5 h-3.5 text-primary" /> {t('nav.roleOwner')}</>
+                ) : isAdmin ? (
+                  <><ShieldCheck className="w-3.5 h-3.5 text-warning" /> {t('nav.roleGuestAdmin')}</>
+                ) : (
+                  <><Eye className="w-3.5 h-3.5" /> {t('nav.roleGuest')} · {t('nav.readOnly')}</>
+                )}
+              </div>
+
+              {/* Edit - only owner and obra admins */}
+              {isAdmin && (
+                <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                  <Pencil className="w-4 h-4 mr-2" /> {t('obra.editWork')}
+                </DropdownMenuItem>
+              )}
               {canManageUsers && (
                 <DropdownMenuItem onClick={() => setAcessosDialogOpen(true)}>
                   <Users className="w-4 h-4 mr-2" /> {t('obra.manageAccess')}
                 </DropdownMenuItem>
               )}
-              {limits.canAccessPortal && (
+              {limits.canAccessPortal && isAdmin && (
                 <DropdownMenuItem onClick={() => setPortalDialogOpen(true)}>
                   <Share2 className="w-4 h-4 mr-2" /> {t('obra.clientPortal')}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleStatusChange('planejamento')}>{t('obra.markPlanning')}</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusChange('em_andamento')}>{t('obra.markInProgress')}</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusChange('pausada')}>{t('obra.pauseWork')}</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusChange('concluida')}>{t('obra.markCompleted')}</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
-                <Trash2 className="w-4 h-4 mr-2" /> {t('obra.deleteWork')}
-              </DropdownMenuItem>
+
+              {/* Status changes - only owner and obra admins */}
+              {isAdmin && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleStatusChange('planejamento')}>{t('obra.markPlanning')}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusChange('em_andamento')}>{t('obra.markInProgress')}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusChange('pausada')}>{t('obra.pauseWork')}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusChange('concluida')}>{t('obra.markCompleted')}</DropdownMenuItem>
+                </>
+              )}
+
+              {/* Delete - only owner */}
+              {isOwner && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                    <Trash2 className="w-4 h-4 mr-2" /> {t('obra.deleteWork')}
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           </div>
@@ -159,7 +185,18 @@ export function ObraDetails() {
           <div className="bg-card rounded-lg shadow-lg p-4 border">
             <div className="flex items-start justify-between mb-2">
               <h1 className="font-bold text-xl flex-1">{obra.nome}</h1>
-              <Badge className={status.className}>{status.label}</Badge>
+              <div className="flex items-center gap-2 shrink-0">
+                {!isOwner && (
+                  <Badge variant="secondary" className="text-[10px] gap-1">
+                    {isAdmin ? (
+                      <><ShieldCheck className="w-3 h-3" /> {t('nav.roleGuestAdmin')}</>
+                    ) : (
+                      <><Eye className="w-3 h-3" /> {t('nav.roleGuest')}</>
+                    )}
+                  </Badge>
+                )}
+                <Badge className={status.className}>{status.label}</Badge>
+              </div>
             </div>
             <p className="text-sm text-muted-foreground mb-3">{obra.endereco}</p>
             <div className="space-y-1.5">
