@@ -6,6 +6,44 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function sendEmailNotification(ownerEmail: string, ownerName: string, guestName: string, obraNome: string) {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) {
+    console.warn("RESEND_API_KEY not configured, skipping email notification");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${resendKey}`,
+      },
+      body: JSON.stringify({
+        from: "ObraCerta <noreply@updates.obracertaapp.com>",
+        to: [ownerEmail],
+        subject: `${guestName} aceitou seu convite - ${obraNome}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #1a1a1a;">Convite Aceito! 🎉</h2>
+            <p>Olá <strong>${ownerName}</strong>,</p>
+            <p><strong>${guestName}</strong> aceitou seu convite e agora tem acesso à obra <strong>${obraNome}</strong>.</p>
+            <p style="color: #666; font-size: 14px; margin-top: 24px;">— Equipe ObraCerta</p>
+          </div>
+        `,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("Resend error:", err);
+    }
+  } catch (e) {
+    console.error("Email send error:", e);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -111,8 +149,52 @@ Deno.serve(async (req) => {
       console.error("Error creating access:", accessError);
     }
 
-    // 7. The user_roles trigger (handle_new_user_subscription) already creates 'user' role
-    // No need to manually insert role
+    // 7. Notify the owner (in-app + email)
+    try {
+      // Get obra name
+      const { data: obra } = await supabaseAdmin
+        .from("obras")
+        .select("nome")
+        .eq("id", invite.obra_id)
+        .single();
+
+      const obraNome = obra?.nome || "Obra";
+
+      // In-app notification
+      await supabaseAdmin
+        .from("notifications")
+        .insert({
+          user_id: invite.invited_by,
+          type: "invite_accepted",
+          title: "Convite aceito!",
+          message: `${nome} aceitou seu convite e agora tem acesso à obra "${obraNome}".`,
+          data: {
+            guest_name: nome,
+            guest_email: email,
+            obra_id: invite.obra_id,
+            obra_nome: obraNome,
+          },
+        });
+
+      // Get owner info for email
+      const { data: ownerProfile } = await supabaseAdmin
+        .from("profiles")
+        .select("nome, email")
+        .eq("user_id", invite.invited_by)
+        .single();
+
+      if (ownerProfile?.email) {
+        await sendEmailNotification(
+          ownerProfile.email,
+          ownerProfile.nome || "Proprietário",
+          nome,
+          obraNome
+        );
+      }
+    } catch (notifError) {
+      console.error("Error sending notification:", notifError);
+      // Don't fail the whole flow for notification errors
+    }
 
     return new Response(
       JSON.stringify({
