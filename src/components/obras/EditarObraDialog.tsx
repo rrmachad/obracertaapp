@@ -74,13 +74,16 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
       // Upload da nova foto se houver
       if (fotoCapa) {
         const fileExt = fotoCapa.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
+        const fileName = `${obra.user_id}/${obra.id}_${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('obras-fotos')
-          .upload(fileName, fotoCapa);
+          .upload(fileName, fotoCapa, { upsert: true });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Upload error details:', uploadError);
+          throw uploadError;
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from('obras-fotos')
@@ -120,7 +123,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Pencil className="w-6 h-6 text-primary" />
@@ -131,7 +134,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 pb-2">
           {/* Foto de capa */}
           <div className="space-y-2">
             <Label className="text-base font-medium">Foto do terreno/obra</Label>
