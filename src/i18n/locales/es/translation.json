@@ -14,7 +14,15 @@
     "login": "Ingresar",
     "signup": "Empezar Gratis",
     "logout": "Salir",
-    "team": "Equipo"
+    "team": "Equipo",
+    "roleGuest": "Invitado",
+    "roleGuestAdmin": "Admin (invitado)",
+    "roleOwner": "Propietario",
+    "readOnly": "Solo lectura",
+    "noPermission": "Sin permiso para esta acción",
+    "onlyOwnerCanEdit": "Solo el propietario o admins pueden editar",
+    "onlyOwnerCanDelete": "Solo el propietario puede eliminar",
+    "onlyOwnerCanChangeStatus": "Solo el propietario o admins pueden cambiar el estado"
   },
   "dashboard": {
     "title": "Dashboard",

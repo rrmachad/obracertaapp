@@ -14,7 +14,15 @@
     "login": "Log In",
     "signup": "Start Free",
     "logout": "Sign Out",
-    "team": "Team"
+    "team": "Team",
+    "roleGuest": "Guest",
+    "roleGuestAdmin": "Admin (guest)",
+    "roleOwner": "Owner",
+    "readOnly": "Read only",
+    "noPermission": "No permission for this action",
+    "onlyOwnerCanEdit": "Only the owner or admins can edit",
+    "onlyOwnerCanDelete": "Only the owner can delete",
+    "onlyOwnerCanChangeStatus": "Only the owner or admins can change status"
   },
   "dashboard": {
     "title": "Dashboard",
