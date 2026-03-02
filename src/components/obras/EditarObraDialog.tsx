@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Building2, Camera, Loader2, Pencil, ShieldCheck, Ruler } from 'lucide-react';
+import { MapPin, Building2, Camera, Loader2, Pencil, ShieldCheck, Ruler, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
   const [sistemaMedidas, setSistemaMedidas] = useState<SistemaMedidas>(obra.sistema_medidas ?? 'metrico');
   const [fotoCapa, setFotoCapa] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(obra.foto_capa);
+  const [removedFoto, setRemovedFoto] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { updateObra } = useObras();
@@ -45,6 +46,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
     setSistemaMedidas(obra.sistema_medidas ?? 'metrico');
     setPreviewUrl(obra.foto_capa);
     setFotoCapa(null);
+    setRemovedFoto(false);
   }, [obra]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,6 +55,13 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
       setFotoCapa(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
+  };
+
+  const handleRemoveFoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPreviewUrl(null);
+    setFotoCapa(null);
+    setRemovedFoto(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,7 +78,12 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
     setLoading(true);
 
     try {
-      let fotoUrl: string | undefined = obra.foto_capa ?? undefined;
+      let fotoUrl: string | null | undefined = obra.foto_capa ?? undefined;
+
+      // Foto removida pelo usuário
+      if (removedFoto && !fotoCapa) {
+        fotoUrl = null;
+      }
 
       // Upload da nova foto se houver
       if (fotoCapa) {
@@ -143,7 +157,17 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
               onClick={() => document.getElementById('foto-edit-input')?.click()}
             >
               {previewUrl ? (
-                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                <>
+                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={handleRemoveFoto}
+                    className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1.5 shadow-md hover:bg-destructive/90 transition-colors z-10"
+                    title="Remover foto"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </>
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                   <Camera className="w-8 h-8 mb-2" />
