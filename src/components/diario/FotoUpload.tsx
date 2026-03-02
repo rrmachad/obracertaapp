@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { FotoComLegenda } from '@/types/database';
+import { compressImageToBlob } from '@/lib/imageCompression';
 
 interface FotoUploadProps {
   fotos: FotoComLegenda[];
@@ -14,26 +15,7 @@ interface FotoUploadProps {
   disabled?: boolean;
 }
 
-async function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<Blob> {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let { width, height } = img;
-        if (width > maxWidth) { height = (height * maxWidth) / width; width = maxWidth; }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => resolve(blob || file), 'image/jpeg', quality);
-      };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-}
+// compressImage moved to @/lib/imageCompression
 
 export function FotoUpload({ fotos, onFotosChange, obraId, disabled }: FotoUploadProps) {
   const { t } = useTranslation();
@@ -49,7 +31,7 @@ export function FotoUpload({ fotos, onFotosChange, obraId, disabled }: FotoUploa
     const newFotos: FotoComLegenda[] = [...fotos];
     try {
       for (const file of Array.from(files)) {
-        const compressedBlob = await compressImage(file);
+        const compressedBlob = await compressImageToBlob(file);
         const fileName = `${obraId}/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
         const { error: uploadError } = await supabase.storage.from('diario-fotos').upload(fileName, compressedBlob, { contentType: 'image/jpeg', cacheControl: '3600' });
         if (uploadError) throw uploadError;
