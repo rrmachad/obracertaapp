@@ -33,7 +33,10 @@
     "noWorksRegistered": "Nenhuma obra cadastrada",
     "waitingAccess": "Aguardando acesso",
     "askOwner": "Peça ao responsável para compartilhar uma obra com você",
-    "startAdding": "Comece adicionando sua primeira obra"
+    "startAdding": "Comece adicionando sua primeira obra",
+    "guestWelcomeTitle": "Bem-vindo à equipe! 👋",
+    "guestWelcomeDesc": "Você está conectado como convidado. Pode visualizar as obras, registrar diários e atualizar o estoque. Edições na obra e exclusões são reservadas ao proprietário.",
+    "guestWelcomeDismiss": "Entendi"
   },
   "obra": {
     "notFound": "Obra não encontrada",

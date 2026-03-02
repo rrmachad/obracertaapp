@@ -33,7 +33,10 @@
     "noWorksRegistered": "No projects registered",
     "waitingAccess": "Waiting for access",
     "askOwner": "Ask the owner to share a project with you",
-    "startAdding": "Start by adding your first project"
+    "startAdding": "Start by adding your first project",
+    "guestWelcomeTitle": "Welcome to the team! 👋",
+    "guestWelcomeDesc": "You're connected as a guest. You can view projects, log daily reports and update inventory. Editing or deleting projects is reserved for the owner.",
+    "guestWelcomeDismiss": "Got it"
   },
   "obra": {
     "notFound": "Project not found",
