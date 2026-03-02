@@ -127,11 +127,17 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
     setLoading(true);
 
     try {
-      let fotoUrl: string | null | undefined = obra.foto_capa ?? undefined;
+      const updateData: Record<string, any> = {
+        id: obra.id,
+        nome: nome.trim(),
+        endereco: endereco.trim(),
+        retencao_tecnica_percentual: parseFloat(retencao) || 5,
+        sistema_medidas: sistemaMedidas,
+      };
 
       // Foto removida pelo usuário
       if (removedFoto && !fotoCapa) {
-        fotoUrl = null;
+        updateData.foto_capa = null;
       }
 
       // Upload da nova foto se houver
@@ -145,25 +151,18 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
 
         if (uploadError) {
           console.error('Upload error details:', uploadError);
-          throw uploadError;
+          throw new Error(`Falha no upload da foto: ${uploadError.message}`);
         }
 
         const { data: { publicUrl } } = supabase.storage
           .from('obras-fotos')
           .getPublicUrl(fileName);
         
-        fotoUrl = publicUrl;
+        updateData.foto_capa = publicUrl;
       }
 
       // Atualizar a obra
-      await updateObra.mutateAsync({
-        id: obra.id,
-        nome: nome.trim(),
-        endereco: endereco.trim(),
-        foto_capa: fotoUrl,
-        retencao_tecnica_percentual: parseFloat(retencao) || 5,
-        sistema_medidas: sistemaMedidas,
-      } as any);
+      await updateObra.mutateAsync(updateData as any);
 
       toast({
         title: 'Obra atualizada!',
