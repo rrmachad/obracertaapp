@@ -13,6 +13,7 @@ import { PlanoResumoCard } from '@/components/admin/PlanoResumoCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { SuporteVipButton } from '@/components/SuporteVipButton';
+import { NotificationBell } from '@/components/NotificationBell';
 import { useObras } from '@/hooks/useObras';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
