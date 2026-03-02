@@ -99,7 +99,9 @@ export function useObras() {
       return data as Obra;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['obras'] });
+      queryClient.invalidateQueries({ queryKey: ['obras-own'] });
+      queryClient.invalidateQueries({ queryKey: ['obras-shared'] });
+      queryClient.invalidateQueries({ queryKey: ['obra'] });
     },
   });
 
