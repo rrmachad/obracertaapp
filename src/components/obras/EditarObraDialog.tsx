@@ -141,11 +141,12 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
 
       onSuccess?.();
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar obra:', error);
+      const message = error?.message || error?.error_description || 'Tente novamente mais tarde.';
       toast({
         title: 'Erro ao atualizar obra',
-        description: 'Tente novamente mais tarde.',
+        description: message,
         variant: 'destructive',
       });
     } finally {
