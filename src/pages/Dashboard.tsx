@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp, AlertTriangle, Users } from 'lucide-react';
+import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp, AlertTriangle, Users, Eye, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +32,14 @@ export function Dashboard() {
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [guestBannerDismissed, setGuestBannerDismissed] = useState(() => {
+    return localStorage.getItem('guest-banner-dismissed') === 'true';
+  });
+
+  const dismissGuestBanner = useCallback(() => {
+    setGuestBannerDismissed(true);
+    localStorage.setItem('guest-banner-dismissed', 'true');
+  }, []);
 
   const filteredObras = obras.filter(obra =>
     obra.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -151,6 +159,28 @@ export function Dashboard() {
       <main className="container py-4 pb-24">
         {/* Card de resumo do plano */}
         <PlanoResumoCard onUpgradeClick={() => setUpgradeDialogOpen(true)} ownerUserId={isInvitedUser ? ownerUserId : undefined} isInvitedUser={isInvitedUser} />
+
+        {/* Banner de boas-vindas para convidados */}
+        {isInvitedUser && !isLoading && !guestBannerDismissed && (
+          <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-4 relative">
+            <button
+              onClick={dismissGuestBanner}
+              className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={t('dashboard.guestWelcomeDismiss')}
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex items-start gap-3 pr-6">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                <Eye className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm mb-1">{t('dashboard.guestWelcomeTitle')}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{t('dashboard.guestWelcomeDesc')}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Barra de busca */}
         <div className="relative mb-4">
