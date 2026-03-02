@@ -4,7 +4,8 @@ type NotificationType =
   | 'invite_accepted'
   | 'medicao_criada'
   | 'estoque_baixo'
-  | 'cronograma_concluido';
+  | 'cronograma_concluido'
+  | 'diario_criado';
 
 interface CreateNotificationParams {
   userId: string;
@@ -153,5 +154,45 @@ export async function notifyCronogramaConcluido(obraId: string, itemDescricao: s
   await sendNotificationEmail('cronograma_concluido', obraId, {
     item_descricao: itemDescricao,
     concluido_por: callerName,
+  });
+}
+
+/**
+ * Notify the obra owner when a guest creates a new diário de obra entry
+ */
+export async function notifyDiarioCriado(obraId: string, data: string) {
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) return;
+
+  const { data: obra } = await supabase
+    .from('obras')
+    .select('user_id, nome')
+    .eq('id', obraId)
+    .single();
+
+  if (!obra) return;
+
+  // Don't notify yourself
+  if (obra.user_id === user.user.id) return;
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('nome')
+    .eq('user_id', user.user.id)
+    .single();
+
+  const callerName = profile?.nome || 'Usuário';
+
+  await createNotification({
+    userId: obra.user_id,
+    type: 'diario_criado',
+    title: 'Novo registro no diário 📋',
+    message: `${callerName} registrou um novo diário de obra (${data}) na obra "${obra.nome}".`,
+    data: { obra_id: obraId, data_registro: data },
+  });
+
+  await sendNotificationEmail('diario_criado' as any, obraId, {
+    data_registro: data,
+    criado_por: callerName,
   });
 }

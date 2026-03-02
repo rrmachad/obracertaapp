@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DiarioLog, ClimaTipo, Profissional, FotoComLegenda, Equipamento } from '@/types/database';
 import { format } from 'date-fns';
 import { Json } from '@/integrations/supabase/types';
+import { notifyDiarioCriado } from '@/lib/notifications';
 
 // Helper para converter Json para Profissional[]
 function parseProfissionais(json: Json | null | undefined): Profissional[] {
@@ -107,8 +108,9 @@ export function useDiario(obraId: string) {
         equipamentos: parseEquipamentos(data.equipamentos)
       } as unknown as DiarioLog;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['diario', obraId] });
+      notifyDiarioCriado(obraId, data.data);
     },
   });
 

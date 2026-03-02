@@ -66,6 +66,23 @@ function buildEmailContent(type: string, details: Record<string, unknown>, obraN
         `,
       };
 
+    case "diario_criado":
+      return {
+        subject: `📋 Novo diário de obra - ${obraNome}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #2563eb;">Novo Registro no Diário 📋</h2>
+            <p>Um novo registro foi adicionado ao diário da obra <strong>${obraNome}</strong>.</p>
+            <div style="background: #eff6ff; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #2563eb;">
+              <p style="margin: 0;"><strong>Data:</strong> ${details.data_registro}</p>
+              ${details.criado_por ? `<p style="margin: 8px 0 0;"><strong>Registrado por:</strong> ${details.criado_por}</p>` : ""}
+            </div>
+            <p>Acesse o ObraCerta para ver os detalhes completos.</p>
+            <p style="color: #666; font-size: 14px; margin-top: 24px;">— Equipe ObraCerta</p>
+          </div>
+        `,
+      };
+
     default:
       return {
         subject: `Notificação - ${obraNome}`,
