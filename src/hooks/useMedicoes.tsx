@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Medicao, Adiantamento } from '@/types/database';
+import { notifyMedicaoCriada } from '@/lib/notifications';
 
 export function useMedicoes(obraId: string) {
   const queryClient = useQueryClient();
@@ -43,9 +44,11 @@ export function useMedicoes(obraId: string) {
       if (error) throw error;
       return data as Medicao;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['medicoes', obraId] });
       queryClient.invalidateQueries({ queryKey: ['adiantamentos', obraId] });
+      // Notify obra owner
+      notifyMedicaoCriada(obraId, `Medição ${variables.data_medicao}`);
     },
   });
 

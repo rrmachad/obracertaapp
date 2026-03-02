@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Fase, CronogramaItem, ItemStatus } from '@/types/database';
+import { notifyCronogramaConcluido } from '@/lib/notifications';
 
 export function useFases() {
   return useQuery({
@@ -70,10 +71,14 @@ export function useCronogramaItens(obraId: string) {
       if (error) throw error;
       return data as CronogramaItem;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cronograma', obraId] });
       queryClient.invalidateQueries({ queryKey: ['obras'] });
       queryClient.invalidateQueries({ queryKey: ['obra'] });
+      // Notify when item is marked as completed
+      if (variables.status === 'concluido') {
+        notifyCronogramaConcluido(obraId, data.descricao);
+      }
     },
   });
 

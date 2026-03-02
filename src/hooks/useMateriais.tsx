@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Material } from '@/types/database';
 import { format } from 'date-fns';
+import { notifyEstoqueBaixo } from '@/lib/notifications';
 
 export function useMateriais(obraId: string) {
   const queryClient = useQueryClient();
@@ -100,9 +101,13 @@ export function useMateriais(obraId: string) {
 
       return data as Material;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['materiais', obraId] });
       queryClient.invalidateQueries({ queryKey: ['movimentacoes', obraId] });
+      // Check low stock and notify
+      if (data && data.qtd_atual <= data.qtd_minima && data.qtd_minima > 0) {
+        notifyEstoqueBaixo(obraId, data.nome, data.qtd_atual, data.qtd_minima);
+      }
     },
   });
 
