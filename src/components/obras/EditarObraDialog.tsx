@@ -12,6 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useObras } from '@/hooks/useObras';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,7 +43,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
   const [previewUrl, setPreviewUrl] = useState<string | null>(obra.foto_capa);
   const [removedFoto, setRemovedFoto] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const { updateObra } = useObras();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -59,9 +69,14 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
 
   const handleRemoveFoto = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setShowRemoveConfirm(true);
+  };
+
+  const confirmRemoveFoto = () => {
     setPreviewUrl(null);
     setFotoCapa(null);
     setRemovedFoto(true);
+    setShowRemoveConfirm(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,6 +151,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -294,5 +310,23 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
         </form>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={showRemoveConfirm} onOpenChange={setShowRemoveConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Remover foto de capa?</AlertDialogTitle>
+          <AlertDialogDescription>
+            A foto de capa será removida da obra. Você pode adicionar uma nova foto depois.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmRemoveFoto} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Remover
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
