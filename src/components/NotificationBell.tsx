@@ -6,7 +6,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS, es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 
 interface Notification {
   id: string;
@@ -20,8 +21,11 @@ interface Notification {
 
 export function NotificationBell() {
   const { user } = useAuth();
+  const { i18n } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+
+  const dateLocale = i18n.language?.startsWith('es') ? es : i18n.language?.startsWith('en') ? enUS : ptBR;
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -114,7 +118,7 @@ export function NotificationBell() {
                 <p className="text-sm font-medium">{n.title}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
                 <p className="text-[10px] text-muted-foreground/60 mt-1">
-                  {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
+                  {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: dateLocale })}
                 </p>
               </div>
             ))

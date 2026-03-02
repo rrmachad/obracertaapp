@@ -1051,6 +1051,16 @@ export type Database = {
     }
     Functions: {
       calcular_progresso_obra: { Args: { p_obra_id: string }; Returns: number }
+      create_notification: {
+        Args: {
+          _data?: Json
+          _message: string
+          _title: string
+          _type: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       generate_pin: { Args: never; Returns: string }
       get_plan_user_limit: {
         Args: { _plan: Database["public"]["Enums"]["subscription_plan"] }
