@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Plus, Copy, Trash2, Shield, User, Check, Crown, Link, MessageCircle, Clock } from 'lucide-react';
+import { Users, Plus, Copy, Trash2, Shield, User, Check, Crown, Link, MessageCircle, Clock, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import {
@@ -35,7 +35,7 @@ export function GerenciarAcessosDialog({
   obraNome,
 }: GerenciarAcessosDialogProps) {
   const { toast } = useToast();
-  const { invites, accessList, createInvite, cancelInvite, revokeAccess, updateAccessRole, isLoading } = useUserInvites(obraId);
+  const { invites, accessList, createInvite, cancelInvite, revokeAccess, updateAccessRole, renewInvite, isLoading } = useUserInvites(obraId);
   const { plan, planName, maxUsers } = useSubscription();
   const [newRole, setNewRole] = useState<AppRole>('user');
   const [copiedPin, setCopiedPin] = useState<string | null>(null);
@@ -95,14 +95,21 @@ export function GerenciarAcessosDialog({
   const handleCancelInvite = async (inviteId: string) => {
     try {
       await cancelInvite.mutateAsync(inviteId);
+      toast({ title: 'Convite cancelado' });
+    } catch (error) {
+      toast({ title: 'Erro ao cancelar', variant: 'destructive' });
+    }
+  };
+
+  const handleRenewInvite = async (inviteId: string) => {
+    try {
+      const renewed = await renewInvite.mutateAsync(inviteId);
       toast({
-        title: 'Convite cancelado',
+        title: 'Convite renovado!',
+        description: 'Novo link gerado com validade de 7 dias.',
       });
     } catch (error) {
-      toast({
-        title: 'Erro ao cancelar',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro ao renovar convite', variant: 'destructive' });
     }
   };
 
@@ -236,29 +243,42 @@ export function GerenciarAcessosDialog({
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    <div className="flex gap-2">
+                    {invite.expires_at && new Date(invite.expires_at) < new Date() ? (
                       <Button
+                        size="sm"
                         variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => handleCopyLink(invite.pin_code)}
+                        className="w-full"
+                        onClick={() => handleRenewInvite(invite.id)}
+                        disabled={renewInvite.isPending}
                       >
-                        {copiedPin === invite.pin_code ? (
-                          <Check className="w-4 h-4 mr-1 text-green-600" />
-                        ) : (
-                          <Link className="w-4 h-4 mr-1" />
-                        )}
-                        {copiedPin === invite.pin_code ? 'Copiado!' : 'Copiar Link'}
+                        <RefreshCw className={`w-4 h-4 mr-1 ${renewInvite.isPending ? 'animate-spin' : ''}`} />
+                        Renovar Convite
                       </Button>
-                      <Button
-                        size="sm"
-                        className="flex-1 bg-[#25D366] hover:bg-[#1da851] text-white"
-                        onClick={() => handleShareWhatsApp(invite.pin_code)}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-1" />
-                        WhatsApp
-                      </Button>
-                    </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleCopyLink(invite.pin_code)}
+                        >
+                          {copiedPin === invite.pin_code ? (
+                            <Check className="w-4 h-4 mr-1 text-green-600" />
+                          ) : (
+                            <Link className="w-4 h-4 mr-1" />
+                          )}
+                          {copiedPin === invite.pin_code ? 'Copiado!' : 'Copiar Link'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-[#25D366] hover:bg-[#1da851] text-white"
+                          onClick={() => handleShareWhatsApp(invite.pin_code)}
+                        >
+                          <MessageCircle className="w-4 h-4 mr-1" />
+                          WhatsApp
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
