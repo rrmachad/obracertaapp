@@ -11,6 +11,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LandingPage } from "./pages/LandingPage";
 import { AuthPage } from "./pages/AuthPage";
+import { ConvitePage } from "./pages/ConvitePage";
 import { Dashboard } from "./pages/Dashboard";
 import { ObraDetails } from "./pages/ObraDetails";
 import { AdminPanel } from "./pages/AdminPanel";
@@ -44,6 +45,7 @@ const App = () => (
                 {/* Public Routes */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/convite" element={<ConvitePage />} />
                 <Route path="/portal/:token" element={<PortalCliente />} />
                 
                 {/* Protected Routes */}

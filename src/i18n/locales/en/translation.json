@@ -642,6 +642,12 @@
     "loginTitle": "Sign in to your account",
     "signupTitle": "Create your free account",
     "backToLogin": "Back to login",
+    "validatingInvite": "Validating invite...",
+    "inviteValidated": "Valid invite! Complete your registration.",
+    "inviteError": "Invalid invite",
+    "invalidOrUsedPin": "This invite is invalid or has already been used.",
+    "errorValidatingPin": "Error validating invite. Please try again.",
+    "tryManualPin": "Enter PIN manually",
     "noAccount": "Don't have an account? Sign up",
     "hasAccount": "Already have an account? Sign in"
   },
