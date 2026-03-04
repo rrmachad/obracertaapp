@@ -92,6 +92,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
   const [diarioPDF, setDiarioPDF] = useState<jsPDF | null>(null);
   const [diarioPDFFilename, setDiarioPDFFilename] = useState('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [autoFilledSections, setAutoFilledSections] = useState<string[]>([]);
 
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [pinDialogMode, setPinDialogMode] = useState<'validate' | 'create' | 'change'>('validate');
@@ -155,6 +156,11 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
 
     if (linhas.length > 0) {
       setAtividades(linhas.join('\n'));
+      const sections: string[] = [];
+      if (itensConcluidos.length > 0) sections.push(t('diary.completedActivities', 'Cronograma'));
+      if (movsEntrada.length > 0) sections.push(t('diary.materialsReceived', 'Materiais Recebidos'));
+      if (movsSaida.length > 0) sections.push(t('diary.materialsUsed', 'Materiais Utilizados'));
+      setAutoFilledSections(sections);
     }
   }, [cronogramaItens, movimentacoes, materiais, fases]);
 
@@ -192,6 +198,7 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
       setProfissionais([]);
       setEquipamentos([]);
       setClima('ensolarado');
+      setAutoFilledSections([]);
     } catch (error) {
       toast({
         title: t('diary.errorSaving'),
@@ -482,13 +489,25 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
               <Label htmlFor="atividades" className="text-base font-medium">
                 {t('diary.whatWasDone')}
               </Label>
-              {atividades && (
-                <Badge variant="outline" className="gap-1 text-xs">
-                  <ArrowUpDown className="w-3 h-3" />
-                  {t('diary.preFilled')}
-                </Badge>
+              {autoFilledSections.length > 0 && (
+                <div className="flex items-center gap-1 flex-wrap justify-end">
+                  {autoFilledSections.map((section, i) => (
+                    <Badge key={i} variant="secondary" className="gap-1 text-xs">
+                      <Wrench className="w-3 h-3" />
+                      {section}
+                    </Badge>
+                  ))}
+                </div>
               )}
             </div>
+            {autoFilledSections.length > 0 && (
+              <Alert className="bg-primary/5 border-primary/20 py-2">
+                <AlertDescription className="text-xs flex items-center gap-1.5">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-primary shrink-0" />
+                  {t('diary.autoFilledIndicator', 'Conteúdo pré-preenchido automaticamente com dados do cronograma e estoque. Você pode editar livremente.')}
+                </AlertDescription>
+              </Alert>
+            )}
             <Textarea
               id="atividades"
               placeholder={t('diary.activitiesPlaceholder')}
