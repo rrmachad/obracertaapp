@@ -1117,6 +1117,17 @@
         "step3": "O sistema validará o código automaticamente.",
         "step4": "Preencha seu nome, e-mail e crie sua senha pessoal para os próximos acessos.",
         "step5": "Pronto! Você já está dentro da obra."
+      },
+      "createWork": {
+        "title": "Como cadastrar sua primeira obra e definir as fases",
+        "step1": "No Dashboard, toque no botão \"+\" (canto inferior direito) para abrir o formulário \"Nova Obra\".",
+        "step2": "Adicione uma foto do terreno ou da obra tocando em \"Toque para adicionar foto\".",
+        "step3": "Preencha o campo \"Nome da obra\" (ex: Casa Residencial Silva).",
+        "step4": "Preencha o campo \"Endereço\" (Rua, número, bairro).",
+        "step5": "Toque no botão \"Criar Obra\" para salvar.",
+        "step6": "O sistema criará automaticamente 6 fases padrão para sua obra: Serviços Preliminares, Fundação, Estrutura, Cobertura, Instalações e Acabamento.",
+        "step7": "Acesse a aba \"Cronograma\" dentro da obra para visualizar e gerenciar todas as fases e seus itens.",
+        "note": "Cada fase já vem com itens de checklist pré-cadastrados. Você pode marcar o progresso de cada item conforme a obra avança."
       }
     }
   }

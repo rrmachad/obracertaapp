@@ -1117,6 +1117,17 @@
         "step3": "El sistema validará el código automáticamente.",
         "step4": "Completa tu nombre, email y crea una contraseña personal para futuros accesos.",
         "step5": "¡Listo! Ya estás dentro de la obra."
+      },
+      "createWork": {
+        "title": "Cómo registrar tu primera obra y definir las fases",
+        "step1": "En el Dashboard, toca el botón \"+\" (esquina inferior derecha) para abrir el formulario \"Nueva Obra\".",
+        "step2": "Agrega una foto del terreno o de la obra tocando en \"Toca para agregar foto\".",
+        "step3": "Completa el campo \"Nombre de la obra\" (ej: Casa Residencial Silva).",
+        "step4": "Completa el campo \"Dirección\" (Calle, número, barrio).",
+        "step5": "Toca el botón \"Crear Obra\" para guardar.",
+        "step6": "El sistema creará automáticamente 6 fases estándar para tu obra: Servicios Preliminares, Cimentación, Estructura, Cubierta, Instalaciones y Acabado.",
+        "step7": "Accede a la pestaña \"Cronograma\" dentro de la obra para visualizar y gestionar todas las fases y sus ítems.",
+        "note": "Cada fase viene con ítems de checklist pre-registrados. Puedes marcar el progreso de cada ítem a medida que la obra avanza."
       }
     }
   }

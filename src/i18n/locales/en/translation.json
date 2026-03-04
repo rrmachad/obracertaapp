@@ -1117,6 +1117,17 @@
         "step3": "The system will automatically validate the code.",
         "step4": "Fill in your name, email and create a personal password for future access.",
         "step5": "Done! You're now inside the project."
+      },
+      "createWork": {
+        "title": "How to register your first project and define phases",
+        "step1": "On the Dashboard, tap the \"+\" button (bottom right corner) to open the \"New Project\" form.",
+        "step2": "Add a photo of the lot or project by tapping \"Tap to add photo\".",
+        "step3": "Fill in the \"Project name\" field (e.g., Residential House Silva).",
+        "step4": "Fill in the \"Address\" field (Street, number, neighborhood).",
+        "step5": "Tap the \"Create Project\" button to save.",
+        "step6": "The system will automatically create 6 default phases for your project: Preliminary Services, Foundation, Structure, Roofing, Installations, and Finishing.",
+        "step7": "Go to the \"Schedule\" tab inside the project to view and manage all phases and their items.",
+        "note": "Each phase comes with pre-registered checklist items. You can track progress for each item as the project advances."
       }
     }
   }

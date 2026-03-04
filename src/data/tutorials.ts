@@ -73,4 +73,20 @@ export const tutorials: Tutorial[] = [
       'helpCenter.tutorials.pinAccess.step5',
     ],
   },
+  {
+    id: 'cadastrar-obra',
+    category: 'gestao-obras',
+    categoryIcon: '🏗️',
+    title: 'helpCenter.tutorials.createWork.title',
+    steps: [
+      'helpCenter.tutorials.createWork.step1',
+      'helpCenter.tutorials.createWork.step2',
+      'helpCenter.tutorials.createWork.step3',
+      'helpCenter.tutorials.createWork.step4',
+      'helpCenter.tutorials.createWork.step5',
+      'helpCenter.tutorials.createWork.step6',
+      'helpCenter.tutorials.createWork.step7',
+    ],
+    note: 'helpCenter.tutorials.createWork.note',
+  },
 ];
