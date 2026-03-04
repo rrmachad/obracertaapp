@@ -207,6 +207,31 @@ export function useUserInvites(obraId: string) {
     },
   });
 
+  // Renovar convite expirado (novo PIN + nova data de expiração)
+  const renewInvite = useMutation({
+    mutationFn: async (inviteId: string) => {
+      const newPin = generatePin();
+      const newExpires = new Date();
+      newExpires.setDate(newExpires.getDate() + 7);
+
+      const { data, error } = await supabase
+        .from('user_invites')
+        .update({
+          pin_code: newPin,
+          expires_at: newExpires.toISOString(),
+        })
+        .eq('id', inviteId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as UserInvite;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-invites', obraId] });
+    },
+  });
+
   return {
     invites: invitesQuery.data || [],
     accessList: accessQuery.data || [],
@@ -216,6 +241,7 @@ export function useUserInvites(obraId: string) {
     updateAccessRole,
     revokeAccess,
     cancelInvite,
+    renewInvite,
   };
 }
 
