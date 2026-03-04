@@ -1054,6 +1054,7 @@ export type Database = {
     }
     Functions: {
       calcular_progresso_obra: { Args: { p_obra_id: string }; Returns: number }
+      cleanup_expired_invites: { Args: never; Returns: undefined }
       create_notification: {
         Args: {
           _data?: Json
