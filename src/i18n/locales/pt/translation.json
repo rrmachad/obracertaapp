@@ -99,6 +99,8 @@
     "pendingInvites": "Convites Pendentes",
     "expiredInvites": "Convites Expirados",
     "usedInvites": "Convites Utilizados",
+    "inviteStats": "Convites",
+    "allWorks": "Todas as Obras",
     "scheduleProgress": "Progresso Geral do Cronograma",
     "itemsCount": "{{done}}/{{total}} itens",
     "tasksCompleted": "{{pct}}% das tarefas concluídas em todas as obras",
