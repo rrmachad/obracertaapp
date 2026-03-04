@@ -707,6 +707,7 @@
     "preFilled": "Pre-filled",
     "activitiesPlaceholder": "Describe the activities performed...",
     "autoFillHint": "💡 Schedule activities and stock movements are filled in automatically.",
+    "autoFilledIndicator": "Content auto-filled from schedule and inventory data. You can edit freely.",
     "observationsOptional": "Observations (optional)",
     "observationsPlaceholder": "Issues, pending tasks, materials used...",
     "sitePhotos": "Site Photos",
