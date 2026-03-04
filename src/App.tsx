@@ -21,6 +21,7 @@ import { LucratividadePage } from "./pages/LucratividadePage";
 import { EstoqueAlertasPage } from "./pages/EstoqueAlertasPage";
 import NotFound from "./pages/NotFound";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { HelpCenterPage } from "./pages/HelpCenterPage";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,11 @@ const App = () => (
                 <Route path="/lucratividade" element={
                   <ProtectedRoute>
                     <LucratividadePage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/ajuda" element={
+                  <ProtectedRoute>
+                    <HelpCenterPage />
                   </ProtectedRoute>
                 } />
                 
