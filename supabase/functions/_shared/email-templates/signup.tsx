@@ -36,7 +36,8 @@ export const SignupEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={headerSection}>
-          <Text style={logoText}>🏗️ Obra Certa</Text>
+          <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt="Obra Certa" style={logoImg} />
+          <Text style={logoText}>Obra Certa</Text>
         </Section>
         <Hr style={divider} />
         <Heading style={h1}>Confirme seu e-mail</Heading>
