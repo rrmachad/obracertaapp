@@ -642,6 +642,12 @@
     "loginTitle": "Ingrese a su cuenta",
     "signupTitle": "Cree su cuenta gratis",
     "backToLogin": "Volver al login",
+    "validatingInvite": "Validando invitación...",
+    "inviteValidated": "¡Invitación válida! Complete su registro.",
+    "inviteError": "Invitación inválida",
+    "invalidOrUsedPin": "Esta invitación es inválida o ya fue utilizada.",
+    "errorValidatingPin": "Error al validar la invitación. Intente nuevamente.",
+    "tryManualPin": "Ingresar PIN manualmente",
     "noAccount": "¿No tiene cuenta? Regístrese",
     "hasAccount": "¿Ya tiene cuenta? Ingrese"
   },

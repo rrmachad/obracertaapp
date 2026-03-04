@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Plus, Copy, Trash2, Shield, User, Check, Crown } from 'lucide-react';
+import { Users, Plus, Copy, Trash2, Shield, User, Check, Crown, Link, MessageCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -67,14 +67,27 @@ export function GerenciarAcessosDialog({
     }
   };
 
-  const handleCopyPin = (pin: string) => {
-    navigator.clipboard.writeText(pin);
+  const getInviteUrl = (pin: string) => {
+    return `${window.location.origin}/convite?pin=${pin}`;
+  };
+
+  const handleCopyLink = (pin: string) => {
+    const url = getInviteUrl(pin);
+    navigator.clipboard.writeText(url);
     setCopiedPin(pin);
     toast({
-      title: 'PIN copiado!',
-      description: 'Compartilhe com o usuário para dar acesso.',
+      title: 'Link copiado!',
+      description: 'Link de convite copiado para a área de transferência.',
     });
     setTimeout(() => setCopiedPin(null), 2000);
+  };
+
+  const handleShareWhatsApp = (pin: string) => {
+    const url = getInviteUrl(pin);
+    const text = encodeURIComponent(
+      `Olá! Você foi convidado para gerenciar uma obra no Obra Certa. Clique no link abaixo para criar seu acesso rapidamente:\n\n${url}`
+    );
+    window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
   const handleCancelInvite = async (inviteId: string) => {
@@ -194,43 +207,50 @@ export function GerenciarAcessosDialog({
                 {invites.map((invite) => (
                   <div 
                     key={invite.id}
-                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border"
+                    className="p-3 bg-muted/50 rounded-lg border space-y-2"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between">
                       <Badge className={getRoleBadgeClass(invite.role)}>
                         {getRoleIcon(invite.role)}
                         <span className="ml-1 capitalize">{invite.role}</span>
                       </Badge>
-                      <code className="text-lg font-mono font-bold tracking-wider">
-                        {invite.pin_code}
-                      </code>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleCopyPin(invite.pin_code)}
-                      >
-                        {copiedPin === invite.pin_code ? (
-                          <Check className="w-4 h-4 text-success" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleCancelInvite(invite.id)}
-                        className="text-destructive hover:text-destructive"
+                        className="text-destructive hover:text-destructive h-8 w-8"
                       >
                         <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleCopyLink(invite.pin_code)}
+                      >
+                        {copiedPin === invite.pin_code ? (
+                          <Check className="w-4 h-4 mr-1 text-green-600" />
+                        ) : (
+                          <Link className="w-4 h-4 mr-1" />
+                        )}
+                        {copiedPin === invite.pin_code ? 'Copiado!' : 'Copiar Link'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-[#25D366] hover:bg-[#1da851] text-white"
+                        onClick={() => handleShareWhatsApp(invite.pin_code)}
+                      >
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                        WhatsApp
                       </Button>
                     </div>
                   </div>
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                Compartilhe o PIN com o usuário. Ele será válido até ser utilizado.
+                Compartilhe o link com o usuário. O convite será válido até ser utilizado.
               </p>
             </div>
           )}
