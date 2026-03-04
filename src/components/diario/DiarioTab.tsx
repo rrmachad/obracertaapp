@@ -103,11 +103,11 @@ export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
   useEffect(() => {
     if (atividades) return;
 
-    const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
     const today = format(new Date(), 'yyyy-MM-dd');
+    const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
 
     const itensConcluidos = cronogramaItens.filter(
-      item => item.status === 'concluido' && item.data_conclusao === yesterday
+      item => item.status === 'concluido' && (item.data_conclusao === today || item.data_conclusao === yesterday)
     );
 
     const movsRecentes = movimentacoes.filter(
