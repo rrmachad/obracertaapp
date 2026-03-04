@@ -8,20 +8,12 @@ import { MagicLinkEmail } from '../_shared/email-templates/magic-link.tsx'
 import { RecoveryEmail } from '../_shared/email-templates/recovery.tsx'
 import { EmailChangeEmail } from '../_shared/email-templates/email-change.tsx'
 import { ReauthenticationEmail } from '../_shared/email-templates/reauthentication.tsx'
+import { translations, type EmailLocale } from '../_shared/email-templates/i18n.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-lovable-signature, x-lovable-timestamp, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-}
-
-const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
 }
 
 // Template mapping
@@ -38,13 +30,49 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 const SITE_NAME = "obracertaapp"
 const SENDER_DOMAIN = "notify.obracerta.pro"
 const ROOT_DOMAIN = "obracerta.pro"
-const FROM_DOMAIN = "notify.obracerta.pro" // Domain shown in From address (may be root or sender subdomain)
+const FROM_DOMAIN = "notify.obracerta.pro"
 
-// Sample data for preview mode ONLY (not used in actual email sending).
-// URLs are baked in at scaffold time from the project's real data.
-// The sample email uses a fixed placeholder (RFC 6761 .test TLD) so the Go backend
-// can always find-and-replace it with the actual recipient when sending test emails,
-// even if the project's domain has changed since the template was scaffolded.
+// Detect locale from user_metadata or default to 'pt'
+function detectLocale(payload: any): EmailLocale {
+  // Try to get locale from user_metadata stored in the payload
+  const userMetadata = payload?.data?.user_metadata
+  if (userMetadata) {
+    const lang = userMetadata.locale || userMetadata.language || userMetadata.lang
+    if (lang) {
+      if (lang.startsWith('en')) return 'en'
+      if (lang.startsWith('es')) return 'es'
+      if (lang.startsWith('pt')) return 'pt'
+    }
+  }
+  
+  // Try Accept-Language from headers if available in payload
+  const acceptLang = payload?.data?.accept_language
+  if (acceptLang) {
+    if (acceptLang.startsWith('en')) return 'en'
+    if (acceptLang.startsWith('es')) return 'es'
+    if (acceptLang.startsWith('pt')) return 'pt'
+  }
+
+  return 'pt' // default
+}
+
+function getEmailSubject(emailType: string, locale: EmailLocale): string {
+  const typeTranslations = translations[emailType as keyof typeof translations]
+  if (typeTranslations && typeTranslations[locale]) {
+    return (typeTranslations[locale] as any).subject || 'Notification'
+  }
+  return 'Notification'
+}
+
+function getBrandName(locale: EmailLocale): string {
+  switch (locale) {
+    case 'en': return 'BuildRight'
+    case 'es': return 'Obra Exacta'
+    default: return 'Obra Certa'
+  }
+}
+
+// Sample data for preview mode ONLY
 const SAMPLE_PROJECT_URL = "https://obracertaapp.lovable.app"
 const SAMPLE_EMAIL = "user@example.test"
 const SAMPLE_DATA: Record<string, object> = {
@@ -78,7 +106,7 @@ const SAMPLE_DATA: Record<string, object> = {
   },
 }
 
-// Preview endpoint handler - returns rendered HTML without sending email
+// Preview endpoint handler
 async function handlePreview(req: Request): Promise<Response> {
   const previewCorsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -100,9 +128,13 @@ async function handlePreview(req: Request): Promise<Response> {
   }
 
   let type: string
+  let locale: EmailLocale = 'pt'
   try {
     const body = await req.json()
     type = body.type
+    if (body.locale && ['pt', 'en', 'es'].includes(body.locale)) {
+      locale = body.locale as EmailLocale
+    }
   } catch (error) {
     return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
       status: 400,
@@ -119,7 +151,7 @@ async function handlePreview(req: Request): Promise<Response> {
     })
   }
 
-  const sampleData = SAMPLE_DATA[type] || {}
+  const sampleData = { ...(SAMPLE_DATA[type] || {}), locale }
   const html = await renderAsync(React.createElement(EmailTemplate, sampleData))
 
   return new Response(html, {
@@ -128,7 +160,7 @@ async function handlePreview(req: Request): Promise<Response> {
   })
 }
 
-// Webhook handler - verifies signature and sends email
+// Webhook handler
 async function handleWebhook(req: Request): Promise<Response> {
   const apiKey = Deno.env.get('LOVABLE_API_KEY')
 
@@ -140,7 +172,6 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
-  // Verify signature + timestamp, then parse payload.
   let payload: any
   let run_id = ''
   try {
@@ -184,10 +215,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     console.error('Webhook payload missing run_id')
     return new Response(
       JSON.stringify({ error: 'Invalid webhook payload' }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 
@@ -195,17 +223,13 @@ async function handleWebhook(req: Request): Promise<Response> {
     console.error('Unsupported payload version', { version: payload.version, run_id })
     return new Response(
       JSON.stringify({ error: `Unsupported payload version: ${payload.version}` }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 
-  // The email action type is in payload.data.action_type (e.g., "signup", "recovery")
-  // payload.type is the hook event type ("auth")
   const emailType = payload.data.action_type
-  console.log('Received auth event', { emailType, email: payload.data.email, run_id })
+  const locale = detectLocale(payload)
+  console.log('Received auth event', { emailType, email: payload.data.email, locale, run_id })
 
   const EmailTemplate = EMAIL_TEMPLATES[emailType]
   if (!EmailTemplate) {
@@ -216,7 +240,9 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
-  // Build template props from payload.data (HookData structure)
+  const brandName = getBrandName(locale)
+
+  // Build template props
   const templateProps = {
     siteName: SITE_NAME,
     siteUrl: `https://${ROOT_DOMAIN}`,
@@ -225,17 +251,16 @@ async function handleWebhook(req: Request): Promise<Response> {
     token: payload.data.token,
     email: payload.data.email,
     newEmail: payload.data.new_email,
+    locale,
   }
 
-  // Render React Email to HTML and plain text
   const html = await renderAsync(React.createElement(EmailTemplate, templateProps))
   const text = await renderAsync(React.createElement(EmailTemplate, templateProps), {
     plainText: true,
   })
 
-  // Send email via Lovable Email API
-  // The callback URL is provided in the payload by Lovable, ensuring correct routing
-  // for both production and local development
+  const subject = getEmailSubject(emailType, locale)
+
   const callbackUrl = payload.data.callback_url
   if (!callbackUrl) {
     console.error('No callback_url in payload', { run_id })
@@ -251,9 +276,9 @@ async function handleWebhook(req: Request): Promise<Response> {
       {
         run_id,
         to: payload.data.email,
-        from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+        from: `${brandName} <noreply@${FROM_DOMAIN}>`,
         sender_domain: SENDER_DOMAIN,
-        subject: EMAIL_SUBJECTS[emailType] || 'Notification',
+        subject,
         html,
         text,
         purpose: 'transactional',
@@ -269,7 +294,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     })
   }
 
-  console.log('Email sent successfully', { message_id: result.message_id, run_id })
+  console.log('Email sent successfully', { message_id: result.message_id, run_id, locale })
 
   return new Response(
     JSON.stringify({ success: true, message_id: result.message_id }),
@@ -280,17 +305,14 @@ async function handleWebhook(req: Request): Promise<Response> {
 Deno.serve(async (req) => {
   const url = new URL(req.url)
 
-  // Handle CORS preflight for main endpoint
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
-  // Route to preview handler for /preview path
   if (url.pathname.endsWith('/preview')) {
     return handlePreview(req)
   }
 
-  // Main webhook handler
   try {
     return await handleWebhook(req)
   } catch (error) {

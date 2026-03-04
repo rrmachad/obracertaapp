@@ -15,34 +15,38 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
+import { translations, getLangTag, type EmailLocale } from './i18n.ts'
+
 interface ReauthenticationEmailProps {
   token: string
+  locale?: EmailLocale
 }
 
-export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => (
-  <Html lang="pt-BR" dir="ltr">
-    <Head />
-    <Preview>Seu código de verificação do Obra Certa</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Section style={headerSection}>
-          <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt="Obra Certa" style={logoImg} />
-          <Text style={logoText}>Obra Certa</Text>
-        </Section>
-        <Hr style={divider} />
-        <Heading style={h1}>Código de verificação</Heading>
-        <Text style={text}>Use o código abaixo para confirmar sua identidade:</Text>
-        <Section style={codeSection}>
-          <Text style={codeStyle}>{token}</Text>
-        </Section>
-        <Hr style={divider} />
-        <Text style={footer}>
-          Este código expira em breve. Se você não solicitou, ignore este e-mail com segurança.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-)
+export const ReauthenticationEmail = ({ token, locale = 'pt' }: ReauthenticationEmailProps) => {
+  const t = translations.reauthentication[locale]
+  return (
+    <Html lang={getLangTag(locale)} dir="ltr">
+      <Head />
+      <Preview>{t.preview}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={headerSection}>
+            <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt={t.brandName} style={logoImg} />
+            <Text style={logoText}>{t.brandName}</Text>
+          </Section>
+          <Hr style={divider} />
+          <Heading style={h1}>{t.heading}</Heading>
+          <Text style={text}>{t.body}</Text>
+          <Section style={codeSection}>
+            <Text style={codeStyle}>{token}</Text>
+          </Section>
+          <Hr style={divider} />
+          <Text style={footer}>{t.footer}</Text>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default ReauthenticationEmail
 

@@ -17,11 +17,14 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
+import { translations, getLangTag, type EmailLocale } from './i18n.ts'
+
 interface SignupEmailProps {
   siteName: string
   siteUrl: string
   recipient: string
   confirmationUrl: string
+  locale?: EmailLocale
 }
 
 export const SignupEmail = ({
@@ -29,45 +32,49 @@ export const SignupEmail = ({
   siteUrl,
   recipient,
   confirmationUrl,
-}: SignupEmailProps) => (
-  <Html lang="pt-BR" dir="ltr">
-    <Head />
-    <Preview>Confirme seu e-mail para o Obra Certa</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Section style={headerSection}>
-          <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt="Obra Certa" style={logoImg} />
-          <Text style={logoText}>Obra Certa</Text>
-        </Section>
-        <Hr style={divider} />
-        <Heading style={h1}>Confirme seu e-mail</Heading>
-        <Text style={text}>
-          Obrigado por se cadastrar no{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>Obra Certa</strong>
-          </Link>
-          ! Estamos felizes em ter você conosco.
-        </Text>
-        <Text style={text}>
-          Para ativar sua conta, confirme seu e-mail (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) clicando no botão abaixo:
-        </Text>
-        <Section style={buttonSection}>
-          <Button style={button} href={confirmationUrl}>
-            Verificar E-mail
-          </Button>
-        </Section>
-        <Hr style={divider} />
-        <Text style={footer}>
-          Se você não criou uma conta no Obra Certa, pode ignorar este e-mail com segurança.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-)
+  locale = 'pt',
+}: SignupEmailProps) => {
+  const t = translations.signup[locale]
+  return (
+    <Html lang={getLangTag(locale)} dir="ltr">
+      <Head />
+      <Preview>{t.preview}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={headerSection}>
+            <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt={t.brandName} style={logoImg} />
+            <Text style={logoText}>{t.brandName}</Text>
+          </Section>
+          <Hr style={divider} />
+          <Heading style={h1}>{t.heading}</Heading>
+          <Text style={text}>
+            {t.bodyStart}{' '}
+            <Link href={siteUrl} style={link}>
+              <strong>{t.brandName}</strong>
+            </Link>
+            {t.bodyEnd}
+          </Text>
+          <Text style={text}>
+            {t.activateIntro}
+            <Link href={`mailto:${recipient}`} style={link}>
+              {recipient}
+            </Link>
+            {t.activateEnd}
+          </Text>
+          <Section style={buttonSection}>
+            <Button style={button} href={confirmationUrl}>
+              {t.button}
+            </Button>
+          </Section>
+          <Hr style={divider} />
+          <Text style={footer}>
+            {t.footer}
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default SignupEmail
 

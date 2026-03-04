@@ -17,48 +17,53 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
+import { translations, getLangTag, type EmailLocale } from './i18n.ts'
+
 interface InviteEmailProps {
   siteName: string
   siteUrl: string
   confirmationUrl: string
+  locale?: EmailLocale
 }
 
 export const InviteEmail = ({
   siteName,
   siteUrl,
   confirmationUrl,
-}: InviteEmailProps) => (
-  <Html lang="pt-BR" dir="ltr">
-    <Head />
-    <Preview>Você foi convidado para o Obra Certa</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Section style={headerSection}>
-          <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt="Obra Certa" style={logoImg} />
-          <Text style={logoText}>Obra Certa</Text>
-        </Section>
-        <Hr style={divider} />
-        <Heading style={h1}>Você foi convidado!</Heading>
-        <Text style={text}>
-          Você recebeu um convite para participar do{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>Obra Certa</strong>
-          </Link>
-          . Clique no botão abaixo para aceitar o convite e criar sua conta.
-        </Text>
-        <Section style={buttonSection}>
-          <Button style={button} href={confirmationUrl}>
-            Aceitar Convite
-          </Button>
-        </Section>
-        <Hr style={divider} />
-        <Text style={footer}>
-          Se você não esperava este convite, pode ignorar este e-mail com segurança.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-)
+  locale = 'pt',
+}: InviteEmailProps) => {
+  const t = translations.invite[locale]
+  return (
+    <Html lang={getLangTag(locale)} dir="ltr">
+      <Head />
+      <Preview>{t.preview}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={headerSection}>
+            <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt={t.brandName} style={logoImg} />
+            <Text style={logoText}>{t.brandName}</Text>
+          </Section>
+          <Hr style={divider} />
+          <Heading style={h1}>{t.heading}</Heading>
+          <Text style={text}>
+            {t.bodyStart}{' '}
+            <Link href={siteUrl} style={link}>
+              <strong>{t.brandName}</strong>
+            </Link>
+            {t.bodyEnd}
+          </Text>
+          <Section style={buttonSection}>
+            <Button style={button} href={confirmationUrl}>
+              {t.button}
+            </Button>
+          </Section>
+          <Hr style={divider} />
+          <Text style={footer}>{t.footer}</Text>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default InviteEmail
 

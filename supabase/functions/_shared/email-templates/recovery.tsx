@@ -16,43 +16,45 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
+import { translations, getLangTag, type EmailLocale } from './i18n.ts'
+
 interface RecoveryEmailProps {
   siteName: string
   confirmationUrl: string
+  locale?: EmailLocale
 }
 
 export const RecoveryEmail = ({
   siteName,
   confirmationUrl,
-}: RecoveryEmailProps) => (
-  <Html lang="pt-BR" dir="ltr">
-    <Head />
-    <Preview>Redefinir sua senha no Obra Certa</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Section style={headerSection}>
-          <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt="Obra Certa" style={logoImg} />
-          <Text style={logoText}>Obra Certa</Text>
-        </Section>
-        <Hr style={divider} />
-        <Heading style={h1}>Redefinir sua senha</Heading>
-        <Text style={text}>
-          Recebemos uma solicitação para redefinir a senha da sua conta no Obra Certa.
-          Clique no botão abaixo para criar uma nova senha.
-        </Text>
-        <Section style={buttonSection}>
-          <Button style={button} href={confirmationUrl}>
-            Redefinir Senha
-          </Button>
-        </Section>
-        <Hr style={divider} />
-        <Text style={footer}>
-          Se você não solicitou a redefinição de senha, ignore este e-mail. Sua senha não será alterada.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-)
+  locale = 'pt',
+}: RecoveryEmailProps) => {
+  const t = translations.recovery[locale]
+  return (
+    <Html lang={getLangTag(locale)} dir="ltr">
+      <Head />
+      <Preview>{t.preview}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={headerSection}>
+            <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt={t.brandName} style={logoImg} />
+            <Text style={logoText}>{t.brandName}</Text>
+          </Section>
+          <Hr style={divider} />
+          <Heading style={h1}>{t.heading}</Heading>
+          <Text style={text}>{t.body}</Text>
+          <Section style={buttonSection}>
+            <Button style={button} href={confirmationUrl}>
+              {t.button}
+            </Button>
+          </Section>
+          <Hr style={divider} />
+          <Text style={footer}>{t.footer}</Text>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default RecoveryEmail
 
