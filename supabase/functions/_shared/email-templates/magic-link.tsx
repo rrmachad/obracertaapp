@@ -16,42 +16,45 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
+import { translations, getLangTag, type EmailLocale } from './i18n.ts'
+
 interface MagicLinkEmailProps {
   siteName: string
   confirmationUrl: string
+  locale?: EmailLocale
 }
 
 export const MagicLinkEmail = ({
   siteName,
   confirmationUrl,
-}: MagicLinkEmailProps) => (
-  <Html lang="pt-BR" dir="ltr">
-    <Head />
-    <Preview>Seu link de acesso ao Obra Certa</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Section style={headerSection}>
-          <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt="Obra Certa" style={logoImg} />
-          <Text style={logoText}>Obra Certa</Text>
-        </Section>
-        <Hr style={divider} />
-        <Heading style={h1}>Seu link de acesso</Heading>
-        <Text style={text}>
-          Clique no botão abaixo para acessar sua conta no Obra Certa. Este link expira em breve.
-        </Text>
-        <Section style={buttonSection}>
-          <Button style={button} href={confirmationUrl}>
-            Acessar Conta
-          </Button>
-        </Section>
-        <Hr style={divider} />
-        <Text style={footer}>
-          Se você não solicitou este link, ignore este e-mail com segurança.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-)
+  locale = 'pt',
+}: MagicLinkEmailProps) => {
+  const t = translations.magiclink[locale]
+  return (
+    <Html lang={getLangTag(locale)} dir="ltr">
+      <Head />
+      <Preview>{t.preview}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={headerSection}>
+            <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt={t.brandName} style={logoImg} />
+            <Text style={logoText}>{t.brandName}</Text>
+          </Section>
+          <Hr style={divider} />
+          <Heading style={h1}>{t.heading}</Heading>
+          <Text style={text}>{t.body}</Text>
+          <Section style={buttonSection}>
+            <Button style={button} href={confirmationUrl}>
+              {t.button}
+            </Button>
+          </Section>
+          <Hr style={divider} />
+          <Text style={footer}>{t.footer}</Text>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default MagicLinkEmail
 

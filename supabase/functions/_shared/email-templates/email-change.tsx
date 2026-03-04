@@ -17,11 +17,14 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
+import { translations, getLangTag, type EmailLocale } from './i18n.ts'
+
 interface EmailChangeEmailProps {
   siteName: string
   email: string
   newEmail: string
   confirmationUrl: string
+  locale?: EmailLocale
 }
 
 export const EmailChangeEmail = ({
@@ -29,45 +32,45 @@ export const EmailChangeEmail = ({
   email,
   newEmail,
   confirmationUrl,
-}: EmailChangeEmailProps) => (
-  <Html lang="pt-BR" dir="ltr">
-    <Head />
-    <Preview>Confirme a alteração do seu e-mail no Obra Certa</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Section style={headerSection}>
-          <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt="Obra Certa" style={logoImg} />
-          <Text style={logoText}>Obra Certa</Text>
-        </Section>
-        <Hr style={divider} />
-        <Heading style={h1}>Confirme a alteração de e-mail</Heading>
-        <Text style={text}>
-          Você solicitou a alteração do e-mail da sua conta no Obra Certa de{' '}
-          <Link href={`mailto:${email}`} style={link}>
-            {email}
-          </Link>{' '}
-          para{' '}
-          <Link href={`mailto:${newEmail}`} style={link}>
-            {newEmail}
-          </Link>
-          .
-        </Text>
-        <Text style={text}>
-          Clique no botão abaixo para confirmar esta alteração:
-        </Text>
-        <Section style={buttonSection}>
-          <Button style={button} href={confirmationUrl}>
-            Confirmar Alteração
-          </Button>
-        </Section>
-        <Hr style={divider} />
-        <Text style={footer}>
-          Se você não solicitou esta alteração, proteja sua conta imediatamente.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-)
+  locale = 'pt',
+}: EmailChangeEmailProps) => {
+  const t = translations.email_change[locale]
+  return (
+    <Html lang={getLangTag(locale)} dir="ltr">
+      <Head />
+      <Preview>{t.preview}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={headerSection}>
+            <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt={t.brandName} style={logoImg} />
+            <Text style={logoText}>{t.brandName}</Text>
+          </Section>
+          <Hr style={divider} />
+          <Heading style={h1}>{t.heading}</Heading>
+          <Text style={text}>
+            {t.bodyStart}{' '}
+            <Link href={`mailto:${email}`} style={link}>
+              {email}
+            </Link>{' '}
+            {t.bodyMiddle}{' '}
+            <Link href={`mailto:${newEmail}`} style={link}>
+              {newEmail}
+            </Link>
+            {t.bodyEnd}
+          </Text>
+          <Text style={text}>{t.confirmText}</Text>
+          <Section style={buttonSection}>
+            <Button style={button} href={confirmationUrl}>
+              {t.button}
+            </Button>
+          </Section>
+          <Hr style={divider} />
+          <Text style={footer}>{t.footer}</Text>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default EmailChangeEmail
 
