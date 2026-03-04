@@ -17,7 +17,7 @@ interface AuthPageProps {
   defaultMode?: 'login' | 'signup';
 }
 
-type AuthMode = 'login' | 'signup' | 'pin' | 'pin-register';
+type AuthMode = 'login' | 'signup' | 'pin' | 'pin-register' | 'forgot';
 
 export function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
   const [mode, setMode] = useState<AuthMode>(defaultMode);
@@ -211,6 +211,44 @@ export function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
     </form>
   );
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast({ title: t('auth.error'), description: t('auth.enterEmail'), variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        toast({ title: t('auth.error'), description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: t('auth.resetEmailSent'), description: t('auth.resetEmailSentDesc') });
+        setMode('login');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderForgotPasswordForm = () => (
+    <form onSubmit={handleForgotPassword} className="space-y-4">
+      <p className="text-sm text-muted-foreground text-center">{t('auth.forgotPasswordDesc')}</p>
+      <div className="space-y-2">
+        <Label htmlFor="forgot-email" className="text-base font-medium">{t('auth.email')}</Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Input id="forgot-email" type="email" placeholder={t('auth.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12 text-base" required />
+        </div>
+      </div>
+      <Button type="submit" className="w-full h-14 text-lg font-semibold" disabled={loading}>
+        {loading ? t('auth.waiting') : t('auth.sendResetLink')}
+      </Button>
+    </form>
+  );
+
   const renderLoginSignupForm = () => (
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -231,7 +269,14 @@ export function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-base font-medium">{t('auth.password')}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-base font-medium">{t('auth.password')}</Label>
+            {mode === 'login' && (
+              <button type="button" onClick={() => setMode('forgot')} className="text-sm text-primary hover:underline">
+                {t('auth.forgotPassword')}
+              </button>
+            )}
+          </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input id="password" type={showPassword ? 'text' : 'password'} placeholder={t('auth.passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10 h-12 text-base" required minLength={6} />
@@ -261,6 +306,7 @@ export function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
   const getTitle = () => {
     if (mode === 'pin') return t('auth.loginWithPin');
     if (mode === 'pin-register') return t('auth.createYourAccount');
+    if (mode === 'forgot') return t('auth.forgotPasswordTitle');
     return mode === 'login' ? t('auth.loginTitle') : t('auth.signupTitle');
   };
 
@@ -287,10 +333,11 @@ export function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
         <CardContent>
           {mode === 'pin' && renderPinStep()}
           {mode === 'pin-register' && renderPinRegisterStep()}
+          {mode === 'forgot' && renderForgotPasswordForm()}
           {(mode === 'login' || mode === 'signup') && renderLoginSignupForm()}
 
           <div className="mt-6 text-center space-y-2">
-            {(mode === 'pin' || mode === 'pin-register') && (
+            {(mode === 'pin' || mode === 'pin-register' || mode === 'forgot') && (
               <button
                 type="button"
                 onClick={() => { setMode('login'); setPin(''); setEmail(''); setPassword(''); setNome(''); }}

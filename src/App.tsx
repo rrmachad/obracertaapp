@@ -20,6 +20,7 @@ import { ComprasPage } from "./pages/ComprasPage";
 import { LucratividadePage } from "./pages/LucratividadePage";
 import { EstoqueAlertasPage } from "./pages/EstoqueAlertasPage";
 import NotFound from "./pages/NotFound";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/convite" element={<ConvitePage />} />
                 <Route path="/portal/:token" element={<PortalCliente />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 
                 {/* Protected Routes */}
                 <Route path="/dashboard" element={
