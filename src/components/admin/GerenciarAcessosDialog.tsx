@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Users, Plus, Copy, Trash2, Shield, User, Check, Crown, Link, MessageCircle } from 'lucide-react';
+import { Users, Plus, Copy, Trash2, Shield, User, Check, Crown, Link, MessageCircle, Clock } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { pt } from 'date-fns/locale';
 import {
   Dialog,
   DialogContent,
@@ -210,10 +212,21 @@ export function GerenciarAcessosDialog({
                     className="p-3 bg-muted/50 rounded-lg border space-y-2"
                   >
                     <div className="flex items-center justify-between">
-                      <Badge className={getRoleBadgeClass(invite.role)}>
-                        {getRoleIcon(invite.role)}
-                        <span className="ml-1 capitalize">{invite.role}</span>
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getRoleBadgeClass(invite.role)}>
+                          {getRoleIcon(invite.role)}
+                          <span className="ml-1 capitalize">{invite.role}</span>
+                        </Badge>
+                        {invite.expires_at && (
+                          <span className={`text-xs flex items-center gap-1 ${new Date(invite.expires_at) < new Date() ? 'text-destructive' : 'text-muted-foreground'}`}>
+                            <Clock className="w-3 h-3" />
+                            {new Date(invite.expires_at) < new Date() 
+                              ? 'Expirado' 
+                              : `Expira ${formatDistanceToNow(new Date(invite.expires_at), { locale: pt, addSuffix: true })}`
+                            }
+                          </span>
+                        )}
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"

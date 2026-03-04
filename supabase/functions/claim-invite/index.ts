@@ -79,6 +79,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Check expiration
+    if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
+      return new Response(
+        JSON.stringify({ error: "Este convite expirou. Solicite um novo ao administrador." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // 2. Check if email is already registered
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
     const emailExists = existingUsers?.users?.some(

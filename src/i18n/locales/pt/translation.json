@@ -648,6 +648,7 @@
     "invalidOrUsedPin": "Este convite é inválido ou já foi utilizado.",
     "errorValidatingPin": "Erro ao validar o convite. Tente novamente.",
     "tryManualPin": "Digitar PIN manualmente",
+    "inviteExpired": "Este convite expirou. Solicite um novo convite ao administrador.",
     "noAccount": "Não tem conta? Cadastre-se",
     "hasAccount": "Já tem conta? Entre"
   },

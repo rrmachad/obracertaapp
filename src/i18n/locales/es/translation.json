@@ -648,6 +648,7 @@
     "invalidOrUsedPin": "Esta invitación es inválida o ya fue utilizada.",
     "errorValidatingPin": "Error al validar la invitación. Intente nuevamente.",
     "tryManualPin": "Ingresar PIN manualmente",
+    "inviteExpired": "Esta invitación ha expirado. Solicite una nueva al administrador.",
     "noAccount": "¿No tiene cuenta? Regístrese",
     "hasAccount": "¿Ya tiene cuenta? Ingrese"
   },
