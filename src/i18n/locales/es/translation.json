@@ -707,6 +707,7 @@
     "preFilled": "Pre-llenado",
     "activitiesPlaceholder": "Describa las actividades realizadas...",
     "autoFillHint": "💡 Las actividades del cronograma y movimientos de inventario se llenan automáticamente.",
+    "autoFilledIndicator": "Contenido pre-llenado automáticamente con datos del cronograma e inventario. Puedes editarlo libremente.",
     "observationsOptional": "Observaciones (opcional)",
     "observationsPlaceholder": "Problemas, pendientes, materiales utilizados...",
     "sitePhotos": "Fotos de la Obra",
