@@ -39,12 +39,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, password: string, nome: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
+    // Detect browser locale and save in user_metadata for email i18n
+    const browserLang = navigator.language || 'pt-BR';
+    const locale = browserLang.startsWith('es') ? 'es' : browserLang.startsWith('en') ? 'en' : 'pt';
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: { nome }
+        data: { nome, locale }
       }
     });
 
