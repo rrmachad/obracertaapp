@@ -99,6 +99,8 @@
     "pendingInvites": "Pending Invites",
     "expiredInvites": "Expired Invites",
     "usedInvites": "Used Invites",
+    "inviteStats": "Invites",
+    "allWorks": "All Projects",
     "scheduleProgress": "Overall Schedule Progress",
     "itemsCount": "{{done}}/{{total}} items",
     "tasksCompleted": "{{pct}}% of tasks completed across all projects",

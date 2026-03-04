@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Building2, 
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 interface StatsOverviewProps {
@@ -34,6 +36,8 @@ interface StatsOverviewProps {
     convitesPendentes: number;
     convitesExpirados: number;
     convitesUtilizados: number;
+    convitesPorObra: Record<string, { pendentes: number; expirados: number; utilizados: number }>;
+    obrasNomes: Record<string, string>;
   } | null;
   isLoading: boolean;
 }
@@ -99,6 +103,7 @@ function StatCard({ title, value, subtitle, icon, trend, trendValue, variant = '
 
 export function StatsOverview({ stats, isLoading }: StatsOverviewProps) {
   const { t } = useTranslation();
+  const [filtroObra, setFiltroObra] = useState<string>('all');
 
   if (isLoading) {
     return (
@@ -184,26 +189,56 @@ export function StatsOverview({ stats, isLoading }: StatsOverviewProps) {
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard
-          title={t('admin.pendingInvites')}
-          value={stats.convitesPendentes}
-          icon={<Mail className="w-5 h-5" />}
-          variant={stats.convitesPendentes > 0 ? 'warning' : 'default'}
-        />
-        <StatCard
-          title={t('admin.expiredInvites')}
-          value={stats.convitesExpirados}
-          icon={<MailX className="w-5 h-5" />}
-          variant={stats.convitesExpirados > 0 ? 'destructive' : 'default'}
-        />
-        <StatCard
-          title={t('admin.usedInvites')}
-          value={stats.convitesUtilizados}
-          icon={<MailCheck className="w-5 h-5" />}
-          variant="success"
-        />
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Mail className="w-4 h-4 text-primary" />
+              {t('admin.inviteStats')}
+            </CardTitle>
+            <Select value={filtroObra} onValueChange={setFiltroObra}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder={t('admin.allWorks')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('admin.allWorks')}</SelectItem>
+                {stats.obrasNomes && Object.entries(stats.obrasNomes).map(([id, nome]) => (
+                  <SelectItem key={id} value={id}>{nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {(() => {
+            const inviteData = filtroObra === 'all'
+              ? { pendentes: stats.convitesPendentes, expirados: stats.convitesExpirados, utilizados: stats.convitesUtilizados }
+              : stats.convitesPorObra?.[filtroObra] || { pendentes: 0, expirados: 0, utilizados: 0 };
+            return (
+              <div className="grid grid-cols-3 gap-4">
+                <StatCard
+                  title={t('admin.pendingInvites')}
+                  value={inviteData.pendentes}
+                  icon={<Mail className="w-5 h-5" />}
+                  variant={inviteData.pendentes > 0 ? 'warning' : 'default'}
+                />
+                <StatCard
+                  title={t('admin.expiredInvites')}
+                  value={inviteData.expirados}
+                  icon={<MailX className="w-5 h-5" />}
+                  variant={inviteData.expirados > 0 ? 'destructive' : 'default'}
+                />
+                <StatCard
+                  title={t('admin.usedInvites')}
+                  value={inviteData.utilizados}
+                  icon={<MailCheck className="w-5 h-5" />}
+                  variant="success"
+                />
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="pb-2">

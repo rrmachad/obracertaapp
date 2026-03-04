@@ -99,16 +99,27 @@ export function useAdminStats() {
 
       const materiaisEmAlerta = materiaisAlerta?.filter(m => m.qtd_atual < m.qtd_minima).length || 0;
 
-      // Invite stats
+      // Invite stats with obra_id for filtering
       const { data: invites } = await supabase
         .from('user_invites')
-        .select('used_by, expires_at')
+        .select('used_by, expires_at, obra_id')
         .in('obra_id', obraIds.length > 0 ? obraIds : ['']);
 
       const now = new Date();
       const convitesPendentes = invites?.filter(i => !i.used_by && new Date(i.expires_at) >= now).length || 0;
       const convitesExpirados = invites?.filter(i => !i.used_by && new Date(i.expires_at) < now).length || 0;
       const convitesUtilizados = invites?.filter(i => !!i.used_by).length || 0;
+      
+      // Per-obra invite breakdown
+      const convitesPorObra: Record<string, { pendentes: number; expirados: number; utilizados: number }> = {};
+      for (const obraId of obraIds) {
+        const obraInvites = invites?.filter(i => i.obra_id === obraId) || [];
+        convitesPorObra[obraId] = {
+          pendentes: obraInvites.filter(i => !i.used_by && new Date(i.expires_at) >= now).length,
+          expirados: obraInvites.filter(i => !i.used_by && new Date(i.expires_at) < now).length,
+          utilizados: obraInvites.filter(i => !!i.used_by).length,
+        };
+      }
 
       return {
         totalObras: obras?.length || 0,
@@ -129,6 +140,8 @@ export function useAdminStats() {
         convitesPendentes,
         convitesExpirados,
         convitesUtilizados,
+        convitesPorObra,
+        obrasNomes: Object.fromEntries(obras?.map(o => [o.id, o.nome]) || []),
       };
     },
     enabled: !!user?.id,
