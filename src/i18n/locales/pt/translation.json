@@ -1128,6 +1128,17 @@
         "step6": "O sistema criará automaticamente 6 fases padrão para sua obra: Serviços Preliminares, Fundação, Estrutura, Cobertura, Instalações e Acabamento.",
         "step7": "Acesse a aba \"Cronograma\" dentro da obra para visualizar e gerenciar todas as fases e seus itens.",
         "note": "Cada fase já vem com itens de checklist pré-cadastrados. Você pode marcar o progresso de cada item conforme a obra avança."
+      },
+      "addMaterial": {
+        "title": "Como adicionar materiais e controlar seu estoque",
+        "step1": "Dentro da obra, toque na aba \"Estoque\" no menu superior.",
+        "step2": "Toque no botão laranja \"+ Adicionar Material\" para abrir o formulário de cadastro.",
+        "step3": "No campo \"Filtrar por fase\", selecione a fase da obra para ver materiais sugeridos (ex: Fundação, Estrutura). Ou deixe em \"Todas as fases\".",
+        "step4": "No campo \"Nome do material\", selecione um material da lista pré-cadastrada ou digite um nome personalizado. Materiais sugeridos já preenchem a unidade automaticamente.",
+        "step5": "Escolha a \"Unidade\" de medida (m³, kg, un, etc.), informe a \"Qtd. atual\" em estoque e a \"Qtd. mínima\" para alerta de reposição.",
+        "step6": "Toque no botão \"Adicionar\" para salvar o material no seu estoque.",
+        "step7": "O material cadastrado aparecerá na lista do estoque. Use os botões \"+\" e \"−\" para registrar entradas e saídas rapidamente.",
+        "note": "O sistema possui uma lista inteligente de materiais pré-cadastrados organizados por fase. Ao selecionar um material sugerido, a unidade de medida é preenchida automaticamente, agilizando o cadastro."
       }
     }
   }

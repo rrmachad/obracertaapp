@@ -89,4 +89,20 @@ export const tutorials: Tutorial[] = [
     ],
     note: 'helpCenter.tutorials.createWork.note',
   },
+  {
+    id: 'adicionar-material',
+    category: 'estoque-materiais',
+    categoryIcon: '🧱',
+    title: 'helpCenter.tutorials.addMaterial.title',
+    steps: [
+      'helpCenter.tutorials.addMaterial.step1',
+      'helpCenter.tutorials.addMaterial.step2',
+      'helpCenter.tutorials.addMaterial.step3',
+      'helpCenter.tutorials.addMaterial.step4',
+      'helpCenter.tutorials.addMaterial.step5',
+      'helpCenter.tutorials.addMaterial.step6',
+      'helpCenter.tutorials.addMaterial.step7',
+    ],
+    note: 'helpCenter.tutorials.addMaterial.note',
+  },
 ];
