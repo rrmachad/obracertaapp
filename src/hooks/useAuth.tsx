@@ -69,6 +69,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
     });
+
+    // Update locale in user_metadata on each login so emails use correct language
+    if (!error) {
+      const browserLang = navigator.language || 'pt-BR';
+      const locale = browserLang.startsWith('es') ? 'es' : browserLang.startsWith('en') ? 'en' : 'pt';
+      await supabase.auth.updateUser({ data: { locale } });
+    }
+
     return { error: error as Error | null };
   };
 
