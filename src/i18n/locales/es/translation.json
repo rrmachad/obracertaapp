@@ -1128,6 +1128,17 @@
         "step6": "El sistema creará automáticamente 6 fases estándar para tu obra: Servicios Preliminares, Cimentación, Estructura, Cubierta, Instalaciones y Acabado.",
         "step7": "Accede a la pestaña \"Cronograma\" dentro de la obra para visualizar y gestionar todas las fases y sus ítems.",
         "note": "Cada fase viene con ítems de checklist pre-registrados. Puedes marcar el progreso de cada ítem a medida que la obra avanza."
+      },
+      "addMaterial": {
+        "title": "Cómo agregar materiales y controlar tu inventario",
+        "step1": "Dentro de la obra, toca la pestaña \"Inventario\" en el menú superior.",
+        "step2": "Toca el botón naranja \"+ Agregar Material\" para abrir el formulario de registro.",
+        "step3": "En el campo \"Filtrar por fase\", selecciona la fase de la obra para ver materiales sugeridos (ej: Cimentación, Estructura). O déjalo en \"Todas las fases\".",
+        "step4": "En el campo \"Nombre del material\", selecciona un material de la lista pre-registrada o escribe un nombre personalizado. Los materiales sugeridos completan la unidad automáticamente.",
+        "step5": "Elige la \"Unidad\" de medida (m³, kg, un, etc.), ingresa la \"Cant. actual\" en inventario y la \"Cant. mínima\" para alertas de reposición.",
+        "step6": "Toca el botón \"Agregar\" para guardar el material en tu inventario.",
+        "step7": "El material registrado aparecerá en la lista del inventario. Usa los botones \"+\" y \"−\" para registrar entradas y salidas rápidamente.",
+        "note": "El sistema incluye una lista inteligente de materiales pre-registrados organizados por fase. Al seleccionar un material sugerido, la unidad de medida se completa automáticamente, agilizando el registro."
       }
     }
   }

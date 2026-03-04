@@ -1128,6 +1128,17 @@
         "step6": "The system will automatically create 6 default phases for your project: Preliminary Services, Foundation, Structure, Roofing, Installations, and Finishing.",
         "step7": "Go to the \"Schedule\" tab inside the project to view and manage all phases and their items.",
         "note": "Each phase comes with pre-registered checklist items. You can track progress for each item as the project advances."
+      },
+      "addMaterial": {
+        "title": "How to add materials and manage your inventory",
+        "step1": "Inside the project, tap the \"Inventory\" tab in the top menu.",
+        "step2": "Tap the orange \"+ Add Material\" button to open the registration form.",
+        "step3": "In the \"Filter by phase\" field, select the construction phase to see suggested materials (e.g., Foundation, Structure). Or leave it on \"All phases\".",
+        "step4": "In the \"Material name\" field, select a material from the pre-registered list or type a custom name. Suggested materials auto-fill the unit of measurement.",
+        "step5": "Choose the \"Unit\" of measurement (m³, kg, un, etc.), enter the \"Current qty\" in stock and the \"Minimum qty\" for reorder alerts.",
+        "step6": "Tap the \"Add\" button to save the material to your inventory.",
+        "step7": "The registered material will appear in the inventory list. Use the \"+\" and \"−\" buttons to quickly log entries and exits.",
+        "note": "The system includes a smart list of pre-registered materials organized by phase. When you select a suggested material, the unit of measurement is auto-filled, speeding up the registration process."
       }
     }
   }
