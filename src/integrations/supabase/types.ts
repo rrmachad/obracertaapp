@@ -824,6 +824,7 @@ export type Database = {
       user_invites: {
         Row: {
           created_at: string
+          expires_at: string
           id: string
           invited_by: string
           obra_id: string
@@ -834,6 +835,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          expires_at?: string
           id?: string
           invited_by: string
           obra_id: string
@@ -844,6 +846,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          expires_at?: string
           id?: string
           invited_by?: string
           obra_id?: string

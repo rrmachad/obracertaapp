@@ -13,6 +13,7 @@ export interface UserInvite {
   used_by: string | null;
   used_at: string | null;
   created_at: string;
+  expires_at: string;
 }
 
 export interface ObraAccess {

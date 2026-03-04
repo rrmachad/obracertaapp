@@ -54,7 +54,7 @@ export function ConvitePage() {
     try {
       const { data: invite, error } = await supabase
         .from('user_invites')
-        .select('id')
+        .select('id, expires_at')
         .eq('pin_code', pinCode)
         .is('used_by', null)
         .maybeSingle();
@@ -62,6 +62,13 @@ export function ConvitePage() {
       if (error || !invite) {
         setStep('error');
         setErrorMessage(t('auth.invalidOrUsedPin', 'Este convite é inválido ou já foi utilizado.'));
+        return;
+      }
+
+      // Check expiration
+      if (new Date(invite.expires_at) < new Date()) {
+        setStep('error');
+        setErrorMessage(t('auth.inviteExpired', 'Este convite expirou. Solicite um novo convite ao administrador.'));
         return;
       }
 
