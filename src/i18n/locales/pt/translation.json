@@ -22,7 +22,8 @@
     "noPermission": "Sem permissão para esta ação",
     "onlyOwnerCanEdit": "Apenas o proprietário ou admins podem editar",
     "onlyOwnerCanDelete": "Apenas o proprietário pode excluir",
-    "onlyOwnerCanChangeStatus": "Apenas o proprietário ou admins podem alterar o status"
+    "onlyOwnerCanChangeStatus": "Apenas o proprietário ou admins podem alterar o status",
+    "helpCenter": "Ajuda"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1079,5 +1080,44 @@
     "progressoDaObra": "Progresso da Obra",
     "painelAdmin": "Painel Admin",
     "lucratividade": "Lucratividade"
+  },
+  "helpCenter": {
+    "title": "Central de Ajuda",
+    "searchHeading": "Como podemos ajudar sua obra hoje?",
+    "searchPlaceholder": "Buscar tutoriais...",
+    "backToCategories": "Voltar",
+    "noResults": "Nenhum tutorial encontrado. Tente outra busca.",
+    "steps": "passos",
+    "videoComingSoon": "Vídeo em breve",
+    "whatsappCta": "Ainda com dúvida? Chame no WhatsApp",
+    "categories": {
+      "gettingStarted": "Primeiros Passos",
+      "gettingStartedDesc": "Login e convites",
+      "workManagement": "Gestão de Obras",
+      "workManagementDesc": "Criar e gerenciar obras",
+      "stockMaterials": "Estoque e Materiais",
+      "stockMaterialsDesc": "Controle de materiais",
+      "financialMeasurements": "Financeiro e Medições",
+      "financialMeasurementsDesc": "Medições e pagamentos",
+      "teamAccess": "Equipe e Acessos",
+      "teamAccessDesc": "Convites e permissões"
+    },
+    "tutorials": {
+      "adminAccess": {
+        "title": "Como acessar sua conta (Administrador)",
+        "step1": "Abra o aplicativo na Tela Inicial.",
+        "step2": "Insira o seu E-mail de cadastro e a sua Senha.",
+        "step3": "Clique no botão \"Entrar\".",
+        "note": "Se esqueceu a senha, utilize o link \"Esqueci minha senha\" abaixo do campo de senha."
+      },
+      "pinAccess": {
+        "title": "Como acessar sendo Convidado da Equipe (Acesso via PIN)",
+        "step1": "Clique no link de convite que você recebeu pelo WhatsApp.",
+        "step2": "Na tela de Acesso para Convidados, digite o PIN numérico informado pelo administrador.",
+        "step3": "O sistema validará o código automaticamente.",
+        "step4": "Preencha seu nome, e-mail e crie sua senha pessoal para os próximos acessos.",
+        "step5": "Pronto! Você já está dentro da obra."
+      }
+    }
   }
 }

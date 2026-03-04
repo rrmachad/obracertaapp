@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp, AlertTriangle, Users, Eye, X } from 'lucide-react';
+import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp, AlertTriangle, Users, Eye, X, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -152,6 +152,15 @@ export function Dashboard() {
             >
               <Key className="w-4 h-4" />
               <span className="hidden xs:inline">{t('nav.pin')}</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/ajuda')}
+              className="text-secondary-foreground hover:bg-secondary-foreground/10 gap-1.5 h-8 px-2 shrink-0 text-xs"
+            >
+              <HelpCircle className="w-4 h-4" />
+              <span className="hidden xs:inline">{t('nav.helpCenter')}</span>
             </Button>
           </div>
         </div>

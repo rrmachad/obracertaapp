@@ -22,7 +22,8 @@
     "noPermission": "No permission for this action",
     "onlyOwnerCanEdit": "Only the owner or admins can edit",
     "onlyOwnerCanDelete": "Only the owner can delete",
-    "onlyOwnerCanChangeStatus": "Only the owner or admins can change status"
+    "onlyOwnerCanChangeStatus": "Only the owner or admins can change status",
+    "helpCenter": "Help"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1079,5 +1080,44 @@
     "progressoDaObra": "Project Progress",
     "painelAdmin": "Admin Panel",
     "lucratividade": "Profitability"
+  },
+  "helpCenter": {
+    "title": "Help Center",
+    "searchHeading": "How can we help your project today?",
+    "searchPlaceholder": "Search tutorials...",
+    "backToCategories": "Back",
+    "noResults": "No tutorials found. Try another search.",
+    "steps": "steps",
+    "videoComingSoon": "Video coming soon",
+    "whatsappCta": "Still need help? Chat on WhatsApp",
+    "categories": {
+      "gettingStarted": "Getting Started",
+      "gettingStartedDesc": "Login and invites",
+      "workManagement": "Work Management",
+      "workManagementDesc": "Create and manage projects",
+      "stockMaterials": "Stock & Materials",
+      "stockMaterialsDesc": "Material tracking",
+      "financialMeasurements": "Financial & Measurements",
+      "financialMeasurementsDesc": "Measurements and payments",
+      "teamAccess": "Team & Access",
+      "teamAccessDesc": "Invites and permissions"
+    },
+    "tutorials": {
+      "adminAccess": {
+        "title": "How to access your account (Administrator)",
+        "step1": "Open the app on the Home Screen.",
+        "step2": "Enter your registered Email and Password.",
+        "step3": "Click the \"Sign In\" button.",
+        "note": "If you forgot your password, use the \"Forgot my password\" link below the password field."
+      },
+      "pinAccess": {
+        "title": "How to access as a Team Guest (PIN Access)",
+        "step1": "Click the invite link you received via WhatsApp.",
+        "step2": "On the Guest Access screen, enter the numeric PIN provided by the administrator.",
+        "step3": "The system will automatically validate the code.",
+        "step4": "Fill in your name, email and create a personal password for future access.",
+        "step5": "Done! You're now inside the project."
+      }
+    }
   }
 }

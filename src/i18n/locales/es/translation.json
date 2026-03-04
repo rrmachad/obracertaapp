@@ -22,7 +22,8 @@
     "noPermission": "Sin permiso para esta acción",
     "onlyOwnerCanEdit": "Solo el propietario o admins pueden editar",
     "onlyOwnerCanDelete": "Solo el propietario puede eliminar",
-    "onlyOwnerCanChangeStatus": "Solo el propietario o admins pueden cambiar el estado"
+    "onlyOwnerCanChangeStatus": "Solo el propietario o admins pueden cambiar el estado",
+    "helpCenter": "Ayuda"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1079,5 +1080,44 @@
     "progressoDaObra": "Progreso de la Obra",
     "painelAdmin": "Panel Admin",
     "lucratividade": "Rentabilidad"
+  },
+  "helpCenter": {
+    "title": "Centro de Ayuda",
+    "searchHeading": "¿Cómo podemos ayudar a tu obra hoy?",
+    "searchPlaceholder": "Buscar tutoriales...",
+    "backToCategories": "Volver",
+    "noResults": "No se encontraron tutoriales. Intenta otra búsqueda.",
+    "steps": "pasos",
+    "videoComingSoon": "Video próximamente",
+    "whatsappCta": "¿Aún con dudas? Escríbenos por WhatsApp",
+    "categories": {
+      "gettingStarted": "Primeros Pasos",
+      "gettingStartedDesc": "Login e invitaciones",
+      "workManagement": "Gestión de Obras",
+      "workManagementDesc": "Crear y gestionar obras",
+      "stockMaterials": "Inventario y Materiales",
+      "stockMaterialsDesc": "Control de materiales",
+      "financialMeasurements": "Finanzas y Mediciones",
+      "financialMeasurementsDesc": "Mediciones y pagos",
+      "teamAccess": "Equipo y Accesos",
+      "teamAccessDesc": "Invitaciones y permisos"
+    },
+    "tutorials": {
+      "adminAccess": {
+        "title": "Cómo acceder a tu cuenta (Administrador)",
+        "step1": "Abre la aplicación en la Pantalla Inicial.",
+        "step2": "Ingresa tu Email de registro y tu Contraseña.",
+        "step3": "Haz clic en el botón \"Entrar\".",
+        "note": "Si olvidaste tu contraseña, utiliza el enlace \"Olvidé mi contraseña\" debajo del campo de contraseña."
+      },
+      "pinAccess": {
+        "title": "Cómo acceder como Invitado del Equipo (Acceso por PIN)",
+        "step1": "Haz clic en el enlace de invitación que recibiste por WhatsApp.",
+        "step2": "En la pantalla de Acceso para Invitados, ingresa el PIN numérico proporcionado por el administrador.",
+        "step3": "El sistema validará el código automáticamente.",
+        "step4": "Completa tu nombre, email y crea una contraseña personal para futuros accesos.",
+        "step5": "¡Listo! Ya estás dentro de la obra."
+      }
+    }
   }
 }
