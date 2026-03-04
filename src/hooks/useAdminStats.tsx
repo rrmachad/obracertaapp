@@ -99,6 +99,17 @@ export function useAdminStats() {
 
       const materiaisEmAlerta = materiaisAlerta?.filter(m => m.qtd_atual < m.qtd_minima).length || 0;
 
+      // Invite stats
+      const { data: invites } = await supabase
+        .from('user_invites')
+        .select('used_by, expires_at')
+        .in('obra_id', obraIds.length > 0 ? obraIds : ['']);
+
+      const now = new Date();
+      const convitesPendentes = invites?.filter(i => !i.used_by && new Date(i.expires_at) >= now).length || 0;
+      const convitesExpirados = invites?.filter(i => !i.used_by && new Date(i.expires_at) < now).length || 0;
+      const convitesUtilizados = invites?.filter(i => !!i.used_by).length || 0;
+
       return {
         totalObras: obras?.length || 0,
         obrasAtivas: obras?.filter(o => o.status === 'em_andamento').length || 0,
@@ -115,6 +126,9 @@ export function useAdminStats() {
         progressoMedio: obras?.length 
           ? Math.round(obras.reduce((acc, o) => acc + (o.progresso || 0), 0) / obras.length)
           : 0,
+        convitesPendentes,
+        convitesExpirados,
+        convitesUtilizados,
       };
     },
     enabled: !!user?.id,
