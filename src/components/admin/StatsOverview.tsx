@@ -7,7 +7,10 @@ import {
   Clock, 
   AlertTriangle,
   TrendingUp,
-  Calendar
+  Calendar,
+  Mail,
+  MailX,
+  MailCheck
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -28,6 +31,9 @@ interface StatsOverviewProps {
     diariosMensais: number;
     materiaisEmAlerta: number;
     progressoMedio: number;
+    convitesPendentes: number;
+    convitesExpirados: number;
+    convitesUtilizados: number;
   } | null;
   isLoading: boolean;
 }
@@ -175,6 +181,27 @@ export function StatsOverview({ stats, isLoading }: StatsOverviewProps) {
           subtitle={stats.materiaisEmAlerta > 0 ? t('admin.lowStock') : t('admin.allGood')}
           icon={<AlertTriangle className="w-5 h-5" />}
           variant={stats.materiaisEmAlerta > 0 ? 'destructive' : 'default'}
+        />
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <StatCard
+          title={t('admin.pendingInvites')}
+          value={stats.convitesPendentes}
+          icon={<Mail className="w-5 h-5" />}
+          variant={stats.convitesPendentes > 0 ? 'warning' : 'default'}
+        />
+        <StatCard
+          title={t('admin.expiredInvites')}
+          value={stats.convitesExpirados}
+          icon={<MailX className="w-5 h-5" />}
+          variant={stats.convitesExpirados > 0 ? 'destructive' : 'default'}
+        />
+        <StatCard
+          title={t('admin.usedInvites')}
+          value={stats.convitesUtilizados}
+          icon={<MailCheck className="w-5 h-5" />}
+          variant="success"
         />
       </div>
 
