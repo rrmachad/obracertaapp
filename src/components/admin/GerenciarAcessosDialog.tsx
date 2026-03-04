@@ -85,7 +85,7 @@ export function GerenciarAcessosDialog({
   const handleShareWhatsApp = (pin: string) => {
     const url = getInviteUrl(pin);
     const text = encodeURIComponent(
-      `Olá! Você foi convidado para gerenciar uma obra no Obra Certa. Clique no link abaixo para criar seu acesso rapidamente:\n\n${url}`
+      `Olá! Você foi convidado para colaborar na obra *${obraNome}* no Obra Certa. Clique no link abaixo para criar seu acesso rapidamente:\n\n${url}`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
