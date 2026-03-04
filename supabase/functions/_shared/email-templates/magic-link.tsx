@@ -10,6 +10,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Preview,
   Section,
   Text,
@@ -30,7 +31,8 @@ export const MagicLinkEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={headerSection}>
-          <Text style={logoText}>🏗️ Obra Certa</Text>
+          <Img src="https://obracertaapp.lovable.app/favicon.png" width="40" height="40" alt="Obra Certa" style={logoImg} />
+          <Text style={logoText}>Obra Certa</Text>
         </Section>
         <Hr style={divider} />
         <Heading style={h1}>Seu link de acesso</Heading>
@@ -56,7 +58,8 @@ export default MagicLinkEmail
 const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Arial, sans-serif" }
 const container = { padding: '32px 24px', maxWidth: '480px', margin: '0 auto' }
 const headerSection = { textAlign: 'center' as const, marginBottom: '8px' }
-const logoText = { fontSize: '24px', fontWeight: 'bold' as const, color: '#F07316', margin: '0' }
+const logoImg = { display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' } as const
+const logoText = { fontSize: '24px', fontWeight: 'bold' as const, color: '#F07316', margin: '0', display: 'inline-block', verticalAlign: 'middle' }
 const divider = { borderColor: '#E8E0D8', margin: '16px 0' }
 const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#1C1917', margin: '0 0 16px' }
 const text = { fontSize: '15px', color: '#7E756F', lineHeight: '1.6', margin: '0 0 20px' }
