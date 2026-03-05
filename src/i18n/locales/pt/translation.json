@@ -1198,6 +1198,20 @@
         "step7": "Na seção \"Usuários com Acesso\", você verá todos os membros vinculados à obra. É possível alterar a permissão de cada usuário (Admin ↔ Usuário) pelo dropdown ao lado do nome, ou removê-lo clicando no ícone de lixeira (🗑️).",
         "step8": "Convites não utilizados podem ser excluídos a qualquer momento pelo ícone de lixeira ao lado do convite pendente. Convites expirados deixam de funcionar automaticamente após 7 dias.",
         "note": "Segurança de dados: usuários com permissão \"Usuário\" NÃO têm acesso à aba Financeiro, medições, vales ou valores de contrato. Apenas membros com permissão \"Admin\" podem visualizar e editar dados financeiros. Isso garante que mestres de obras e auxiliares acompanhem o cronograma e o estoque sem acessar informações sensíveis."
+      },
+      "dailyLog": {
+        "title": "Como preencher o Diário de Obra e gerar Relatórios em PDF",
+        "step1": "Acesse a obra desejada no Dashboard e clique na aba \"Diário\" no menu superior. A tela exibirá automaticamente o \"Registro de Hoje\" com a data atual.",
+        "step2": "Selecione o clima do dia entre as 4 opções disponíveis: Ensolarado, Parcialmente nublado, Nublado ou Chuvoso. Essa informação será utilizada nas estatísticas dos relatórios.",
+        "step3": "No campo \"O que foi feito hoje?\", o sistema preenche automaticamente as atividades concluídas do Cronograma e as movimentações do Estoque. Um aviso laranja informa: \"Conteúdo pré-preenchido automaticamente. Você pode editar livremente\". Complemente ou ajuste conforme necessário.",
+        "step4": "Use o campo \"Observações (opcional)\" para registrar problemas, pendências, materiais utilizados ou qualquer anotação importante do canteiro.",
+        "step5": "Na seção \"Profissionais na Obra\", selecione a função no dropdown (ex: Pedreiro, Ajudante, Eletricista), defina a quantidade e clique no botão \"+\" para adicionar cada profissional presente no dia.",
+        "step6": "Na seção \"Máquinas e Equipamentos\", selecione o equipamento no dropdown (ex: Betoneira, Andaimes, Retroescavadeira), defina a quantidade e clique em \"+\" para registrar o maquinário utilizado.",
+        "step7": "Em \"Fotos da Obra\", use \"Tirar Foto\" para capturar imagens diretamente pela câmera ou \"Galeria\" para selecionar fotos existentes. As fotos são comprimidas automaticamente. Toque no ícone de edição (✏️) para adicionar legendas.",
+        "step8": "Clique no botão laranja \"Salvar Relatório\" para gravar o registro diário. Após salvar, o registro aparecerá no histórico com ícone de clima e resumo das atividades.",
+        "step9": "Para gerar relatórios consolidados, use os botões \"Semanal\" e \"Mensal\" no canto superior direito. O Relatório Semanal exibe dias trabalhados, presenças e atividades de cada dia da semana. O Relatório Mensal oferece abas de \"Resumo\" e \"Gráficos\" com dashboards de produtividade. Ambos possuem o botão \"Exportar PDF\".",
+        "step10": "No menu \"Configurações\" (ícone ⚙️), acesse \"Configurar PIN\" para criar um PIN de 4-6 dígitos que protege edições em registros já salvos. Em \"Configurar Empresa\", envie o logotipo (PNG/JPG até 5MB) e o nome da sua empresa para personalizar o cabeçalho de todos os PDFs exportados.",
+        "note": "Automação inteligente: o Diário de Obra cruza dados do Cronograma e do Estoque para pré-preencher suas atividades diárias. Isso economiza tempo e garante que nenhuma informação importante seja esquecida. Todos os registros geram um histórico auditável — edições em relatórios salvos exigem PIN e justificativa, garantindo a integridade documental da sua obra."
       }
     }
   }

@@ -157,4 +157,23 @@ export const tutorials: Tutorial[] = [
     ],
     note: 'helpCenter.tutorials.teamInvite.note',
   },
+  {
+    id: 'diario-de-obra',
+    category: 'gestao-obras',
+    categoryIcon: '🏗️',
+    title: 'helpCenter.tutorials.dailyLog.title',
+    steps: [
+      'helpCenter.tutorials.dailyLog.step1',
+      'helpCenter.tutorials.dailyLog.step2',
+      'helpCenter.tutorials.dailyLog.step3',
+      'helpCenter.tutorials.dailyLog.step4',
+      'helpCenter.tutorials.dailyLog.step5',
+      'helpCenter.tutorials.dailyLog.step6',
+      'helpCenter.tutorials.dailyLog.step7',
+      'helpCenter.tutorials.dailyLog.step8',
+      'helpCenter.tutorials.dailyLog.step9',
+      'helpCenter.tutorials.dailyLog.step10',
+    ],
+    note: 'helpCenter.tutorials.dailyLog.note',
+  },
 ];
