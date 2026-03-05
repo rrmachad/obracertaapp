@@ -1223,6 +1223,18 @@
         "step6": "Use o ROI para identificar rapidamente quais obras estão mais rentáveis e quais precisam de atenção. Um ROI acima de 30% indica boa margem; abaixo de 10% pode sinalizar necessidade de revisão nos custos ou renegociação de contrato.",
         "step7": "Para voltar ao Dashboard principal, clique na seta \"←\" no canto superior esquerdo ou use o breadcrumb \"Dashboard\" na barra de navegação superior.",
         "note": "Inteligência de negócio automática: o Dashboard de Lucratividade cruza contratos, medições e custos de estoque para calcular seu lucro real em tempo real. Quanto mais dados você alimenta no Cronograma, Estoque e Financeiro, mais precisa será sua visão estratégica. Este módulo é exclusivo do plano Business."
+      },
+      "purchasesAlerts": {
+        "title": "Como usar o Módulo de Compras e Alertas de Estoque",
+        "step1": "No Dashboard principal, localize o menu superior de ícones. Clique no primeiro ícone — o carrinho de compras (🛒) — para acessar o \"Módulo de Compras\". Alternativamente, clique no ícone de alerta com badge vermelha (🔔) para ir diretamente aos \"Alertas de Estoque\". Ambos os módulos são exclusivos do plano Business.",
+        "step2": "No \"Módulo de Compras\", o sistema faz uma varredura automática em todas as suas obras e lista apenas os materiais com estoque abaixo do mínimo configurado. No topo, um banner laranja exibe o total: ex. \"3 itens materiais abaixo do mínimo — Em todas as suas obras\".",
+        "step3": "Cada material é exibido com o nome, a obra de origem e a informação \"Precisa: X un\" em destaque vermelho. Esse valor é calculado automaticamente: Precisa = Quantidade Mínima − Quantidade Atual. Ao lado, você confere \"Atual: X / Mín: Y\" para contexto completo.",
+        "step4": "Use a barra \"Buscar material ou categoria...\" para localizar rapidamente um item específico. Os materiais são agrupados por categoria (ex: Sem Categoria, Fundação, Acabamento), facilitando a organização da lista de cotação.",
+        "step5": "No canto superior direito, clique no botão laranja \"Exportar PDF\" para gerar uma lista de cotação profissional com todos os materiais em falta. O PDF inclui o nome da empresa, data, e a quantidade exata a ser comprada — pronto para enviar a fornecedores via WhatsApp ou e-mail.",
+        "step6": "Na tela de \"Alertas de Estoque\" (acessível pelo ícone de alerta 🔔), você encontra dois cards no topo: \"Materiais em alerta\" (total de itens críticos) e \"Pedidos realizados\" (itens já marcados como solicitados ao fornecedor).",
+        "step7": "Use o filtro \"Todas as obras\" no canto superior direito para visualizar alertas de uma obra específica ou de todas simultaneamente. Cada material exibe uma barra de progresso vermelha indicando o nível crítico e um badge com o déficit (ex: -6 sc, -0.50 kg).",
+        "step8": "Para registrar que um material já foi solicitado ao fornecedor, clique no botão \"Pedido\" ao lado do item. O sistema atualiza o contador de \"Pedidos realizados\" e destaca visualmente o item com borda azul e badge \"Pedido\" no módulo de Estoque, evitando compras duplicadas.",
+        "note": "Prevenção inteligente: o Módulo de Compras e os Alertas de Estoque trabalham juntos para garantir que sua obra nunca pare por falta de material. Mantenha os campos \"Quantidade Mínima\" e \"Preço Unitário\" atualizados em cada material do Estoque — isso alimenta automaticamente os cálculos de déficit e os relatórios de cotação. Quanto mais preciso o cadastro, mais confiável será sua lista de compras."
       }
     }
   }

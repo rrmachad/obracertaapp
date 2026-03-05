@@ -1223,6 +1223,18 @@
         "step6": "Use the ROI to quickly identify which projects are most profitable and which need attention. An ROI above 30% indicates good margins; below 10% may signal a need to review costs or renegotiate the contract.",
         "step7": "To return to the main Dashboard, click the \"←\" arrow in the top left corner or use the \"Dashboard\" breadcrumb in the top navigation bar.",
         "note": "Automatic business intelligence: the Profitability Dashboard cross-references contracts, measurements and stock costs to calculate your real profit in real time. The more data you feed into the Schedule, Stock and Financial modules, the more accurate your strategic overview becomes. This module is exclusive to the Business plan."
+      },
+      "purchasesAlerts": {
+        "title": "How to use the Purchases Module and Stock Alerts",
+        "step1": "On the main Dashboard, find the top icon menu. Click the first icon — the shopping cart (🛒) — to access the \"Purchases Module\". Alternatively, click the alert icon with the red badge (🔔) to go directly to \"Stock Alerts\". Both modules are exclusive to the Business plan.",
+        "step2": "In the \"Purchases Module\", the system automatically scans all your projects and lists only materials with stock below the configured minimum. At the top, an orange banner shows the total: e.g., \"3 items below minimum — Across all your projects\".",
+        "step3": "Each material displays the name, source project and \"Needs: X un\" highlighted in red. This value is calculated automatically: Needs = Minimum Quantity − Current Quantity. Next to it, you can check \"Current: X / Min: Y\" for full context.",
+        "step4": "Use the \"Search material or category...\" bar to quickly find a specific item. Materials are grouped by category (e.g., Uncategorized, Foundation, Finishing), making it easy to organize your quotation list.",
+        "step5": "In the top right corner, click the orange \"Export PDF\" button to generate a professional quotation list with all missing materials. The PDF includes the company name, date, and exact quantities to purchase — ready to send to suppliers via WhatsApp or email.",
+        "step6": "On the \"Stock Alerts\" screen (accessible via the alert icon 🔔), you'll find two cards at the top: \"Materials on alert\" (total critical items) and \"Orders placed\" (items already marked as requested from suppliers).",
+        "step7": "Use the \"All projects\" filter in the top right to view alerts for a specific project or all at once. Each material displays a red progress bar indicating the critical level and a badge with the deficit (e.g., -6 bags, -0.50 kg).",
+        "step8": "To record that a material has been requested from a supplier, click the \"Order\" button next to the item. The system updates the \"Orders placed\" counter and visually highlights the item with a blue border and \"Ordered\" badge in the Stock module, preventing duplicate purchases.",
+        "note": "Smart prevention: the Purchases Module and Stock Alerts work together to ensure your project never stops due to material shortage. Keep the \"Minimum Quantity\" and \"Unit Price\" fields updated for each material in Stock — this automatically feeds deficit calculations and quotation reports. The more accurate the records, the more reliable your shopping list."
       }
     }
   }
