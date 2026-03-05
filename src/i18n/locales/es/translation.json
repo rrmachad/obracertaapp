@@ -1175,6 +1175,17 @@
         "step9": "En el paso \"Resultado\", revisa el resumen: Valor Bruto Medido, Retención Técnica, Adelantos Descontados y Valor Neto a Pagar. Confirma para registrar la medición.",
         "step10": "Para exportar un extracto financiero completo en PDF, haz clic en el ícono de documento (📄) junto al botón \"Nuevo Adelanto\". El PDF incluye el comparativo por fase (Contratado vs. Completado vs. Pagado), historial de mediciones y adelantos.",
         "note": "El panel financiero muestra un gráfico \"Comparativo por Fase\" con barras de colores: gris (Contratado), naranja (Completado) y verde (Pagado). Si el valor completado supera el contratado, el sistema emitirá una alerta de desbordamiento de contrato para el administrador."
+      },
+      "clientPortal": {
+        "title": "Cómo compartir el Portal del Cliente y cautivar compradores",
+        "step1": "Accede a la obra deseada y toca el ícono de menú (⋮) en la esquina superior derecha. Se mostrará un panel con las opciones del propietario.",
+        "step2": "En el menú, selecciona \"Portal del Cliente\" (ícono de compartir). Se abrirá el modal de configuración del portal.",
+        "step3": "Activa el interruptor \"Portal Activo\" para generar automáticamente un enlace exclusivo de seguimiento. El mensaje cambiará a \"Tu cliente puede acceder al enlace\".",
+        "step4": "El campo \"Enlace del Portal\" mostrará la URL exclusiva (ej: https://obracerta.pro/portal/...). Usa el botón de copia (📋) para copiar el enlace o el botón de enlace externo (🔗) para abrir el portal en una nueva pestaña.",
+        "step5": "Envía el enlace copiado directamente por WhatsApp al dueño de la casa. Podrá seguir el avance de la obra en tiempo real, sin necesidad de crear cuenta.",
+        "step6": "El cliente verá en el portal: el nombre de la obra, dirección, progreso general (%), la línea de tiempo de \"Etapas de la Obra\" con el estado de cada fase (Completada, Pendiente) y la \"Galería de Fotos\" con todas las imágenes del Diario de Obra.",
+        "step7": "Para revocar el acceso en cualquier momento, vuelve al menú (⋮) > \"Portal del Cliente\" y desactiva el interruptor \"Portal Activo\". El enlace se invalidará inmediatamente.",
+        "note": "Privacidad garantizada: el cliente NO ve ningún dato financiero — sin valores de contrato, mediciones, adelantos ni retenciones. Solo ve fotos, progreso y etapas. Es la forma perfecta de mantener al comprador comprometido y confiado en tu obra."
       }
     }
   }

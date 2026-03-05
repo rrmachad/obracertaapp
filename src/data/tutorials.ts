@@ -124,4 +124,20 @@ export const tutorials: Tutorial[] = [
     ],
     note: 'helpCenter.tutorials.financialMeasurements.note',
   },
+  {
+    id: 'portal-do-cliente',
+    category: 'gestao-obras',
+    categoryIcon: '🏗️',
+    title: 'helpCenter.tutorials.clientPortal.title',
+    steps: [
+      'helpCenter.tutorials.clientPortal.step1',
+      'helpCenter.tutorials.clientPortal.step2',
+      'helpCenter.tutorials.clientPortal.step3',
+      'helpCenter.tutorials.clientPortal.step4',
+      'helpCenter.tutorials.clientPortal.step5',
+      'helpCenter.tutorials.clientPortal.step6',
+      'helpCenter.tutorials.clientPortal.step7',
+    ],
+    note: 'helpCenter.tutorials.clientPortal.note',
+  },
 ];
