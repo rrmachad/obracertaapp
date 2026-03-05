@@ -1212,6 +1212,17 @@
         "step9": "Para gerar relatórios consolidados, use os botões \"Semanal\" e \"Mensal\" no canto superior direito. O Relatório Semanal exibe dias trabalhados, presenças e atividades de cada dia da semana. O Relatório Mensal oferece abas de \"Resumo\" e \"Gráficos\" com dashboards de produtividade. Ambos possuem o botão \"Exportar PDF\".",
         "step10": "No menu \"Configurações\" (ícone ⚙️), acesse \"Configurar PIN\" para criar um PIN de 4-6 dígitos que protege edições em registros já salvos. Em \"Configurar Empresa\", envie o logotipo (PNG/JPG até 5MB) e o nome da sua empresa para personalizar o cabeçalho de todos os PDFs exportados.",
         "note": "Automação inteligente: o Diário de Obra cruza dados do Cronograma e do Estoque para pré-preencher suas atividades diárias. Isso economiza tempo e garante que nenhuma informação importante seja esquecida. Todos os registros geram um histórico auditável — edições em relatórios salvos exigem PIN e justificativa, garantindo a integridade documental da sua obra."
+      },
+      "profitDashboard": {
+        "title": "Como analisar o Dashboard de Lucratividade e o ROI das suas obras",
+        "step1": "No Dashboard principal, localize o menu superior de ícones. Clique no segundo ícone — o gráfico de linha ascendente (📈) — para acessar o \"Dashboard de Lucratividade\". Este módulo é exclusivo do plano Business.",
+        "step2": "Na parte superior da tela, você encontrará 3 cards estratégicos que consolidam automaticamente os dados de todas as suas obras: \"Total Contratado\" (soma de todos os valores de contrato), \"Lucro Total\" (receita menos custos de materiais e mão de obra) e \"ROI Geral\" (retorno percentual sobre o investimento).",
+        "step3": "Logo abaixo dos cards, o gráfico \"Lucro por Obra\" exibe barras comparativas com o lucro de cada obra em valores monetários. Passe o cursor sobre as barras para ver os detalhes exatos de cada projeto.",
+        "step4": "Na seção \"Detalhamento por Obra\", cada obra é listada individualmente com três indicadores: Contrato (valor total do contrato), Custos (soma de materiais consumidos e mão de obra paga via medições) e Lucro (diferença entre contrato e custos). Um badge colorido à direita exibe o ROI% de cada obra.",
+        "step5": "Os dados são calculados automaticamente pelo sistema com base nos valores de contrato definidos no Cronograma, nos preços unitários do Estoque e nos pagamentos registrados nas Medições. Não é necessário inserir dados manualmente nesta tela.",
+        "step6": "Use o ROI para identificar rapidamente quais obras estão mais rentáveis e quais precisam de atenção. Um ROI acima de 30% indica boa margem; abaixo de 10% pode sinalizar necessidade de revisão nos custos ou renegociação de contrato.",
+        "step7": "Para voltar ao Dashboard principal, clique na seta \"←\" no canto superior esquerdo ou use o breadcrumb \"Dashboard\" na barra de navegação superior.",
+        "note": "Inteligência de negócio automática: o Dashboard de Lucratividade cruza contratos, medições e custos de estoque para calcular seu lucro real em tempo real. Quanto mais dados você alimenta no Cronograma, Estoque e Financeiro, mais precisa será sua visão estratégica. Este módulo é exclusivo do plano Business."
       }
     }
   }

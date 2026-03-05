@@ -1212,6 +1212,17 @@
         "step9": "To generate consolidated reports, use the \"Weekly\" and \"Monthly\" buttons in the top right corner. The Weekly Report shows days worked, attendance and daily activities. The Monthly Report offers \"Summary\" and \"Charts\" tabs with productivity dashboards. Both have an \"Export PDF\" button.",
         "step10": "In the \"Settings\" menu (⚙️ icon), access \"Configure PIN\" to create a 4-6 digit PIN that protects edits to saved records. In \"Configure Company\", upload your logo (PNG/JPG up to 5MB) and company name to customize the header of all exported PDFs.",
         "note": "Smart automation: the Construction Diary cross-references data from the Schedule and Stock to pre-fill your daily activities. This saves time and ensures no important information is missed. All records create an auditable history — edits to saved reports require a PIN and justification, ensuring your project's document integrity."
+      },
+      "profitDashboard": {
+        "title": "How to analyze the Profitability Dashboard and your projects' ROI",
+        "step1": "On the main Dashboard, find the top icon menu. Click the second icon — the ascending line chart (📈) — to access the \"Profitability Dashboard\". This module is exclusive to the Business plan.",
+        "step2": "At the top of the screen, you'll find 3 strategic cards that automatically consolidate data from all your projects: \"Total Contracted\" (sum of all contract values), \"Total Profit\" (revenue minus material and labor costs) and \"Overall ROI\" (percentage return on investment).",
+        "step3": "Below the cards, the \"Profit by Project\" chart displays comparative bars showing each project's profit in monetary values. Hover over the bars to see exact details for each project.",
+        "step4": "In the \"Breakdown by Project\" section, each project is listed individually with three indicators: Contract (total contract value), Costs (sum of consumed materials and labor paid via measurements) and Profit (difference between contract and costs). A colored badge on the right shows each project's ROI%.",
+        "step5": "Data is automatically calculated by the system based on contract values defined in the Schedule, unit prices from Stock and payments recorded in Measurements. No manual data entry is required on this screen.",
+        "step6": "Use the ROI to quickly identify which projects are most profitable and which need attention. An ROI above 30% indicates good margins; below 10% may signal a need to review costs or renegotiate the contract.",
+        "step7": "To return to the main Dashboard, click the \"←\" arrow in the top left corner or use the \"Dashboard\" breadcrumb in the top navigation bar.",
+        "note": "Automatic business intelligence: the Profitability Dashboard cross-references contracts, measurements and stock costs to calculate your real profit in real time. The more data you feed into the Schedule, Stock and Financial modules, the more accurate your strategic overview becomes. This module is exclusive to the Business plan."
       }
     }
   }
