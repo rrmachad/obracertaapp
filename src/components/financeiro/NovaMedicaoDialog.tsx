@@ -26,7 +26,7 @@ type Step = 'selecao' | 'calculo' | 'deducoes' | 'resultado';
 export function NovaMedicaoDialog({ open, onOpenChange, obraId, retencaoPercentual }: NovaMedicaoDialogProps) {
   const { t } = useTranslation();
   const { formatCurrency } = useCurrency();
-  const { data: fases } = useFases();
+  const { data: fases } = useFases(obraId);
   const { itens } = useCronogramaItens(obraId);
   const { medicoes, createMedicao } = useMedicoes(obraId);
   const { pendentes, marcarAbatidos } = useAdiantamentos(obraId);

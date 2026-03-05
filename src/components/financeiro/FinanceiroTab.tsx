@@ -31,7 +31,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
   const { medicoes, isLoading: loadingMedicoes, deleteMedicao } = useMedicoes(obraId);
   const { adiantamentos, pendentes, isLoading: loadingAdiantamentos, deleteAdiantamento } = useAdiantamentos(obraId);
   const { itens, isLoading: loadingItens, updateItem } = useCronogramaItens(obraId);
-  const { data: fases } = useFases();
+  const { data: fases } = useFases(obraId);
   const { toast } = useToast();
   const { t } = useTranslation();
   const { formatCurrency: fmtCurrency } = useCurrency();

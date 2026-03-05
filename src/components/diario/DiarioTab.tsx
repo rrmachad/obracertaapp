@@ -55,7 +55,7 @@ function parseDateOnlyAsLocal(dateStr: string) {
 export function DiarioTab({ obraId, onUpgradeClick }: DiarioTabProps) {
   const { registros, isLoading, createDiario, updateDiario } = useDiario(obraId);
   const { itens: cronogramaItens } = useCronogramaItens(obraId);
-  const { data: fases } = useFases();
+  const { data: fases } = useFases(obraId);
   const { materiais } = useMateriais(obraId);
   const { movimentacoes, createMovimentacao } = useMovimentacaoEstoque(obraId);
   const { hasPin, validatePin, createPin, updatePin } = useObraPin(obraId);
