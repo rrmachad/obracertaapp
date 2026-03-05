@@ -1198,6 +1198,20 @@
         "step7": "In the \"Users with Access\" section, you'll see all members linked to the project. You can change each user's permission (Admin ↔ User) via the dropdown next to their name, or remove them by clicking the trash icon (🗑️).",
         "step8": "Unused invites can be deleted at any time using the trash icon next to the pending invite. Expired invites stop working automatically after 7 days.",
         "note": "Data security: users with \"User\" permission do NOT have access to the Financial tab, measurements, advances or contract values. Only members with \"Admin\" permission can view and edit financial data. This ensures that foremen and assistants can follow the schedule and stock without accessing sensitive information."
+      },
+      "dailyLog": {
+        "title": "How to fill out the Construction Diary and generate PDF Reports",
+        "step1": "Open the desired project on the Dashboard and click the \"Diary\" tab in the top menu. The screen will automatically display \"Today's Record\" with the current date.",
+        "step2": "Select the day's weather from the 4 available options: Sunny, Partly Cloudy, Cloudy or Rainy. This information will be used in report statistics.",
+        "step3": "In the \"What was done today?\" field, the system automatically fills in completed activities from the Schedule and Stock movements. An orange notice says: \"Content pre-filled automatically. You can edit freely\". Adjust as needed.",
+        "step4": "Use the \"Observations (optional)\" field to record problems, pending items, materials used or any important site notes.",
+        "step5": "In the \"Workers on Site\" section, select the role from the dropdown (e.g., Mason, Helper, Electrician), set the quantity and click the \"+\" button to add each professional present.",
+        "step6": "In the \"Machinery and Equipment\" section, select the equipment from the dropdown (e.g., Concrete Mixer, Scaffolding, Backhoe), set the quantity and click \"+\" to log the machinery used.",
+        "step7": "In \"Construction Photos\", use \"Take Photo\" to capture images directly from the camera or \"Gallery\" to select existing photos. Photos are automatically compressed. Tap the edit icon (✏️) to add captions.",
+        "step8": "Click the orange \"Save Report\" button to store the daily record. After saving, the record will appear in the history with a weather icon and activity summary.",
+        "step9": "To generate consolidated reports, use the \"Weekly\" and \"Monthly\" buttons in the top right corner. The Weekly Report shows days worked, attendance and daily activities. The Monthly Report offers \"Summary\" and \"Charts\" tabs with productivity dashboards. Both have an \"Export PDF\" button.",
+        "step10": "In the \"Settings\" menu (⚙️ icon), access \"Configure PIN\" to create a 4-6 digit PIN that protects edits to saved records. In \"Configure Company\", upload your logo (PNG/JPG up to 5MB) and company name to customize the header of all exported PDFs.",
+        "note": "Smart automation: the Construction Diary cross-references data from the Schedule and Stock to pre-fill your daily activities. This saves time and ensures no important information is missed. All records create an auditable history — edits to saved reports require a PIN and justification, ensuring your project's document integrity."
       }
     }
   }
