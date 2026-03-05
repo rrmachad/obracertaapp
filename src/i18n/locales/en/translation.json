@@ -1175,6 +1175,17 @@
         "step9": "In the \"Result\" step, review the summary: Gross Measured Value, Technical Retention, Deducted Advances and Net Amount Payable. Confirm to register the measurement.",
         "step10": "To export a complete financial statement as PDF, click the document icon (📄) next to the \"New Advance\" button. The PDF includes the phase comparison (Contracted vs. Completed vs. Paid), measurement history and advances.",
         "note": "The financial dashboard displays a \"Phase Comparison\" chart with colored bars: gray (Contracted), orange (Completed) and green (Paid). If the completed value exceeds the contract, the system will issue a contract overrun alert to the administrator."
+      },
+      "clientPortal": {
+        "title": "How to share the Client Portal and impress buyers",
+        "step1": "Open the desired project and tap the menu icon (⋮) in the top right corner. A panel with owner options will appear.",
+        "step2": "In the menu, select \"Client Portal\" (share icon). The portal configuration modal will open.",
+        "step3": "Toggle the \"Active Portal\" switch to automatically generate a unique tracking link. The message will change to \"Your client can access the link\".",
+        "step4": "The \"Portal Link\" field will display the unique URL (e.g., https://obracerta.pro/portal/...). Use the copy button (📋) to copy the link or the external link button (🔗) to open the portal in a new tab.",
+        "step5": "Send the copied link directly via WhatsApp to the homeowner. They can track the construction progress in real time without creating an account.",
+        "step6": "The client will see on the portal: the project name, address, overall progress (%), the \"Construction Stages\" timeline with the status of each phase (Completed, Pending) and the \"Photo Gallery\" with all images from the Construction Diary.",
+        "step7": "To revoke access at any time, go back to the menu (⋮) > \"Client Portal\" and turn off the \"Active Portal\" switch. The link will be immediately invalidated.",
+        "note": "Privacy guaranteed: the client does NOT see any financial data — no contract values, measurements, advances or retentions. They only see photos, progress and stages. It's the perfect way to keep buyers engaged and confident in your project."
       }
     }
   }
