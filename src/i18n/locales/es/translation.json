@@ -1223,6 +1223,18 @@
         "step6": "Usa el ROI para identificar rápidamente qué obras son más rentables y cuáles necesitan atención. Un ROI superior al 30% indica un buen margen; por debajo del 10% puede señalar la necesidad de revisar costos o renegociar el contrato.",
         "step7": "Para volver al Dashboard principal, haz clic en la flecha \"←\" en la esquina superior izquierda o usa el breadcrumb \"Dashboard\" en la barra de navegación superior.",
         "note": "Inteligencia de negocio automática: el Dashboard de Rentabilidad cruza contratos, mediciones y costos de inventario para calcular tu lucro real en tiempo real. Cuantos más datos alimentes en el Cronograma, Inventario y Financiero, más precisa será tu visión estratégica. Este módulo es exclusivo del plan Business."
+      },
+      "purchasesAlerts": {
+        "title": "Cómo usar el Módulo de Compras y Alertas de Inventario",
+        "step1": "En el Dashboard principal, localiza el menú superior de íconos. Haz clic en el primer ícono — el carrito de compras (🛒) — para acceder al \"Módulo de Compras\". Alternativamente, haz clic en el ícono de alerta con la insignia roja (🔔) para ir directamente a \"Alertas de Inventario\". Ambos módulos son exclusivos del plan Business.",
+        "step2": "En el \"Módulo de Compras\", el sistema realiza un escaneo automático en todas tus obras y lista solo los materiales con inventario por debajo del mínimo configurado. En la parte superior, un banner naranja muestra el total: ej. \"3 ítems materiales por debajo del mínimo — En todas tus obras\".",
+        "step3": "Cada material se muestra con el nombre, la obra de origen y la información \"Necesita: X un\" destacada en rojo. Este valor se calcula automáticamente: Necesita = Cantidad Mínima − Cantidad Actual. Al lado, puedes verificar \"Actual: X / Mín: Y\" para contexto completo.",
+        "step4": "Usa la barra \"Buscar material o categoría...\" para localizar rápidamente un ítem específico. Los materiales se agrupan por categoría (ej: Sin Categoría, Fundación, Acabado), facilitando la organización de la lista de cotización.",
+        "step5": "En la esquina superior derecha, haz clic en el botón naranja \"Exportar PDF\" para generar una lista de cotización profesional con todos los materiales faltantes. El PDF incluye el nombre de la empresa, fecha y la cantidad exacta a comprar — listo para enviar a proveedores por WhatsApp o correo electrónico.",
+        "step6": "En la pantalla de \"Alertas de Inventario\" (accesible por el ícono de alerta 🔔), encontrarás dos tarjetas en la parte superior: \"Materiales en alerta\" (total de ítems críticos) y \"Pedidos realizados\" (ítems ya marcados como solicitados al proveedor).",
+        "step7": "Usa el filtro \"Todas las obras\" en la esquina superior derecha para ver alertas de una obra específica o de todas simultáneamente. Cada material muestra una barra de progreso roja indicando el nivel crítico y una insignia con el déficit (ej: -6 sc, -0.50 kg).",
+        "step8": "Para registrar que un material ya fue solicitado al proveedor, haz clic en el botón \"Pedido\" al lado del ítem. El sistema actualiza el contador de \"Pedidos realizados\" y destaca visualmente el ítem con borde azul e insignia \"Pedido\" en el módulo de Inventario, evitando compras duplicadas.",
+        "note": "Prevención inteligente: el Módulo de Compras y las Alertas de Inventario trabajan juntos para garantizar que tu obra nunca pare por falta de material. Mantén los campos \"Cantidad Mínima\" y \"Precio Unitario\" actualizados en cada material del Inventario — esto alimenta automáticamente los cálculos de déficit y los informes de cotización. Cuanto más preciso el registro, más confiable será tu lista de compras."
       }
     }
   }

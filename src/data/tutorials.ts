@@ -192,4 +192,21 @@ export const tutorials: Tutorial[] = [
     ],
     note: 'helpCenter.tutorials.profitDashboard.note',
   },
+  {
+    id: 'compras-alertas-estoque',
+    category: 'estoque-materiais',
+    categoryIcon: '🧱',
+    title: 'helpCenter.tutorials.purchasesAlerts.title',
+    steps: [
+      'helpCenter.tutorials.purchasesAlerts.step1',
+      'helpCenter.tutorials.purchasesAlerts.step2',
+      'helpCenter.tutorials.purchasesAlerts.step3',
+      'helpCenter.tutorials.purchasesAlerts.step4',
+      'helpCenter.tutorials.purchasesAlerts.step5',
+      'helpCenter.tutorials.purchasesAlerts.step6',
+      'helpCenter.tutorials.purchasesAlerts.step7',
+      'helpCenter.tutorials.purchasesAlerts.step8',
+    ],
+    note: 'helpCenter.tutorials.purchasesAlerts.note',
+  },
 ];
