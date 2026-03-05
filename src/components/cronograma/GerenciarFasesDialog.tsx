@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Pencil, Trash2, Check, X, Copy, GripVertical } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -37,10 +37,16 @@ export function GerenciarFasesDialog({ open, onOpenChange, obraId, itens }: Gere
   const [deletingFase, setDeletingFase] = useState<Fase | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
 
-  // Drag & drop state
+  // Unified drag state (works for both mouse and touch)
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const dragNodeRef = useRef<HTMLDivElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  // Touch drag state
+  const touchStartY = useRef<number>(0);
+  const isTouchDragging = useRef(false);
 
   const handleEnsureObraFases = async () => {
     if (!fases || fases.length === 0) return;
@@ -99,12 +105,26 @@ export function GerenciarFasesDialog({ open, onOpenChange, obraId, itens }: Gere
     }
   };
 
-  // Drag & drop handlers
+  // Commit reorder
+  const commitReorder = useCallback(async (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || !fases) return;
+    await handleEnsureObraFases();
+    const newOrder = [...fases];
+    const [moved] = newOrder.splice(fromIndex, 1);
+    newOrder.splice(toIndex, 0, moved);
+    try {
+      await reorderFases.mutateAsync(newOrder.map(f => f.id));
+      toast({ title: t('schedule.phaseReordered') });
+    } catch {
+      toast({ title: t('schedule.errorReorderingPhase'), variant: 'destructive' });
+    }
+  }, [fases, reorderFases, toast, t]);
+
+  // --- Desktop drag handlers ---
   const handleDragStart = (index: number, e: React.DragEvent<HTMLDivElement>) => {
     setDragIndex(index);
     dragNodeRef.current = e.currentTarget;
     e.dataTransfer.effectAllowed = 'move';
-    // Make drag image slightly transparent
     setTimeout(() => {
       if (dragNodeRef.current) {
         dragNodeRef.current.style.opacity = '0.4';
@@ -123,44 +143,89 @@ export function GerenciarFasesDialog({ open, onOpenChange, obraId, itens }: Gere
     if (dragNodeRef.current) {
       dragNodeRef.current.style.opacity = '1';
     }
-
-    if (dragIndex !== null && dragOverIndex !== null && dragIndex !== dragOverIndex && fases) {
-      await handleEnsureObraFases();
-      const newOrder = [...fases];
-      const [moved] = newOrder.splice(dragIndex, 1);
-      newOrder.splice(dragOverIndex, 0, moved);
-      try {
-        await reorderFases.mutateAsync(newOrder.map(f => f.id));
-        toast({ title: t('schedule.phaseReordered') });
-      } catch {
-        toast({ title: t('schedule.errorReorderingPhase'), variant: 'destructive' });
-      }
+    if (dragIndex !== null && dragOverIndex !== null && dragIndex !== dragOverIndex) {
+      await commitReorder(dragIndex, dragOverIndex);
     }
-
     setDragIndex(null);
     setDragOverIndex(null);
     dragNodeRef.current = null;
   };
+
+  // --- Touch drag handlers (for mobile) ---
+  const getIndexFromTouchY = useCallback((clientY: number): number | null => {
+    for (const [idx, el] of itemRefs.current.entries()) {
+      const rect = el.getBoundingClientRect();
+      if (clientY >= rect.top && clientY <= rect.bottom) {
+        return idx;
+      }
+    }
+    return null;
+  }, []);
+
+  const handleTouchStart = useCallback((index: number, e: React.TouchEvent<HTMLDivElement>) => {
+    // Only start drag from the grip handle area
+    const target = e.target as HTMLElement;
+    const gripHandle = target.closest('[data-grip-handle]');
+    if (!gripHandle) return;
+
+    isTouchDragging.current = true;
+    touchStartY.current = e.touches[0].clientY;
+    setDragIndex(index);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isTouchDragging.current || dragIndex === null) return;
+    e.preventDefault(); // Prevent scrolling while dragging
+
+    const clientY = e.touches[0].clientY;
+    const overIdx = getIndexFromTouchY(clientY);
+    if (overIdx !== null && overIdx !== dragIndex) {
+      setDragOverIndex(overIdx);
+    }
+  }, [dragIndex, getIndexFromTouchY]);
+
+  const handleTouchEnd = useCallback(async () => {
+    if (!isTouchDragging.current) return;
+    isTouchDragging.current = false;
+
+    if (dragIndex !== null && dragOverIndex !== null && dragIndex !== dragOverIndex) {
+      await commitReorder(dragIndex, dragOverIndex);
+    }
+    setDragIndex(null);
+    setDragOverIndex(null);
+  }, [dragIndex, dragOverIndex, commitReorder]);
+
+  const setItemRef = useCallback((index: number, el: HTMLDivElement | null) => {
+    if (el) {
+      itemRefs.current.set(index, el);
+    } else {
+      itemRefs.current.delete(index);
+    }
+  }, []);
 
   const getItemCount = (faseId: string) => itens.filter(i => i.fase_id === faseId).length;
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t('schedule.managePhases')}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-1 max-h-[60vh] overflow-y-auto">
+          <div ref={listRef} className="space-y-1 max-h-[60vh] overflow-y-auto">
             {fases?.map((fase, index) => (
               <div
                 key={fase.id}
+                ref={(el) => setItemRef(index, el)}
                 draggable={editingId !== fase.id}
                 onDragStart={(e) => handleDragStart(index, e)}
                 onDragOver={(e) => handleDragOver(index, e)}
                 onDragEnd={handleDragEnd}
-                className={`flex items-center gap-2 p-3 rounded-lg border bg-card transition-all ${
+                onTouchStart={(e) => handleTouchStart(index, e)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className={`flex items-center gap-2 p-3 rounded-lg border bg-card transition-all select-none ${
                   dragOverIndex === index && dragIndex !== index
                     ? 'border-primary ring-2 ring-primary/20'
                     : ''
@@ -184,8 +249,11 @@ export function GerenciarFasesDialog({ open, onOpenChange, obraId, itens }: Gere
                   </>
                 ) : (
                   <>
-                    <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors touch-none">
-                      <GripVertical className="w-4 h-4" />
+                    <div
+                      data-grip-handle
+                      className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors p-1 -m-1"
+                    >
+                      <GripVertical className="w-5 h-5" />
                     </div>
                     <span className="text-sm text-muted-foreground w-5">{index + 1}.</span>
                     <span className="flex-1 font-medium text-sm truncate">{t(`phases.${fase.nome}`, fase.nome)}</span>
