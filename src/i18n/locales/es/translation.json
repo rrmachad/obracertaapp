@@ -1122,7 +1122,9 @@
       "financialMeasurements": "Finanzas y Mediciones",
       "financialMeasurementsDesc": "Mediciones y pagos",
       "teamAccess": "Equipo y Accesos",
-      "teamAccessDesc": "Invitaciones y permisos"
+      "teamAccessDesc": "Invitaciones y permisos",
+      "settingsManagement": "Configuraciones y Gestión",
+      "settingsManagementDesc": "Panel Admin y auditoría"
     },
     "tutorials": {
       "adminAccess": {
@@ -1235,6 +1237,18 @@
         "step7": "Usa el filtro \"Todas las obras\" en la esquina superior derecha para ver alertas de una obra específica o de todas simultáneamente. Cada material muestra una barra de progreso roja indicando el nivel crítico y una insignia con el déficit (ej: -6 sc, -0.50 kg).",
         "step8": "Para registrar que un material ya fue solicitado al proveedor, haz clic en el botón \"Pedido\" al lado del ítem. El sistema actualiza el contador de \"Pedidos realizados\" y destaca visualmente el ítem con borde azul e insignia \"Pedido\" en el módulo de Inventario, evitando compras duplicadas.",
         "note": "Prevención inteligente: el Módulo de Compras y las Alertas de Inventario trabajan juntos para garantizar que tu obra nunca pare por falta de material. Mantén los campos \"Cantidad Mínima\" y \"Precio Unitario\" actualizados en cada material del Inventario — esto alimenta automáticamente los cálculos de déficit y los informes de cotización. Cuanto más preciso el registro, más confiable será tu lista de compras."
+      },
+      "adminPanel": {
+        "title": "Cómo usar el Panel Administrativo y auditar a tu equipo",
+        "step1": "En el Dashboard principal, localiza el menú superior de íconos. Haz clic en el ícono de cuadrícula con 4 cuadrados (⊞) para acceder al \"Panel Admin\". Serás dirigido a la visión completa de tu negocio en una sola pantalla.",
+        "step2": "En la pestaña \"Visión General\", revisa los KPIs en tiempo real: Total de Obras, Registros en el Diario, Materiales Registrados, Progreso Promedio, Obras Activas, Obras Completadas, Diarios del Mes y Materiales en Alerta. La sección \"Invitaciones\" muestra el estado de las invitaciones (Pendientes, Vencidas y Utilizadas) con filtro por obra.",
+        "step3": "La tarjeta \"Progreso General del Cronograma\" muestra la barra de progreso consolidada de todas tus obras (ej: 12/62 ítems = 19%), permitiéndote evaluar la salud general de los proyectos en un solo indicador.",
+        "step4": "En la pestaña \"Obras\", visualiza todas las obras registradas con dirección, estado (En Progreso, Planificación, Completada), progreso individual y cantidad de diarios. A la derecha, la tarjeta \"Mi Plan\" muestra los límites de tu paquete (Obras, Accesos, Diarios e Inventario).",
+        "step5": "En la pestaña \"Actividad\", sigue el gráfico de \"Actividad Semanal\" con registros de diario de los últimos 7 días (total y promedio/día) y la lista de \"Actividad Reciente\" con los últimos registros del equipo — incluyendo obra, descripción y tiempo transcurrido.",
+        "step6": "En la pestaña \"Auditoría\", accede al \"Historial de Cambios\" para rastrear todas las ediciones realizadas en registros del Diario de Obra. Cada cambio muestra el campo modificado, el valor anterior, el nuevo valor y la justificación. Usa la barra de búsqueda para filtrar por obra o campo específico.",
+        "step7": "En la pestaña \"Configuraciones\", gestiona tu perfil: visualiza tu email, cambia el \"Nombre de la Empresa\" y completa el campo \"WhatsApp (Portal del Cliente)\" con el número en formato internacional (ej: 5511999999999). Este número aparecerá como botón de contacto en el Portal del Cliente.",
+        "step8": "Usa el botón \"Guardar Cambios\" para confirmar cualquier modificación en las configuraciones. El avatar puede personalizarse haciendo clic en el ícono de cámara sobre la foto de perfil.",
+        "note": "Centro de comando del administrador: el Panel Admin es tu torre de control — consolida obras, equipo, diarios y finanzas en una única interfaz. La pestaña \"Auditoría\" garantiza trazabilidad total de ediciones, ideal para resolver disputas con maestros de obra. Completar el WhatsApp en \"Configuraciones\" es esencial para que tus clientes puedan contactarte directamente a través del Portal del Cliente."
       }
     }
   }
