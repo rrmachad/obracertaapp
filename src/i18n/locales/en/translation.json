@@ -728,7 +728,10 @@
     "moveDown": "Move down",
     "phaseName": "Phase name",
     "phaseHasItems": "This phase has {{count}} items that will be removed.",
-    "close": "Close"
+    "close": "Close",
+    "duplicatePhase": "Duplicate phase",
+    "phaseDuplicated": "Phase duplicated successfully!",
+    "errorDuplicatingPhase": "Error duplicating phase"
   },
   "diary": {
     "sunny": "Sunny",

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, Check, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, Check, X, Copy } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ export function GerenciarFasesDialog({ open, onOpenChange, obraId, itens }: Gere
   const { t } = useTranslation();
   const { toast } = useToast();
   const { data: fases } = useFases(obraId);
-  const { createFase, updateFase, deleteFase, reorderFases, ensureObraFases } = useFasesMutations(obraId);
+  const { createFase, updateFase, deleteFase, reorderFases, duplicateFase, ensureObraFases } = useFasesMutations(obraId);
 
   const [newPhaseName, setNewPhaseName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -100,6 +100,16 @@ export function GerenciarFasesDialog({ open, onOpenChange, obraId, itens }: Gere
     }
   };
 
+  const handleDuplicate = async (faseId: string) => {
+    await handleEnsureObraFases();
+    try {
+      await duplicateFase.mutateAsync(faseId);
+      toast({ title: t('schedule.phaseDuplicated') });
+    } catch {
+      toast({ title: t('schedule.errorDuplicatingPhase'), variant: 'destructive' });
+    }
+  };
+
   const getItemCount = (faseId: string) => itens.filter(i => i.fase_id === faseId).length;
 
   return (
@@ -146,6 +156,14 @@ export function GerenciarFasesDialog({ open, onOpenChange, obraId, itens }: Gere
                       disabled={index === (fases?.length ?? 0) - 1 || isInitializing}
                     >
                       <ArrowDown className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      size="icon" variant="ghost" className="h-8 w-8"
+                      onClick={() => handleDuplicate(fase.id)}
+                      disabled={duplicateFase.isPending}
+                      title={t('schedule.duplicatePhase')}
+                    >
+                      <Copy className="w-3.5 h-3.5" />
                     </Button>
                     <Button
                       size="icon" variant="ghost" className="h-8 w-8"
