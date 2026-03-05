@@ -3,19 +3,185 @@ import { supabase } from '@/integrations/supabase/client';
 import { Fase, CronogramaItem, ItemStatus } from '@/types/database';
 import { notifyCronogramaConcluido } from '@/lib/notifications';
 
-export function useFases() {
+export function useFases(obraId?: string) {
   return useQuery({
-    queryKey: ['fases'],
+    queryKey: ['fases', obraId],
     queryFn: async () => {
+      if (obraId) {
+        // First check if obra has its own phases
+        const { data: obraFases, error: obraError } = await supabase
+          .from('fases')
+          .select('*')
+          .eq('obra_id', obraId)
+          .order('ordem', { ascending: true });
+        
+        if (obraError) throw obraError;
+        
+        if (obraFases && obraFases.length > 0) {
+          return obraFases as Fase[];
+        }
+      }
+      
+      // Fallback to global phases (obra_id is null)
       const { data, error } = await supabase
         .from('fases')
         .select('*')
+        .is('obra_id', null)
         .order('ordem', { ascending: true });
       
       if (error) throw error;
       return data as Fase[];
     },
   });
+}
+
+export function useFasesMutations(obraId: string) {
+  const queryClient = useQueryClient();
+
+  const ensureObraFases = async (): Promise<Fase[]> => {
+    // Check if obra already has its own phases
+    const { data: existing } = await supabase
+      .from('fases')
+      .select('*')
+      .eq('obra_id', obraId)
+      .order('ordem', { ascending: true });
+
+    if (existing && existing.length > 0) return existing as Fase[];
+
+    // Copy global phases to this obra
+    const { data: globalFases } = await supabase
+      .from('fases')
+      .select('*')
+      .is('obra_id', null)
+      .order('ordem', { ascending: true });
+
+    if (!globalFases || globalFases.length === 0) return [];
+
+    const newFases = globalFases.map(f => ({
+      nome: f.nome,
+      descricao: f.descricao,
+      icone: f.icone,
+      ordem: f.ordem,
+      obra_id: obraId,
+    }));
+
+    const { data: inserted, error } = await supabase
+      .from('fases')
+      .insert(newFases)
+      .select();
+
+    if (error) throw error;
+
+    // Re-map cronograma_itens from global fase ids to new obra fase ids
+    const globalToNew = new Map<string, string>();
+    globalFases.forEach((gf, i) => {
+      if (inserted && inserted[i]) {
+        globalToNew.set(gf.id, inserted[i].id);
+      }
+    });
+
+    // Update existing cronograma_itens to point to new obra-specific fases
+    const { data: itens } = await supabase
+      .from('cronograma_itens')
+      .select('id, fase_id')
+      .eq('obra_id', obraId);
+
+    if (itens) {
+      for (const item of itens) {
+        const newFaseId = globalToNew.get(item.fase_id);
+        if (newFaseId) {
+          await supabase
+            .from('cronograma_itens')
+            .update({ fase_id: newFaseId })
+            .eq('id', item.id);
+        }
+      }
+    }
+
+    return (inserted as Fase[]) || [];
+  };
+
+  const createFase = useMutation({
+    mutationFn: async ({ nome, icone }: { nome: string; icone?: string }) => {
+      // Ensure obra has its own phases first
+      const obraFases = await ensureObraFases();
+      const maxOrdem = obraFases.reduce((max, f) => Math.max(max, f.ordem), 0);
+
+      const { data, error } = await supabase
+        .from('fases')
+        .insert({
+          nome,
+          icone: icone || null,
+          ordem: maxOrdem + 1,
+          obra_id: obraId,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Fase;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fases', obraId] });
+    },
+  });
+
+  const updateFase = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Fase> & { id: string }) => {
+      await ensureObraFases();
+      const { data, error } = await supabase
+        .from('fases')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Fase;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fases', obraId] });
+    },
+  });
+
+  const deleteFase = useMutation({
+    mutationFn: async (id: string) => {
+      // Delete associated cronograma items first
+      await supabase
+        .from('cronograma_itens')
+        .delete()
+        .eq('fase_id', id)
+        .eq('obra_id', obraId);
+
+      const { error } = await supabase
+        .from('fases')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fases', obraId] });
+      queryClient.invalidateQueries({ queryKey: ['cronograma', obraId] });
+    },
+  });
+
+  const reorderFases = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      await ensureObraFases();
+      for (let i = 0; i < orderedIds.length; i++) {
+        await supabase
+          .from('fases')
+          .update({ ordem: i + 1 })
+          .eq('id', orderedIds[i]);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fases', obraId] });
+    },
+  });
+
+  return { createFase, updateFase, deleteFase, reorderFases, ensureObraFases };
 }
 
 export function useCronogramaItens(obraId: string) {
@@ -79,7 +245,6 @@ export function useCronogramaItens(obraId: string) {
       queryClient.invalidateQueries({ queryKey: ['cronograma', obraId] });
       queryClient.invalidateQueries({ queryKey: ['obras'] });
       queryClient.invalidateQueries({ queryKey: ['obra'] });
-      // Notify when item is marked as completed
       if (variables.status === 'concluido') {
         notifyCronogramaConcluido(obraId, data.descricao);
       }
@@ -112,7 +277,6 @@ export function useCronogramaItens(obraId: string) {
 }
 
 // Itens padrão para cada fase MCMV — chave = nome da fase no banco (pt-BR)
-// Valor = objeto com traduções por idioma
 interface DefaultItems {
   'pt-BR': string[];
   'en-US': string[];
@@ -263,17 +427,12 @@ const defaultItemsByFaseI18n: Record<string, DefaultItems> = {
   },
 };
 
-/**
- * Returns the default items for a given phase name, in the specified language.
- * Falls back to pt-BR if the language is not found.
- */
 export function getDefaultItemsForFase(faseNome: string, language: string): string[] {
   const items = defaultItemsByFaseI18n[faseNome];
   if (!items) return [];
   return items[language as keyof DefaultItems] || items['pt-BR'];
 }
 
-// Legacy export for backward compatibility
 export const defaultItemsByFase: Record<string, string[]> = Object.fromEntries(
   Object.entries(defaultItemsByFaseI18n).map(([key, val]) => [key, val['pt-BR']])
 );

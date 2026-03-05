@@ -34,6 +34,7 @@ export interface Fase {
   descricao?: string;
   ordem: number;
   icone?: string;
+  obra_id?: string;
   created_at: string;
 }
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Circle, Clock, Plus, ChevronDown, Shovel, Hammer, Building2, Home, Zap, Paintbrush, LucideIcon, DollarSign } from 'lucide-react';
+import { Check, Circle, Clock, Plus, ChevronDown, Shovel, Hammer, Building2, Home, Zap, Paintbrush, LucideIcon, DollarSign, Settings2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrency } from '@/hooks/useCurrency';
+import { GerenciarFasesDialog } from './GerenciarFasesDialog';
 
 interface CronogramaTabProps {
   obraId: string;
@@ -29,7 +30,7 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 export function CronogramaTab({ obraId }: CronogramaTabProps) {
-  const { data: fases, isLoading: fasesLoading } = useFases();
+  const { data: fases, isLoading: fasesLoading } = useFases(obraId);
   const { itens, isLoading: itensLoading, updateItem, createItem } = useCronogramaItens(obraId);
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -37,6 +38,7 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
   
   const [novoItemFaseId, setNovoItemFaseId] = useState<string | null>(null);
   const [novoItemDescricao, setNovoItemDescricao] = useState('');
+  const [gerenciarFasesOpen, setGerenciarFasesOpen] = useState(false);
 
   const getIconComponent = (iconName: string) => {
     const IconComponent = iconMap[iconName];
@@ -158,6 +160,18 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
 
   return (
     <div className="space-y-2">
+      <div className="flex justify-end mb-2">
+        <Button variant="outline" size="sm" onClick={() => setGerenciarFasesOpen(true)}>
+          <Settings2 className="w-4 h-4 mr-2" />
+          {t('schedule.managePhases')}
+        </Button>
+      </div>
+      <GerenciarFasesDialog
+        open={gerenciarFasesOpen}
+        onOpenChange={setGerenciarFasesOpen}
+        obraId={obraId}
+        itens={itens}
+      />
       <Accordion type="multiple" className="space-y-2">
         {fases?.map((fase) => {
           const progresso = calcularProgressoFase(fase.id);

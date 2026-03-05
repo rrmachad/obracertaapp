@@ -339,6 +339,7 @@ export type Database = {
           icone: string | null
           id: string
           nome: string
+          obra_id: string | null
           ordem: number
         }
         Insert: {
@@ -347,6 +348,7 @@ export type Database = {
           icone?: string | null
           id?: string
           nome: string
+          obra_id?: string | null
           ordem: number
         }
         Update: {
@@ -355,9 +357,32 @@ export type Database = {
           icone?: string | null
           id?: string
           nome?: string
+          obra_id?: string | null
           ordem?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fases_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fases_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras_portal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fases_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "portal_branding"
+            referencedColumns: ["obra_id"]
+          },
+        ]
       }
       materiais: {
         Row: {
