@@ -140,4 +140,21 @@ export const tutorials: Tutorial[] = [
     ],
     note: 'helpCenter.tutorials.clientPortal.note',
   },
+  {
+    id: 'convidar-equipe',
+    category: 'equipe-acessos',
+    categoryIcon: '👥',
+    title: 'helpCenter.tutorials.teamInvite.title',
+    steps: [
+      'helpCenter.tutorials.teamInvite.step1',
+      'helpCenter.tutorials.teamInvite.step2',
+      'helpCenter.tutorials.teamInvite.step3',
+      'helpCenter.tutorials.teamInvite.step4',
+      'helpCenter.tutorials.teamInvite.step5',
+      'helpCenter.tutorials.teamInvite.step6',
+      'helpCenter.tutorials.teamInvite.step7',
+      'helpCenter.tutorials.teamInvite.step8',
+    ],
+    note: 'helpCenter.tutorials.teamInvite.note',
+  },
 ];

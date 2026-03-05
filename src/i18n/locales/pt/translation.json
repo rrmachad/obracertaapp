@@ -1186,6 +1186,18 @@
         "step6": "O cliente verá no portal: o nome da obra, endereço, progresso geral (%), a timeline de \"Etapas da Obra\" com status de cada fase (Concluída, Pendente) e a \"Galeria de Fotos\" com todas as imagens do Diário de Obra.",
         "step7": "Para desativar o acesso a qualquer momento, volte ao menu (⋮) > \"Portal do Cliente\" e desative a chave \"Portal Ativo\". O link será imediatamente invalidado.",
         "note": "Privacidade garantida: o cliente NÃO vê nenhum dado financeiro — sem valores de contrato, medições, vales ou retenções. Ele acompanha apenas fotos, progresso e etapas. É a forma perfeita de manter o comprador engajado e confiante na sua obra."
+      },
+      "teamInvite": {
+        "title": "Como convidar sua equipe e definir permissões de acesso",
+        "step1": "Acesse a obra desejada e toque no ícone de menu (⋮) no canto superior direito. No painel de opções, selecione \"Gerenciar Acessos\".",
+        "step2": "O modal \"Gerenciar Acessos\" será aberto exibindo o nome da obra, seu plano atual (ex: Business) e a quantidade de usuários utilizados (ex: 1/5 usuários).",
+        "step3": "Na seção \"Criar Novo Convite\", selecione o nível de permissão desejado no dropdown: \"Usuário\" (acesso restrito, sem ver financeiro) ou \"Admin\" (acesso completo, incluindo financeiro e edição).",
+        "step4": "Clique no botão laranja \"+ Gerar PIN\". O sistema criará automaticamente um PIN de 6 dígitos e exibirá uma notificação \"Convite criado! PIN: XXXXXX – Compartilhe com o usuário\".",
+        "step5": "O convite aparecerá na seção \"Convites Pendentes\" com o badge de permissão (Admin/Usuário), a contagem regressiva de validade (ex: \"Expira daqui a 7 dias\") e dois botões de compartilhamento.",
+        "step6": "Use o botão \"Copiar Link\" para copiar o link mágico de convite ou o botão verde \"WhatsApp\" para enviar diretamente uma mensagem personalizada com o nome da obra e o link de acesso.",
+        "step7": "Na seção \"Usuários com Acesso\", você verá todos os membros vinculados à obra. É possível alterar a permissão de cada usuário (Admin ↔ Usuário) pelo dropdown ao lado do nome, ou removê-lo clicando no ícone de lixeira (🗑️).",
+        "step8": "Convites não utilizados podem ser excluídos a qualquer momento pelo ícone de lixeira ao lado do convite pendente. Convites expirados deixam de funcionar automaticamente após 7 dias.",
+        "note": "Segurança de dados: usuários com permissão \"Usuário\" NÃO têm acesso à aba Financeiro, medições, vales ou valores de contrato. Apenas membros com permissão \"Admin\" podem visualizar e editar dados financeiros. Isso garante que mestres de obras e auxiliares acompanhem o cronograma e o estoque sem acessar informações sensíveis."
       }
     }
   }

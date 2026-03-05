@@ -1186,6 +1186,18 @@
         "step6": "El cliente verá en el portal: el nombre de la obra, dirección, progreso general (%), la línea de tiempo de \"Etapas de la Obra\" con el estado de cada fase (Completada, Pendiente) y la \"Galería de Fotos\" con todas las imágenes del Diario de Obra.",
         "step7": "Para revocar el acceso en cualquier momento, vuelve al menú (⋮) > \"Portal del Cliente\" y desactiva el interruptor \"Portal Activo\". El enlace se invalidará inmediatamente.",
         "note": "Privacidad garantizada: el cliente NO ve ningún dato financiero — sin valores de contrato, mediciones, adelantos ni retenciones. Solo ve fotos, progreso y etapas. Es la forma perfecta de mantener al comprador comprometido y confiado en tu obra."
+      },
+      "teamInvite": {
+        "title": "Cómo invitar a tu equipo y definir permisos de acceso",
+        "step1": "Accede a la obra deseada y toca el ícono de menú (⋮) en la esquina superior derecha. En el panel de opciones, selecciona \"Gestionar Accesos\".",
+        "step2": "Se abrirá el modal \"Gestionar Accesos\" mostrando el nombre de la obra, tu plan actual (ej: Business) y la cantidad de usuarios en uso (ej: 1/5 usuarios).",
+        "step3": "En la sección \"Crear Nueva Invitación\", selecciona el nivel de permiso deseado en el dropdown: \"Usuario\" (acceso restringido, sin ver financiero) o \"Admin\" (acceso completo, incluyendo financiero y edición).",
+        "step4": "Haz clic en el botón naranja \"+ Generar PIN\". El sistema creará automáticamente un PIN de 6 dígitos y mostrará una notificación \"¡Invitación creada! PIN: XXXXXX – Compártelo con el usuario\".",
+        "step5": "La invitación aparecerá en la sección \"Invitaciones Pendientes\" con el badge de permiso (Admin/Usuario), una cuenta regresiva de validez (ej: \"Expira en 7 días\") y dos botones de compartir.",
+        "step6": "Usa el botón \"Copiar Enlace\" para copiar el enlace mágico de invitación o el botón verde \"WhatsApp\" para enviar directamente un mensaje personalizado con el nombre de la obra y el enlace de acceso.",
+        "step7": "En la sección \"Usuarios con Acceso\", verás todos los miembros vinculados a la obra. Puedes cambiar el permiso de cada usuario (Admin ↔ Usuario) mediante el dropdown junto a su nombre, o eliminarlo haciendo clic en el ícono de papelera (🗑️).",
+        "step8": "Las invitaciones no utilizadas pueden eliminarse en cualquier momento con el ícono de papelera junto a la invitación pendiente. Las invitaciones vencidas dejan de funcionar automáticamente después de 7 días.",
+        "note": "Seguridad de datos: los usuarios con permiso \"Usuario\" NO tienen acceso a la pestaña Financiero, mediciones, adelantos ni valores de contrato. Solo los miembros con permiso \"Admin\" pueden ver y editar datos financieros. Esto garantiza que maestros de obra y auxiliares sigan el cronograma y el inventario sin acceder a información sensible."
       }
     }
   }
