@@ -1186,6 +1186,18 @@
         "step6": "The client will see on the portal: the project name, address, overall progress (%), the \"Construction Stages\" timeline with the status of each phase (Completed, Pending) and the \"Photo Gallery\" with all images from the Construction Diary.",
         "step7": "To revoke access at any time, go back to the menu (⋮) > \"Client Portal\" and turn off the \"Active Portal\" switch. The link will be immediately invalidated.",
         "note": "Privacy guaranteed: the client does NOT see any financial data — no contract values, measurements, advances or retentions. They only see photos, progress and stages. It's the perfect way to keep buyers engaged and confident in your project."
+      },
+      "teamInvite": {
+        "title": "How to invite your team and set access permissions",
+        "step1": "Open the desired project and tap the menu icon (⋮) in the top right corner. In the options panel, select \"Manage Access\".",
+        "step2": "The \"Manage Access\" modal will open showing the project name, your current plan (e.g., Business) and the number of users in use (e.g., 1/5 users).",
+        "step3": "In the \"Create New Invite\" section, select the desired permission level from the dropdown: \"User\" (restricted access, cannot see financials) or \"Admin\" (full access, including financials and editing).",
+        "step4": "Click the orange \"+ Generate PIN\" button. The system will automatically create a 6-digit PIN and display a notification \"Invite created! PIN: XXXXXX – Share with the user\".",
+        "step5": "The invite will appear in the \"Pending Invites\" section with the permission badge (Admin/User), a countdown timer (e.g., \"Expires in 7 days\") and two sharing buttons.",
+        "step6": "Use the \"Copy Link\" button to copy the magic invite link or the green \"WhatsApp\" button to directly send a personalized message with the project name and access link.",
+        "step7": "In the \"Users with Access\" section, you'll see all members linked to the project. You can change each user's permission (Admin ↔ User) via the dropdown next to their name, or remove them by clicking the trash icon (🗑️).",
+        "step8": "Unused invites can be deleted at any time using the trash icon next to the pending invite. Expired invites stop working automatically after 7 days.",
+        "note": "Data security: users with \"User\" permission do NOT have access to the Financial tab, measurements, advances or contract values. Only members with \"Admin\" permission can view and edit financial data. This ensures that foremen and assistants can follow the schedule and stock without accessing sensitive information."
       }
     }
   }
