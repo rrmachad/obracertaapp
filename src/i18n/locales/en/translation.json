@@ -1122,7 +1122,9 @@
       "financialMeasurements": "Financial & Measurements",
       "financialMeasurementsDesc": "Measurements and payments",
       "teamAccess": "Team & Access",
-      "teamAccessDesc": "Invites and permissions"
+      "teamAccessDesc": "Invites and permissions",
+      "settingsManagement": "Settings & Management",
+      "settingsManagementDesc": "Admin Panel and auditing"
     },
     "tutorials": {
       "adminAccess": {
@@ -1235,6 +1237,18 @@
         "step7": "Use the \"All projects\" filter in the top right to view alerts for a specific project or all at once. Each material displays a red progress bar indicating the critical level and a badge with the deficit (e.g., -6 bags, -0.50 kg).",
         "step8": "To record that a material has been requested from a supplier, click the \"Order\" button next to the item. The system updates the \"Orders placed\" counter and visually highlights the item with a blue border and \"Ordered\" badge in the Stock module, preventing duplicate purchases.",
         "note": "Smart prevention: the Purchases Module and Stock Alerts work together to ensure your project never stops due to material shortage. Keep the \"Minimum Quantity\" and \"Unit Price\" fields updated for each material in Stock — this automatically feeds deficit calculations and quotation reports. The more accurate the records, the more reliable your shopping list."
+      },
+      "adminPanel": {
+        "title": "How to use the Admin Panel and audit your team",
+        "step1": "On the main Dashboard, find the top icon menu. Click the grid icon with 4 squares (⊞) to access the \"Admin Panel\". You'll be taken to a complete overview of your business on a single screen.",
+        "step2": "In the \"Overview\" tab, check real-time KPIs: Total Projects, Diary Records, Registered Materials, Average Progress, Active Projects, Completed Projects, Monthly Diaries and Materials on Alert. The \"Invites\" section shows invite status (Pending, Expired and Used) with a per-project filter.",
+        "step3": "The \"Overall Schedule Progress\" card shows a consolidated progress bar across all your projects (e.g., 12/62 items = 19%), letting you assess overall project health in a single indicator.",
+        "step4": "In the \"Projects\" tab, view all registered projects with address, status (In Progress, Planning, Completed), individual progress and diary count. On the right, the \"My Plan\" card displays your package limits (Projects, Access, Diaries and Stock).",
+        "step5": "In the \"Activity\" tab, track the \"Weekly Activity\" chart with diary records from the last 7 days (total and average/day) and the \"Recent Activity\" list with the latest team records — including project, description and elapsed time.",
+        "step6": "In the \"Audit\" tab, access the \"Change History\" to track all edits made to Construction Diary records. Each change shows the modified field, previous value, new value and justification. Use the search bar to filter by project or specific field.",
+        "step7": "In the \"Settings\" tab, manage your profile: view your email, change the \"Company Name\" and fill in the \"WhatsApp (Client Portal)\" field with the number in international format (e.g., 5511999999999). This number will appear as a contact button on the Client Portal.",
+        "step8": "Use the \"Save Changes\" button to confirm any setting modifications. The avatar can be customized by clicking the camera icon over the profile picture.",
+        "note": "Administrator command center: the Admin Panel is your control tower — it consolidates projects, team, diaries and finances into a single interface. The \"Audit\" tab ensures full traceability of edits, ideal for resolving disputes with foremen. Filling in WhatsApp under \"Settings\" is essential so your clients can contact you directly through the Client Portal."
       }
     }
   }

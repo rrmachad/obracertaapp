@@ -45,6 +45,12 @@ export const categories: TutorialCategory[] = [
     titleKey: 'helpCenter.categories.teamAccess',
     descriptionKey: 'helpCenter.categories.teamAccessDesc',
   },
+  {
+    id: 'configuracoes-gestao',
+    icon: '🛡️',
+    titleKey: 'helpCenter.categories.settingsManagement',
+    descriptionKey: 'helpCenter.categories.settingsManagementDesc',
+  },
 ];
 
 export const tutorials: Tutorial[] = [
@@ -208,5 +214,22 @@ export const tutorials: Tutorial[] = [
       'helpCenter.tutorials.purchasesAlerts.step8',
     ],
     note: 'helpCenter.tutorials.purchasesAlerts.note',
+  },
+  {
+    id: 'painel-administrativo',
+    category: 'configuracoes-gestao',
+    categoryIcon: '🛡️',
+    title: 'helpCenter.tutorials.adminPanel.title',
+    steps: [
+      'helpCenter.tutorials.adminPanel.step1',
+      'helpCenter.tutorials.adminPanel.step2',
+      'helpCenter.tutorials.adminPanel.step3',
+      'helpCenter.tutorials.adminPanel.step4',
+      'helpCenter.tutorials.adminPanel.step5',
+      'helpCenter.tutorials.adminPanel.step6',
+      'helpCenter.tutorials.adminPanel.step7',
+      'helpCenter.tutorials.adminPanel.step8',
+    ],
+    note: 'helpCenter.tutorials.adminPanel.note',
   },
 ];

@@ -1122,7 +1122,9 @@
       "financialMeasurements": "Financeiro e Medições",
       "financialMeasurementsDesc": "Medições e pagamentos",
       "teamAccess": "Equipe e Acessos",
-      "teamAccessDesc": "Convites e permissões"
+      "teamAccessDesc": "Convites e permissões",
+      "settingsManagement": "Configurações e Gestão",
+      "settingsManagementDesc": "Painel Admin e auditoria"
     },
     "tutorials": {
       "adminAccess": {
@@ -1235,6 +1237,18 @@
         "step7": "Use o filtro \"Todas as obras\" no canto superior direito para visualizar alertas de uma obra específica ou de todas simultaneamente. Cada material exibe uma barra de progresso vermelha indicando o nível crítico e um badge com o déficit (ex: -6 sc, -0.50 kg).",
         "step8": "Para registrar que um material já foi solicitado ao fornecedor, clique no botão \"Pedido\" ao lado do item. O sistema atualiza o contador de \"Pedidos realizados\" e destaca visualmente o item com borda azul e badge \"Pedido\" no módulo de Estoque, evitando compras duplicadas.",
         "note": "Prevenção inteligente: o Módulo de Compras e os Alertas de Estoque trabalham juntos para garantir que sua obra nunca pare por falta de material. Mantenha os campos \"Quantidade Mínima\" e \"Preço Unitário\" atualizados em cada material do Estoque — isso alimenta automaticamente os cálculos de déficit e os relatórios de cotação. Quanto mais preciso o cadastro, mais confiável será sua lista de compras."
+      },
+      "adminPanel": {
+        "title": "Como usar o Painel Administrativo e auditar sua equipe",
+        "step1": "No Dashboard principal, localize o menu superior de ícones. Clique no ícone de grade com 4 quadrados (⊞) para acessar o \"Painel Admin\". Você será direcionado para a visão completa do seu negócio em uma única tela.",
+        "step2": "Na aba \"Visão Geral\", confira os KPIs em tempo real: Total de Obras, Registros no Diário, Materiais Cadastrados, Progresso Médio, Obras Ativas, Obras Concluídas, Diários do Mês e Materiais em Alerta. A seção \"Convites\" exibe o status dos convites (Pendentes, Expirados e Utilizados) com filtro por obra.",
+        "step3": "O card \"Progresso Geral do Cronograma\" mostra a barra de progresso consolidada de todas as suas obras (ex: 12/62 itens = 19%), permitindo avaliar a saúde geral dos projetos em um único indicador.",
+        "step4": "Na aba \"Obras\", visualize todas as obras cadastradas com endereço, status (Em Andamento, Planejamento, Concluída), progresso individual e quantidade de diários. À direita, o card \"Meu Plano\" exibe os limites do seu pacote (Obras, Acessos, Diários e Estoque).",
+        "step5": "Na aba \"Atividade\", acompanhe o gráfico de \"Atividade Semanal\" com registros de diário dos últimos 7 dias (total e média/dia) e a lista de \"Atividade Recente\" com os últimos registros da equipe — incluindo obra, descrição e tempo decorrido.",
+        "step6": "Na aba \"Auditoria\", acesse o \"Histórico de Alterações\" para rastrear todas as edições feitas em registros do Diário de Obra. Cada alteração exibe o campo modificado, o valor anterior, o novo valor e a justificativa. Use a barra de busca para filtrar por obra ou campo específico.",
+        "step7": "Na aba \"Configurações\", gerencie seu perfil: visualize seu e-mail, altere o \"Nome da Empresa\" e preencha o campo \"WhatsApp (Portal do Cliente)\" com o número no formato internacional (ex: 5511999999999). Esse número aparecerá como botão de contato no Portal do Cliente.",
+        "step8": "Use o botão \"Salvar Alterações\" para confirmar qualquer modificação nas configurações. O avatar pode ser personalizado clicando no ícone de câmera sobre a foto de perfil.",
+        "note": "Centro de comando do administrador: o Painel Admin é sua torre de controle — ele consolida obras, equipe, diários e finanças em uma única interface. A aba \"Auditoria\" garante rastreabilidade total de edições, ideal para resolver disputas com mestres de obras. Preencher o WhatsApp em \"Configurações\" é essencial para que seus clientes possam entrar em contato diretamente pelo Portal do Cliente."
       }
     }
   }
