@@ -728,7 +728,10 @@
     "moveDown": "Mover abajo",
     "phaseName": "Nombre de la fase",
     "phaseHasItems": "Esta fase tiene {{count}} ítems que serán eliminados.",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "duplicatePhase": "Duplicar fase",
+    "phaseDuplicated": "¡Fase duplicada con éxito!",
+    "errorDuplicatingPhase": "Error al duplicar fase"
   },
   "diary": {
     "sunny": "Soleado",

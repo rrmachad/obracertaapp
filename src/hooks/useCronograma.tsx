@@ -181,7 +181,75 @@ export function useFasesMutations(obraId: string) {
     },
   });
 
-  return { createFase, updateFase, deleteFase, reorderFases, ensureObraFases };
+  const duplicateFase = useMutation({
+    mutationFn: async (faseId: string) => {
+      await ensureObraFases();
+
+      // Get the source phase
+      const { data: sourceFase, error: faseError } = await supabase
+        .from('fases')
+        .select('*')
+        .eq('id', faseId)
+        .single();
+      if (faseError || !sourceFase) throw faseError;
+
+      // Get all obra fases to determine max ordem
+      const { data: allFases } = await supabase
+        .from('fases')
+        .select('ordem')
+        .eq('obra_id', obraId)
+        .order('ordem', { ascending: false })
+        .limit(1);
+      const maxOrdem = allFases?.[0]?.ordem ?? sourceFase.ordem;
+
+      // Create duplicated phase
+      const { data: newFase, error: insertError } = await supabase
+        .from('fases')
+        .insert({
+          nome: `${sourceFase.nome} (cópia)`,
+          descricao: sourceFase.descricao,
+          icone: sourceFase.icone,
+          ordem: maxOrdem + 1,
+          obra_id: obraId,
+        })
+        .select()
+        .single();
+      if (insertError || !newFase) throw insertError;
+
+      // Copy all cronograma items from the source phase
+      const { data: sourceItems } = await supabase
+        .from('cronograma_itens')
+        .select('*')
+        .eq('fase_id', faseId)
+        .eq('obra_id', obraId)
+        .order('ordem', { ascending: true });
+
+      if (sourceItems && sourceItems.length > 0) {
+        const newItems = sourceItems.map((item, i) => ({
+          obra_id: obraId,
+          fase_id: newFase.id,
+          descricao: item.descricao,
+          ordem: i,
+          status: 'pendente' as const,
+          valor_contrato_mao_de_obra: item.valor_contrato_mao_de_obra,
+          observacoes: item.observacoes,
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('cronograma_itens')
+          .insert(newItems);
+        if (itemsError) throw itemsError;
+      }
+
+      return newFase as Fase;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fases', obraId] });
+      queryClient.invalidateQueries({ queryKey: ['cronograma', obraId] });
+    },
+  });
+
+  return { createFase, updateFase, deleteFase, reorderFases, duplicateFase, ensureObraFases };
 }
 
 export function useCronogramaItens(obraId: string) {
