@@ -1161,6 +1161,20 @@
         "step6": "Toca el botón \"Agregar\" para guardar el material en tu inventario.",
         "step7": "El material registrado aparecerá en la lista del inventario. Usa los botones \"+\" y \"−\" para registrar entradas y salidas rápidamente.",
         "note": "El sistema incluye una lista inteligente de materiales pre-registrados organizados por fase. Al seleccionar un material sugerido, la unidad de medida se completa automáticamente, agilizando el registro."
+      },
+      "financialMeasurements": {
+        "title": "Cómo hacer Mediciones, descontar Adelantos y aplicar Retención Técnica",
+        "step1": "Accede a la pestaña \"Cronograma\" de la obra y define el valor del contrato de mano de obra en cada ítem. Haz clic en el ícono \"$\" junto al ítem o usa el botón \"Definir Total\" en la barra de la fase para distribuir el valor automáticamente entre los ítems.",
+        "step2": "Al distribuir por fase, elige el modo: \"Igual entre ítems\" (división igualitaria) o \"Proporcional\" (basado en el peso de cada ítem). Haz clic en \"Distribuir entre ítems\" para confirmar.",
+        "step3": "Accede a la pestaña \"Financiero\" para ver el panel completo: Valor Completado, Total Pagado, Saldo de Retención y Adelantos Pendientes.",
+        "step4": "Para registrar un adelanto (vale), haz clic en \"Nuevo Adelanto\". Completa la Fecha, el Valor y una Descripción (ej: Vale para almuerzo). Haz clic en \"Registrar Adelanto\" para guardar.",
+        "step5": "El adelanto registrado aparecerá en la sección \"Adelantos (Vales)\" con estado \"Pendiente\" hasta que se descuente en una medición futura.",
+        "step6": "Para crear una nueva medición, haz clic en el botón naranja \"Nueva Medición\". El sistema abrirá un asistente de 4 pasos: Selección → Cálculo → Deducciones → Resultado.",
+        "step7": "En el paso \"Selección\", define la fecha de medición y selecciona los ítems del cronograma que tengan valor de contrato definido. Solo aparecerán ítems con valor en la lista.",
+        "step8": "En el paso \"Deducciones\", el sistema calcula automáticamente la Retención Técnica (predeterminada 5%, editable por obra) y muestra los adelantos pendientes disponibles para descuento. Selecciona cuáles adelantos deseas descontar en esta medición.",
+        "step9": "En el paso \"Resultado\", revisa el resumen: Valor Bruto Medido, Retención Técnica, Adelantos Descontados y Valor Neto a Pagar. Confirma para registrar la medición.",
+        "step10": "Para exportar un extracto financiero completo en PDF, haz clic en el ícono de documento (📄) junto al botón \"Nuevo Adelanto\". El PDF incluye el comparativo por fase (Contratado vs. Completado vs. Pagado), historial de mediciones y adelantos.",
+        "note": "El panel financiero muestra un gráfico \"Comparativo por Fase\" con barras de colores: gris (Contratado), naranja (Completado) y verde (Pagado). Si el valor completado supera el contratado, el sistema emitirá una alerta de desbordamiento de contrato para el administrador."
       }
     }
   }

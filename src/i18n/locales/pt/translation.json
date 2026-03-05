@@ -1161,6 +1161,20 @@
         "step6": "Toque no botão \"Adicionar\" para salvar o material no seu estoque.",
         "step7": "O material cadastrado aparecerá na lista do estoque. Use os botões \"+\" e \"−\" para registrar entradas e saídas rapidamente.",
         "note": "O sistema possui uma lista inteligente de materiais pré-cadastrados organizados por fase. Ao selecionar um material sugerido, a unidade de medida é preenchida automaticamente, agilizando o cadastro."
+      },
+      "financialMeasurements": {
+        "title": "Como fazer Medições, descontar Vales e aplicar Retenção Técnica",
+        "step1": "Acesse a aba \"Cronograma\" da obra e defina o valor do contrato de mão de obra em cada item. Clique no ícone \"$\" ao lado do item ou use o botão \"Definir Total\" na barra da fase para distribuir o valor automaticamente entre os itens.",
+        "step2": "Ao distribuir por fase, escolha o modo: \"Igual entre itens\" (divisão igualitária) ou \"Proporcional\" (baseado no peso de cada item). Clique em \"Distribuir entre itens\" para confirmar.",
+        "step3": "Acesse a aba \"Financeiro\" para visualizar o painel completo: Valor Concluído, Total Pago, Saldo de Retenção e Vales Pendentes.",
+        "step4": "Para registrar um adiantamento (vale), clique em \"Novo Adiantamento\". Preencha a Data, o Valor (R$) e uma Descrição (ex: Vale para almoço). Clique em \"Registrar Adiantamento\" para salvar.",
+        "step5": "O vale registrado aparecerá na seção \"Adiantamentos (Vales)\" com status \"Pendente\" até ser descontado em uma medição futura.",
+        "step6": "Para criar uma nova medição, clique no botão laranja \"Nova Medição\". O sistema abrirá um assistente em 4 etapas: Seleção → Cálculo → Deduções → Resultado.",
+        "step7": "Na etapa \"Seleção\", defina a data da medição e selecione os itens do cronograma que possuem valor de contrato definido. Somente itens com valor aparecerão na lista.",
+        "step8": "Na etapa \"Deduções\", o sistema calcula automaticamente a Retenção Técnica (padrão 5%, editável por obra) e apresenta os vales pendentes disponíveis para desconto. Selecione quais vales deseja abater nesta medição.",
+        "step9": "Na etapa \"Resultado\", confira o resumo: Valor Bruto Medido, Retenção Técnica, Vales Descontados e o Valor Líquido a Pagar. Confirme para registrar a medição.",
+        "step10": "Para exportar um extrato financeiro completo em PDF, clique no ícone de documento (📄) ao lado do botão \"Novo Adiantamento\". O PDF inclui o comparativo por fase (Contratado vs. Concluído vs. Pago), histórico de medições e adiantamentos.",
+        "note": "O dashboard financeiro exibe um gráfico \"Comparativo por Fase\" com barras coloridas: cinza (Contratado), laranja (Concluído) e verde (Pago). Se o valor concluído ultrapassar o contratado, o sistema emitirá um alerta de estouro de contrato para o administrador."
       }
     }
   }

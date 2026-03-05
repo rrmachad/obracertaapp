@@ -105,4 +105,23 @@ export const tutorials: Tutorial[] = [
     ],
     note: 'helpCenter.tutorials.addMaterial.note',
   },
+  {
+    id: 'medicoes-vales-retencao',
+    category: 'financeiro-medicoes',
+    categoryIcon: '💰',
+    title: 'helpCenter.tutorials.financialMeasurements.title',
+    steps: [
+      'helpCenter.tutorials.financialMeasurements.step1',
+      'helpCenter.tutorials.financialMeasurements.step2',
+      'helpCenter.tutorials.financialMeasurements.step3',
+      'helpCenter.tutorials.financialMeasurements.step4',
+      'helpCenter.tutorials.financialMeasurements.step5',
+      'helpCenter.tutorials.financialMeasurements.step6',
+      'helpCenter.tutorials.financialMeasurements.step7',
+      'helpCenter.tutorials.financialMeasurements.step8',
+      'helpCenter.tutorials.financialMeasurements.step9',
+      'helpCenter.tutorials.financialMeasurements.step10',
+    ],
+    note: 'helpCenter.tutorials.financialMeasurements.note',
+  },
 ];

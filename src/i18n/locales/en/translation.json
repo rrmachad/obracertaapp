@@ -1161,6 +1161,20 @@
         "step6": "Tap the \"Add\" button to save the material to your inventory.",
         "step7": "The registered material will appear in the inventory list. Use the \"+\" and \"−\" buttons to quickly log entries and exits.",
         "note": "The system includes a smart list of pre-registered materials organized by phase. When you select a suggested material, the unit of measurement is auto-filled, speeding up the registration process."
+      },
+      "financialMeasurements": {
+        "title": "How to create Measurements, deduct Advances and apply Technical Retention",
+        "step1": "Go to the \"Schedule\" tab and set the labor contract value for each item. Click the \"$\" icon next to the item or use the \"Set Total\" button on the phase bar to distribute the value automatically among items.",
+        "step2": "When distributing by phase, choose the mode: \"Equal among items\" (equal division) or \"Proportional\" (based on each item's weight). Click \"Distribute among items\" to confirm.",
+        "step3": "Go to the \"Financial\" tab to view the full dashboard: Completed Value, Total Paid, Retention Balance and Pending Advances.",
+        "step4": "To register an advance (voucher), click \"New Advance\". Fill in the Date, Amount and a Description (e.g., Lunch voucher). Click \"Register Advance\" to save.",
+        "step5": "The registered advance will appear in the \"Advances (Vouchers)\" section with \"Pending\" status until it is deducted in a future measurement.",
+        "step6": "To create a new measurement, click the orange \"New Measurement\" button. The system will open a 4-step wizard: Selection → Calculation → Deductions → Result.",
+        "step7": "In the \"Selection\" step, set the measurement date and select the schedule items that have a defined contract value. Only items with a value will appear in the list.",
+        "step8": "In the \"Deductions\" step, the system automatically calculates Technical Retention (default 5%, editable per project) and shows pending advances available for deduction. Select which advances to offset in this measurement.",
+        "step9": "In the \"Result\" step, review the summary: Gross Measured Value, Technical Retention, Deducted Advances and Net Amount Payable. Confirm to register the measurement.",
+        "step10": "To export a complete financial statement as PDF, click the document icon (📄) next to the \"New Advance\" button. The PDF includes the phase comparison (Contracted vs. Completed vs. Paid), measurement history and advances.",
+        "note": "The financial dashboard displays a \"Phase Comparison\" chart with colored bars: gray (Contracted), orange (Completed) and green (Paid). If the completed value exceeds the contract, the system will issue a contract overrun alert to the administrator."
       }
     }
   }
