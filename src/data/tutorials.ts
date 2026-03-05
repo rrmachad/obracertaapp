@@ -176,4 +176,20 @@ export const tutorials: Tutorial[] = [
     ],
     note: 'helpCenter.tutorials.dailyLog.note',
   },
+  {
+    id: 'dashboard-lucratividade',
+    category: 'financeiro-medicoes',
+    categoryIcon: '💰',
+    title: 'helpCenter.tutorials.profitDashboard.title',
+    steps: [
+      'helpCenter.tutorials.profitDashboard.step1',
+      'helpCenter.tutorials.profitDashboard.step2',
+      'helpCenter.tutorials.profitDashboard.step3',
+      'helpCenter.tutorials.profitDashboard.step4',
+      'helpCenter.tutorials.profitDashboard.step5',
+      'helpCenter.tutorials.profitDashboard.step6',
+      'helpCenter.tutorials.profitDashboard.step7',
+    ],
+    note: 'helpCenter.tutorials.profitDashboard.note',
+  },
 ];
