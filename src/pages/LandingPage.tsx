@@ -684,16 +684,6 @@ export function LandingPage() {
 
   const plans = [
     {
-      name: t('landing.plan1Name'), price: t('landing.plan1Price'), period: t('landing.plan1Period'),
-      description: t('landing.plan1Desc'), badge: null,
-      features: [
-        { text: t('landing.plan1Feat1'), included: true },
-        { text: t('landing.plan1Feat2'), included: true },
-        { text: t('landing.plan1Feat3'), included: true, warning: true },
-      ],
-      cta: t('landing.plan1Cta'), popular: false, premium: false, variant: 'outline' as const,
-    },
-    {
       name: t('landing.plan2Name'), price: t('landing.plan2Price'), period: t('landing.plan2Period'),
       description: t('landing.plan2Desc'), badge: t('landing.plan2Badge'),
       features: [
@@ -701,6 +691,7 @@ export function LandingPage() {
         { text: t('landing.plan2Feat2'), included: true },
         { text: t('landing.plan2Feat3'), included: true },
         { text: t('landing.plan2Feat4'), included: true },
+        { text: t('landing.plan2Feat5'), included: true },
       ],
       cta: t('landing.plan2Cta'), popular: false, premium: false, variant: 'outline' as const,
     },
@@ -709,25 +700,12 @@ export function LandingPage() {
       description: t('landing.plan3Desc'), badge: t('landing.plan3Badge'),
       features: [
         { text: t('landing.plan3Feat1'), included: true },
-        { text: t('landing.plan3Feat2'), included: true },
+        { text: t('landing.plan3Feat2'), included: true, highlight: true },
         { text: t('landing.plan3Feat3'), included: true },
         { text: t('landing.plan3Feat4'), included: true },
         { text: t('landing.plan3Feat5'), included: true },
       ],
-      cta: t('landing.plan3Cta'), popular: false, premium: false, variant: 'outline' as const,
-    },
-    {
-      name: t('landing.plan4Name'), price: t('landing.plan4Price'), period: t('landing.plan4Period'),
-      description: t('landing.plan4Desc'), badge: t('landing.plan4Badge'),
-      features: [
-        { text: t('landing.plan4Feat1'), included: true },
-        { text: t('landing.plan4Feat2'), included: true, highlight: true },
-        { text: t('landing.plan4Feat3'), included: true },
-        { text: t('landing.plan4Feat4'), included: true },
-        { text: t('landing.plan4Feat5'), included: true },
-        { text: t('landing.plan4Feat6'), included: true },
-      ],
-      cta: t('landing.plan4Cta'), popular: true, premium: true, variant: 'default' as const,
+      cta: t('landing.plan3Cta'), popular: true, premium: true, variant: 'default' as const,
     },
   ];
 
@@ -752,6 +730,8 @@ export function LandingPage() {
     { question: t('landing.faq4Q'), answer: t('landing.faq4A') },
     { question: t('landing.faq5Q'), answer: t('landing.faq5A') },
     { question: t('landing.faq6Q'), answer: t('landing.faq6A') },
+    { question: t('landing.faq7Q'), answer: t('landing.faq7A') },
+    { question: t('landing.faq8Q'), answer: t('landing.faq8A') },
   ];
 
   return (
@@ -883,6 +863,25 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Inner Thought Section */}
+      <section className="py-16">
+        <div className="container">
+          <AnimatedSection animation="scaleUp" className="max-w-3xl mx-auto">
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="p-10 md:p-14 text-center">
+                <div className="text-6xl text-primary/20 font-serif leading-none mb-4 select-none">"</div>
+                <blockquote className="text-xl md:text-2xl font-semibold leading-relaxed mb-8">
+                  {t('landing.innerThought.quote')}
+                </blockquote>
+                <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                  {t('landing.innerThought.support')}
+                </p>
+              </CardContent>
+            </Card>
+          </AnimatedSection>
+        </div>
+      </section>
+
       {/* Pain vs Solution Section */}
       <section className="py-16 bg-muted/30">
         <div className="container">
@@ -933,6 +932,67 @@ export function LandingPage() {
             ))}
           </div>
 
+        </div>
+      </section>
+
+      {/* Medição Blindada Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container">
+          <AnimatedSection animation="fadeUp" className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              {t('landing.medicaoBlindada.title')} <span className="text-primary">{t('landing.medicaoBlindada.titleHighlight')}</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              {t('landing.medicaoBlindada.subtitle')}
+            </p>
+          </AnimatedSection>
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-10">
+            {[
+              { icon: Calculator, title: t('landing.medicaoBlindada.card1Title'), desc: t('landing.medicaoBlindada.card1Desc') },
+              { icon: Receipt, title: t('landing.medicaoBlindada.card2Title'), desc: t('landing.medicaoBlindada.card2Desc') },
+              { icon: ShieldCheck, title: t('landing.medicaoBlindada.card3Title'), desc: t('landing.medicaoBlindada.card3Desc') },
+            ].map((item, index) => (
+              <StaggerCard key={index} index={index}>
+                <div className="flex items-start gap-4 md:hidden">
+                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm flex-shrink-0 mt-1">
+                    {index + 1}
+                  </div>
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <item.icon className="w-7 h-7 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                      <p className="text-muted-foreground">{item.desc}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="hidden md:flex flex-col items-center text-center">
+                  <div className="relative mb-6">
+                    <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
+                      <item.icon className="w-10 h-10 text-primary" />
+                    </div>
+                    <div className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                      {index + 1}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground">{item.desc}</p>
+                </div>
+              </StaggerCard>
+            ))}
+          </div>
+          <AnimatedSection animation="fadeUp" delay={300} className="text-center max-w-2xl mx-auto">
+            <p className="text-base text-muted-foreground mb-6 italic">
+              {t('landing.medicaoBlindada.close')}
+            </p>
+            <a href="#como-funciona">
+              <Button variant="outline" className="gap-2">
+                {t('landing.medicaoBlindada.cta')}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </a>
+          </AnimatedSection>
         </div>
       </section>
 
@@ -1080,54 +1140,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Diferenciais Business Section */}
-      <section className="py-16 bg-violet-500/5 border-y border-violet-500/10">
-        <div className="container">
-          <AnimatedSection animation="fadeUp" className="text-center mb-12">
-            <Badge className="mb-4 bg-violet-600 text-white border-0 px-4 py-1.5">
-              {t('landing.businessBadge')}
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              {t('landing.businessTitle')}{' '}
-              <span className="text-violet-600 dark:text-violet-400">{t('landing.businessTitleHighlight')}</span>?
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t('landing.businessSubtitle')}
-            </p>
-          </AnimatedSection>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              { icon: Share2, title: t('landing.biz1Title'), description: t('landing.biz1Desc') },
-              { icon: ShoppingCart, title: t('landing.biz2Title'), description: t('landing.biz2Desc') },
-              { icon: PieChart, title: t('landing.biz3Title'), description: t('landing.biz3Desc') },
-            ].map((item, index) => (
-              <StaggerCard key={index} index={index}>
-                <Card className="h-full border-violet-500/20 hover:shadow-xl hover:shadow-violet-500/5 transition-all">
-                  <CardContent className="p-8 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-6">
-                      <item.icon className="w-8 h-8 text-violet-600 dark:text-violet-400" />
-                    </div>
-                    <h3 className="text-lg font-bold mb-3">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
-                  </CardContent>
-                </Card>
-              </StaggerCard>
-            ))}
-          </div>
-
-          <AnimatedSection animation="fadeUp" delay={500} className="text-center mt-10">
-            <Link to="/portal/demo">
-              <Button variant="outline" className="gap-2 border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10">
-                <Smartphone className="w-4 h-4" />
-                {t('landing.bizPortalDemo')}
-              </Button>
-            </Link>
-          </AnimatedSection>
-        </div>
-      </section>
-
-
       {/* Pricing Section */}
       <section id="precos" className="py-16 bg-muted/30">
         <div className="container">
@@ -1140,7 +1152,7 @@ export function LandingPage() {
             </p>
           </AnimatedSection>
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch">
+          <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto items-stretch">
             {plans.map((plan, index) => (
               <AnimatedSection key={index} animation="fadeUp" delay={index * 100}>
                 <Card 
@@ -1232,6 +1244,35 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Risk Reversal Section */}
+      <section className="py-16">
+        <div className="container">
+          <AnimatedSection animation="fadeUp" className="max-w-2xl mx-auto text-center">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+              <ShieldCheck className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">
+              {t('landing.riskReversal.title')}
+            </h2>
+            <div className="space-y-4 mb-8 text-left">
+              {[
+                t('landing.riskReversal.item1'),
+                t('landing.riskReversal.item2'),
+                t('landing.riskReversal.item3'),
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <p className="text-base">{item}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-lg font-semibold text-primary">
+              {t('landing.riskReversal.close')}
+            </p>
+          </AnimatedSection>
+        </div>
+      </section>
+
       {/* FAQ Section */}
       <section id="faq" className="py-16 bg-muted/30">
         <div className="container">
@@ -1286,6 +1327,7 @@ export function LandingPage() {
                 </Button>
               </a>
             </div>
+            <p className="text-sm opacity-60 mt-6">{t('landing.ctaMicroCopy')}</p>
           </AnimatedSection>
         </div>
       </section>
