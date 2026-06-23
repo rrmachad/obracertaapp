@@ -16,8 +16,8 @@ const planPrices: Record<string, string> = {
 
 // Mapping de planos para price IDs do Stripe (BRL)
 const planPricesBRL: Record<string, string> = {
-  start: "price_1T2zPuDaZO2bVcEooFDUqa1r",
-  gold: "price_1T2zQ8DaZO2bVcEodg84mxt8",
+  start: "price_1TlJkLDaZO2bVcEo3NatnxRx",
+  gold: "price_1TlJm9DaZO2bVcEoZyEsOVQl",
   premium: "price_1T2zQLDaZO2bVcEoRulgHg6W",
 };
 
