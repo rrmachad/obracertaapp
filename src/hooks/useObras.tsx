@@ -77,12 +77,13 @@ export function useObras() {
         })
         .select()
         .single();
-      
+
       if (error) throw error;
       return data as Obra;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['obras'] });
+      queryClient.invalidateQueries({ queryKey: ['obras-own', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['obras-count', user?.id] });
     },
   });
 
@@ -111,11 +112,12 @@ export function useObras() {
         .from('obras')
         .delete()
         .eq('id', id);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['obras'] });
+      queryClient.invalidateQueries({ queryKey: ['obras-own', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['obras-count', user?.id] });
     },
   });
 

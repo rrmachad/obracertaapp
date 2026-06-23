@@ -51,6 +51,7 @@ interface PlanOption {
   buttonTextCurrent?: string;
 }
 
+// All plans kept for ordering/downgrade logic — free and premium are legacy (not displayed)
 const plans: PlanOption[] = [
   {
     id: 'free',
@@ -61,7 +62,6 @@ const plans: PlanOption[] = [
       { text: '1 Obra Ativa', icon: 'check' },
       { text: 'Cronograma de Fases', icon: 'check' },
       { text: 'Controle Básico de Estoque', icon: 'check' },
-      { text: '⚠️ Ideal apenas para testar', icon: 'check' },
     ],
     buttonText: 'Seu Plano Atual',
     buttonTextCurrent: 'Seu Plano Atual',
@@ -70,7 +70,7 @@ const plans: PlanOption[] = [
     id: 'start',
     name: 'Autônomo',
     price: 19.90,
-    priceBRL: 29.90,
+    priceBRL: 19.90,
     features: [
       { text: 'Obras Ilimitadas', icon: 'rocket', highlight: true },
       { text: 'Diário de Obra Digital', icon: 'check' },
@@ -84,13 +84,16 @@ const plans: PlanOption[] = [
   {
     id: 'gold',
     name: 'Construtora',
-    price: 39.90,
-    priceBRL: 59.90,
+    price: 37.90,
+    priceBRL: 37.90,
+    popular: true,
     features: [
       { text: 'Tudo do Plano Autônomo', icon: 'check', highlight: true },
       { text: 'Medições: Pague o executado', icon: 'shield', highlight: true },
       { text: 'Desconto Automático de Vales', icon: 'shield' },
       { text: 'Retenção Técnica (5%)', icon: 'shield' },
+      { text: 'Portal do Cliente', icon: 'star', highlight: true },
+      { text: 'Dashboard de Lucratividade', icon: 'check' },
       { text: '3 Usuários', icon: 'users' },
     ],
     buttonText: 'Blindar Meu Caixa',
@@ -101,19 +104,19 @@ const plans: PlanOption[] = [
     name: 'Business',
     price: 79.90,
     priceBRL: 99.90,
-    popular: true,
     features: [
       { text: 'Tudo do Plano Construtora', icon: 'check', highlight: true },
-      { text: 'Portal do Cliente', icon: 'star', highlight: true },
-      { text: 'Módulo de Compras', icon: 'check' },
+      { text: 'Módulo de Compras', icon: 'check', highlight: true },
       { text: 'Usuários Ilimitados', icon: 'users', highlight: true },
-      { text: 'Dashboard de Lucratividade', icon: 'check' },
       { text: 'Suporte VIP 24h', icon: 'star' },
     ],
     buttonText: 'Escalar Meu Negócio',
     buttonTextCurrent: 'Plano Atual',
   },
 ];
+
+// Only these two plans are shown to new users
+const visiblePlanIds: SubscriptionPlan[] = ['start', 'gold'];
 
 const planNames: Record<SubscriptionPlan, string> = {
   free: 'Iniciante',
@@ -272,8 +275,8 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
           </TabsList>
           
           <TabsContent value="cards" className="animate-fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
-              {plans.map((planOption, index) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2 max-w-2xl mx-auto">
+              {plans.filter(p => visiblePlanIds.includes(p.id)).map((planOption, index) => {
                 const isCurrentPlan = planOption.id === currentPlan;
                 const isDowngrade = plans.findIndex(p => p.id === planOption.id) < plans.findIndex(p => p.id === currentPlan);
                 

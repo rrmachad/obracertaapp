@@ -25,42 +25,40 @@ const features: FeatureRow[] = [
   { category: 'Obras', name: 'Obras Ativas', free: '1', start: 'Ilimitadas', gold: 'Ilimitadas', premium: 'Ilimitadas' },
   { category: 'Obras', name: 'Gestão de Fases', free: true, start: true, gold: true, premium: true },
   { category: 'Obras', name: 'Cronograma Detalhado', free: true, start: true, gold: true, premium: true },
-  
+
   // Diário de Obra
   { category: 'Diário de Obra', name: 'Registros Diários', free: '10/obra', start: 'Ilimitados', gold: 'Ilimitados', premium: 'Ilimitados' },
   { category: 'Diário de Obra', name: 'Upload de Fotos', free: true, start: true, gold: true, premium: true },
   { category: 'Diário de Obra', name: 'Gestão de Profissionais', free: true, start: true, gold: true, premium: true },
-  
+
   // Estoque
   { category: 'Estoque', name: 'Materiais Cadastrados', free: '10/obra', start: 'Ilimitados', gold: 'Ilimitados', premium: 'Ilimitados' },
   { category: 'Estoque', name: 'Controle de Movimentação', free: 'Básico', start: 'Completo', gold: 'Completo', premium: 'Completo' },
   { category: 'Estoque', name: 'Alertas de Estoque Baixo', free: false, start: true, gold: true, premium: true },
-  
+
   // Blindagem Financeira
   { category: 'Blindagem Financeira', name: 'Medições (Pague o executado)', free: false, start: false, gold: true, premium: true },
   { category: 'Blindagem Financeira', name: 'Desconto Automático de Vales', free: false, start: false, gold: true, premium: true },
   { category: 'Blindagem Financeira', name: 'Retenção Técnica (5%)', free: false, start: false, gold: true, premium: true },
-  
+
   // Relatórios
   { category: 'Relatórios', name: 'Relatórios em PDF', free: false, start: true, gold: true, premium: true },
   { category: 'Relatórios', name: 'Relatório Semanal', free: false, start: true, gold: true, premium: true },
   { category: 'Relatórios', name: 'Relatório Mensal', free: false, start: true, gold: true, premium: true },
-  
+
   // Equipe
   { category: 'Equipe', name: 'Usuários Inclusos', free: '1', start: '1', gold: '3', premium: 'Ilimitados' },
   { category: 'Equipe', name: 'Convites por PIN', free: false, start: false, gold: true, premium: true },
-  
-  // Recursos Business
-  { category: 'Business', name: 'Portal do Cliente', free: false, start: false, gold: false, premium: true },
-  { category: 'Business', name: 'Módulo de Compras', free: false, start: false, gold: false, premium: true },
-  { category: 'Business', name: 'Dashboard de Lucratividade', free: false, start: false, gold: false, premium: true },
-  { category: 'Business', name: 'Suporte VIP 24h', free: false, start: false, gold: false, premium: true },
+
+  // Construtora — features that come with gold
+  { category: 'Construtora', name: 'Portal do Cliente', free: false, start: false, gold: true, premium: true },
+  { category: 'Construtora', name: 'Dashboard de Lucratividade', free: false, start: false, gold: true, premium: true },
 ];
 
 const planInfo: Record<SubscriptionPlan, { name: string; price: number; priceBRL: number; icon?: React.ReactNode }> = {
   free: { name: 'Iniciante', price: 0, priceBRL: 0 },
-  start: { name: 'Autônomo', price: 19.90, priceBRL: 29.90, icon: <Rocket className="w-4 h-4" /> },
-  gold: { name: 'Construtora', price: 39.90, priceBRL: 59.90, icon: <ShieldCheck className="w-4 h-4" /> },
+  start: { name: 'Autônomo', price: 19.90, priceBRL: 19.90, icon: <Rocket className="w-4 h-4" /> },
+  gold: { name: 'Construtora', price: 37.90, priceBRL: 37.90, icon: <ShieldCheck className="w-4 h-4" /> },
   premium: { name: 'Business', price: 79.90, priceBRL: 99.90, icon: <Crown className="w-4 h-4" /> },
 };
 
@@ -83,6 +81,9 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
   const planKeys: SubscriptionPlan[] = ['free', 'start', 'gold', 'premium'];
 
   const categories = [...new Set(features.map(f => f.category))];
+  // Show only Autônomo and Construtora to new users; legacy plans kept in planKeys for data completeness
+  const visiblePlanKeys: SubscriptionPlan[] = ['start', 'gold'];
+  const displayPlanKeys = planKeys.filter(k => visiblePlanKeys.includes(k));
 
   return (
     <div className="overflow-x-auto rounded-lg border border-border">
@@ -92,10 +93,10 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
             <th className="text-left p-3 bg-muted/50 font-medium text-sm min-w-[180px]">
               Funcionalidade
             </th>
-            {planKeys.map((plan) => {
+            {displayPlanKeys.map((plan) => {
               const info = planInfo[plan];
               const isCurrent = plan === currentPlan;
-              const isPopular = plan === 'premium';
+              const isPopular = plan === 'gold';
               
               return (
                 <th
@@ -153,10 +154,10 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
                     className="border-b border-border/50 hover:bg-muted/30 transition-all duration-200"
                   >
                     <td className="p-3 text-sm">{feature.name}</td>
-                    {planKeys.map((plan) => {
-                      const isPopular = plan === 'premium';
+                    {displayPlanKeys.map((plan) => {
+                      const isPopular = plan === 'gold';
                       const isCurrent = plan === currentPlan;
-                      
+
                       return (
                         <td
                           key={plan}
@@ -180,11 +181,11 @@ export function PlanoComparisonTable({ onSelectPlan, compact = false }: PlanoCom
           <tfoot>
             <tr>
               <td className="p-3"></td>
-              {planKeys.map((plan) => {
+              {displayPlanKeys.map((plan) => {
                 const isCurrent = plan === currentPlan;
-                const isPopular = plan === 'premium';
+                const isPopular = plan === 'gold';
                 const isDowngrade = planKeys.indexOf(plan) < planKeys.indexOf(currentPlan);
-                
+
                 return (
                   <td key={plan} className={cn('p-3', isPopular && 'bg-primary/5')}>
                     <Button

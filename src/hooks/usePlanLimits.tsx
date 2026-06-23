@@ -52,9 +52,9 @@ const planLimitsConfig: Record<SubscriptionPlan, PlanLimits> = {
     maxMateriaisPerObra: -1,
     canAccessFinanceiro: true,
     canAccessMedicao: true,
-    canAccessPortal: false,
+    canAccessPortal: true,
     canAccessCompras: false,
-    canAccessDashboardLucratividade: false,
+    canAccessDashboardLucratividade: true,
   },
   premium: { // Business
     maxUsers: -1,
@@ -73,9 +73,9 @@ const planLimitsConfig: Record<SubscriptionPlan, PlanLimits> = {
 export const planUpgradeTarget: Record<string, { planName: string; feature: string }> = {
   financeiro: { planName: 'Autônomo', feature: 'Gestão Financeira' },
   medicao: { planName: 'Construtora', feature: 'Medições e Retenção Técnica' },
-  portal: { planName: 'Business', feature: 'Portal do Cliente' },
-  compras: { planName: 'Business', feature: 'Módulo de Compras' },
-  lucratividade: { planName: 'Business', feature: 'Dashboard de Lucratividade' },
+  portal: { planName: 'Construtora', feature: 'Portal do Cliente' },
+  compras: { planName: 'Construtora', feature: 'Módulo de Compras' },
+  lucratividade: { planName: 'Construtora', feature: 'Dashboard de Lucratividade' },
 };
 
 export function usePlanLimits() {
@@ -142,10 +142,26 @@ export function usePlanLimits() {
     enabled: !!user?.id,
   });
 
+  // Count distinct users invited by this user across all obras
+  const usersQuery = useQuery({
+    queryKey: ['users-count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { data, error } = await supabase
+        .from('obra_access')
+        .select('user_id')
+        .eq('granted_by', user.id);
+      if (error) throw error;
+      const uniqueUsers = new Set((data ?? []).map(a => a.user_id));
+      return uniqueUsers.size;
+    },
+    enabled: !!user?.id,
+  });
+
   const limits = planLimitsConfig[plan];
-  
+
   const usage: PlanUsage = {
-    usersUsed: 1,
+    usersUsed: (usersQuery.data ?? 0) + 1, // +1 for the owner
     obrasUsed: obrasQuery.data ?? 0,
     diariosUsed: diariosQuery.data ?? {},
     materiaisUsed: materiaisQuery.data ?? {},
@@ -188,12 +204,13 @@ export function usePlanLimits() {
     return (count / limits.maxMateriaisPerObra) * 100;
   };
 
-  const isLoading = obrasQuery.isLoading || diariosQuery.isLoading || materiaisQuery.isLoading;
+  const isLoading = obrasQuery.isLoading || diariosQuery.isLoading || materiaisQuery.isLoading || usersQuery.isLoading;
 
   const refetch = () => {
     obrasQuery.refetch();
     diariosQuery.refetch();
     materiaisQuery.refetch();
+    usersQuery.refetch();
   };
 
   return {

@@ -46,7 +46,10 @@ export function NovaMedicaoDialog({ open, onOpenChange, obraId, retencaoPercentu
 
   const ultimaMedicao = useMemo(() => {
     if (!selectedItemId) return null;
-    return medicoes.find(m => m.cronograma_item_id === selectedItemId);
+    // Sort descending by date to guarantee the most recent is picked, regardless of query order
+    return [...medicoes]
+      .sort((a, b) => new Date(b.data_medicao).getTime() - new Date(a.data_medicao).getTime())
+      .find(m => m.cronograma_item_id === selectedItemId) ?? null;
   }, [selectedItemId, medicoes]);
 
   const percentualAnterior = ultimaMedicao?.percentual_atual ?? 0;
@@ -317,9 +320,15 @@ export function NovaMedicaoDialog({ open, onOpenChange, obraId, retencaoPercentu
               <Separator />
             </div>
 
-            <div className="bg-success/10 border-2 border-success/40 rounded-xl p-6 text-center">
+            {valorLiquido < 0 && (
+              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-sm text-destructive">
+                <strong>Atenção:</strong> Os adiantamentos e deduções superam o valor bruto desta medição. O valor líquido não pode ser negativo — volte e revise os adiantamentos selecionados antes de confirmar.
+              </div>
+            )}
+
+            <div className={`${valorLiquido < 0 ? 'bg-destructive/10 border-2 border-destructive/40' : 'bg-success/10 border-2 border-success/40'} rounded-xl p-6 text-center`}>
               <p className="text-sm text-muted-foreground mb-1">{t('financial.netToPay')}</p>
-              <p className="text-3xl font-bold text-success">{formatCurrency(valorLiquido)}</p>
+              <p className={`text-3xl font-bold ${valorLiquido < 0 ? 'text-destructive' : 'text-success'}`}>{formatCurrency(valorLiquido)}</p>
             </div>
 
             <div className="flex gap-2">
@@ -327,7 +336,7 @@ export function NovaMedicaoDialog({ open, onOpenChange, obraId, retencaoPercentu
               <Button
                 onClick={handleConfirm}
                 className="flex-1 bg-success hover:bg-success/90 text-success-foreground"
-                disabled={createMedicao.isPending}
+                disabled={createMedicao.isPending || valorLiquido < 0}
               >
                 <Check className="w-4 h-4 mr-2" /> {t('financial.confirmBilling')}
               </Button>

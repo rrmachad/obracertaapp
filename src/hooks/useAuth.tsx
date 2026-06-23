@@ -53,12 +53,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!error && data.user) {
-      // Criar perfil do usuário com email
-      await supabase.from('profiles').insert({
+      const { error: profileError } = await supabase.from('profiles').insert({
         user_id: data.user.id,
         nome: nome,
-        email: email
+        email: email,
       });
+
+      if (profileError) {
+        // Retry once before giving up
+        const { error: retryError } = await supabase.from('profiles').insert({
+          user_id: data.user.id,
+          nome: nome,
+          email: email,
+        });
+
+        if (retryError) {
+          console.error('[Auth] Failed to create profile for user', data.user.id, retryError);
+          return {
+            error: new Error(
+              'Erro ao criar seu perfil. Tente novamente ou entre em contato com o suporte.'
+            ),
+          };
+        }
+      }
     }
 
     return { error: error as Error | null };

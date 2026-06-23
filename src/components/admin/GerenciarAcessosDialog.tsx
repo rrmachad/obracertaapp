@@ -183,7 +183,7 @@ export function GerenciarAcessosDialog({
                       <span>Usuário</span>
                     </div>
                   </SelectItem>
-                  {plan === 'premium' && (
+                  {(plan === 'gold' || plan === 'premium') && (
                     <SelectItem value="admin">
                       <div className="flex items-center gap-2">
                         <Shield className="w-4 h-4" />
@@ -201,9 +201,9 @@ export function GerenciarAcessosDialog({
                 Gerar PIN
               </Button>
             </div>
-            {plan !== 'premium' && (
+            {plan !== 'gold' && plan !== 'premium' && (
               <p className="text-xs text-muted-foreground">
-                Upgrade para Premium para criar convites de Admin.
+                Upgrade para Construtora para criar convites de Admin.
               </p>
             )}
           </div>
