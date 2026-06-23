@@ -4,11 +4,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 // Product ID to plan mapping (same as check-subscription)
 const productToPlans: Record<string, string> = {
-  // v3 BRL products (current - prices in BRL)
+  // v4 BRL products (current - R$19,90 / R$37,90)
+  "prod_UkpPpyTTfKQ8vd": "start",
+  "prod_UkpR48UA8gv0jf": "gold",
+  // v3 BRL products (legacy - prices in BRL)
   "prod_U11STgWm4m9tUW": "start",   // R$29,90/mês
   "prod_U11T4TqaTmwfdI": "gold",    // R$59,90/mês
   "prod_U11TuB6H4fpSp4": "premium", // R$99,90/mês
-  // v2 USD products (current - prices in USD)
+  // v2 USD products (legacy - prices in USD)
   "prod_TzYalnkoVY2mqM": "start",
   "prod_TzYak5DysG3KB5": "gold",
   "prod_TzYa2l84ZRs1VM": "premium",
