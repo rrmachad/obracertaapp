@@ -2,20 +2,15 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-// Product ID to plan mapping (same as check-subscription)
 const productToPlans: Record<string, string> = {
-  // v4 BRL products (current - R$19,90 / R$37,90)
   "prod_UkpPpyTTfKQ8vd": "start",
   "prod_UkpR48UA8gv0jf": "gold",
-  // v3 BRL products (legacy - prices in BRL)
-  "prod_U11STgWm4m9tUW": "start",   // R$29,90/mês
-  "prod_U11T4TqaTmwfdI": "gold",    // R$59,90/mês
-  "prod_U11TuB6H4fpSp4": "premium", // R$99,90/mês
-  // v2 USD products (legacy - prices in USD)
+  "prod_U11STgWm4m9tUW": "start",
+  "prod_U11T4TqaTmwfdI": "gold",
+  "prod_U11TuB6H4fpSp4": "premium",
   "prod_TzYalnkoVY2mqM": "start",
   "prod_TzYak5DysG3KB5": "gold",
   "prod_TzYa2l84ZRs1VM": "premium",
-  // Legacy products (backward compatibility)
   "prod_Ty5KXzCdaVfhhq": "start",
   "prod_Ty5KBT7EeOhDIf": "gold",
   "prod_Ty5Kt7Tbf3bw0b": "premium",
@@ -25,10 +20,7 @@ const productToPlans: Record<string, string> = {
 };
 
 const planMaxUsers: Record<string, number> = {
-  free: 1,
-  start: 2,
-  gold: 3,
-  premium: 5,
+  free: 1, start: 2, gold: 3, premium: 5,
 };
 
 const logStep = (step: string, details?: unknown) => {
@@ -56,7 +48,6 @@ serve(async (req) => {
     const signature = req.headers.get("stripe-signature");
     if (!signature) throw new Error("No Stripe signature found");
 
-    // Verify webhook signature
     const event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
     logStep("Event verified", { type: event.type, id: event.id });
 
@@ -74,9 +65,8 @@ serve(async (req) => {
         if (session.mode === "subscription" && session.customer) {
           const customerId = typeof session.customer === "string" ? session.customer : session.customer.id;
           const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-          
+
           if (customer.email) {
-            // Find user by email
             const { data: users } = await supabaseClient.auth.admin.listUsers();
             const user = users?.users?.find(u => u.email === customer.email);
 
@@ -90,8 +80,7 @@ serve(async (req) => {
               const { error } = await supabaseClient
                 .from("subscriptions")
                 .update({
-                  plan,
-                  max_users: maxUsers,
+                  plan, max_users: maxUsers,
                   stripe_customer_id: customerId,
                   stripe_subscription_id: subscriptionId,
                   status: "active",
@@ -128,8 +117,7 @@ serve(async (req) => {
           const { error } = await supabaseClient
             .from("subscriptions")
             .update({
-              plan,
-              max_users: maxUsers,
+              plan, max_users: maxUsers,
               stripe_customer_id: customerId,
               stripe_subscription_id: subscription.id,
               status: "active",
@@ -141,15 +129,11 @@ serve(async (req) => {
         } else if (subscription.status === "canceled" || subscription.status === "unpaid" || subscription.status === "past_due") {
           const { error } = await supabaseClient
             .from("subscriptions")
-            .update({
-              plan: "free",
-              max_users: 1,
-              status: subscription.status,
-            })
+            .update({ plan: "free", max_users: 1, status: subscription.status })
             .eq("user_id", user.id);
 
-          logStep(error ? "DB update failed" : "Subscription deactivated", { 
-            userId: user.id, status: subscription.status, error: error?.message 
+          logStep(error ? "DB update failed" : "Subscription deactivated", {
+            userId: user.id, status: subscription.status, error: error?.message
           });
         }
         break;
@@ -169,16 +153,11 @@ serve(async (req) => {
 
         const { error } = await supabaseClient
           .from("subscriptions")
-          .update({
-            plan: "free",
-            max_users: 1,
-            stripe_subscription_id: null,
-            status: "canceled",
-          })
+          .update({ plan: "free", max_users: 1, stripe_subscription_id: null, status: "canceled" })
           .eq("user_id", user.id);
 
-        logStep(error ? "DB update failed" : "Subscription canceled → free", { 
-          userId: user.id, error: error?.message 
+        logStep(error ? "DB update failed" : "Subscription canceled → free", {
+          userId: user.id, error: error?.message
         });
         break;
       }
@@ -188,15 +167,13 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ received: true }), {
-      headers: { "Content-Type": "application/json" },
-      status: 200,
+      headers: { "Content-Type": "application/json" }, status: 200,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { "Content-Type": "application/json" },
-      status: 400,
+      headers: { "Content-Type": "application/json" }, status: 400,
     });
   }
 });
