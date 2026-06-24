@@ -24,6 +24,7 @@ import { GerenciarAcessosDialog } from '@/components/admin/GerenciarAcessosDialo
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
 import { PortalClienteDialog } from '@/components/obras/PortalClienteDialog';
 import { FeatureBlockedOverlay } from '@/components/FeatureBlockedOverlay';
+import { TrialBanner } from '@/components/TrialBanner';
 import { useObraAccess } from '@/hooks/useUserInvites';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { ObraStatus } from '@/types/database';
@@ -37,7 +38,7 @@ export function ObraDetails() {
   const { data: obra, isLoading, refetch } = useObra(id!);
   const { deleteObra, updateObra } = useObras();
   const { canManageUsers, isAdmin, isOwner } = useObraAccess(id!);
-  const { limits } = usePlanLimits();
+  const { limits, isTrialExpired } = usePlanLimits();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [acessosDialogOpen, setAcessosDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
@@ -224,6 +225,8 @@ export function ObraDetails() {
         </ol>
       </nav>
 
+      <TrialBanner skip={!isOwner} />
+
       {/* Tabs */}
       <main className="container pb-4">
         <Tabs defaultValue="cronograma" className="w-full">
@@ -253,7 +256,7 @@ export function ObraDetails() {
             {limits.canAccessFinanceiro ? (
               <FinanceiroTab obraId={obra.id} retencaoPercentual={obra.retencao_tecnica_percentual ?? 5} obraNome={obra.nome} isAdmin={isAdmin} />
             ) : (
-              <FeatureBlockedOverlay featureKey="financeiro" onUpgradeClick={() => setUpgradeDialogOpen(true)} />
+              <FeatureBlockedOverlay featureKey="financeiro" onUpgradeClick={() => setUpgradeDialogOpen(true)} isTrialExpired={isTrialExpired} />
             )}
           </TabsContent>
           <TabsContent value="estoque" className="mt-4">

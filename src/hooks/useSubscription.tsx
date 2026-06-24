@@ -157,6 +157,10 @@ export function useSubscription(overrideUserId?: string | null) {
     trialEndsAt != null &&
     new Date(trialEndsAt) > new Date() &&
     !subscription?.stripe_subscription_id;
+  const isTrialExpired =
+    trialEndsAt != null &&
+    new Date(trialEndsAt) <= new Date() &&
+    !subscription?.stripe_subscription_id;
   const trialDaysLeft = isOnTrial
     ? Math.ceil((new Date(trialEndsAt!).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
@@ -172,6 +176,7 @@ export function useSubscription(overrideUserId?: string | null) {
     planLimits,
     planNames,
     isOnTrial,
+    isTrialExpired,
     trialEndsAt,
     trialDaysLeft,
   };

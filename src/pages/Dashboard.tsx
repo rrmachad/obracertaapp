@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { ObraCard } from '@/components/obras/ObraCard';
 import { NovaObraDialog } from '@/components/obras/NovaObraDialog';
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
+import { TrialBanner } from '@/components/TrialBanner';
 import { EntrarComPinDialog } from '@/components/admin/EntrarComPinDialog';
 import { PlanoResumoCard } from '@/components/admin/PlanoResumoCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -165,6 +166,8 @@ export function Dashboard() {
           </div>
         </div>
       </header>
+
+      <TrialBanner skip={isInvitedUser} />
 
       <main className="container py-4 pb-24">
         {/* Card de resumo do plano */}
