@@ -98,16 +98,12 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
         t('planoResumo.feat_gold_2'),
         t('planoResumo.feat_gold_3'),
         t('planoResumo.feat_gold_4'),
+        t('planoResumo.lock_gold_1'), // Portal do Cliente — já incluso no gold
+        t('planoResumo.lock_gold_3'), // Dashboard de Lucratividade — já incluso no gold
         t('planoResumo.feat_gold_5'),
       ],
-      lockedTitle: t('planoResumo.unlock_premium'),
-      locked: [
-        t('planoResumo.lock_gold_1'),
-        t('planoResumo.lock_gold_2'),
-        t('planoResumo.lock_gold_3'),
-        t('planoResumo.lock_gold_4'),
-        t('planoResumo.lock_gold_5'),
-      ],
+      lockedTitle: '',
+      locked: [], // Business (premium) não é mais vendido — nenhum bloco de upsell
     },
     premium: {
       included: [
@@ -297,8 +293,8 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
           </div>
         )}
 
-        {/* Botão de upgrade */}
-        {plan !== 'premium' && !isInvitedUser && (
+        {/* Botão de upgrade — apenas para free e start (gold não tem plano superior vendido) */}
+        {(plan === 'free' || plan === 'start') && !isInvitedUser && (
           <Button 
             onClick={onUpgradeClick} 
             className={cn(
