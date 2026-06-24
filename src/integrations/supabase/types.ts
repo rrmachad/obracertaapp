@@ -456,6 +456,7 @@ export type Database = {
           created_at: string
           cronograma_item_id: string | null
           data_medicao: string
+          data_recebimento: string | null
           fase_id: string | null
           id: string
           obra_id: string
@@ -465,6 +466,7 @@ export type Database = {
           percentual_avanco_periodo: number | null
           retencao_percentual_aplicado: number
           status: string
+          status_pagamento: string
           updated_at: string
           valor_adiantamentos_descontados: number
           valor_bruto_medido: number
@@ -476,6 +478,7 @@ export type Database = {
           created_at?: string
           cronograma_item_id?: string | null
           data_medicao?: string
+          data_recebimento?: string | null
           fase_id?: string | null
           id?: string
           obra_id: string
@@ -485,6 +488,7 @@ export type Database = {
           percentual_avanco_periodo?: number | null
           retencao_percentual_aplicado?: number
           status?: string
+          status_pagamento?: string
           updated_at?: string
           valor_adiantamentos_descontados?: number
           valor_bruto_medido?: number
@@ -496,6 +500,7 @@ export type Database = {
           created_at?: string
           cronograma_item_id?: string | null
           data_medicao?: string
+          data_recebimento?: string | null
           fase_id?: string | null
           id?: string
           obra_id?: string
@@ -505,6 +510,7 @@ export type Database = {
           percentual_avanco_periodo?: number | null
           retencao_percentual_aplicado?: number
           status?: string
+          status_pagamento?: string
           updated_at?: string
           valor_adiantamentos_descontados?: number
           valor_bruto_medido?: number
@@ -564,6 +570,7 @@ export type Database = {
           id: string
           material_id: string
           observacao: string | null
+          preco_unitario_momento: number | null
           quantidade: number
           tipo: string
         }
@@ -573,6 +580,7 @@ export type Database = {
           id?: string
           material_id: string
           observacao?: string | null
+          preco_unitario_momento?: number | null
           quantidade: number
           tipo: string
         }
@@ -582,6 +590,7 @@ export type Database = {
           id?: string
           material_id?: string
           observacao?: string | null
+          preco_unitario_momento?: number | null
           quantidade?: number
           tipo?: string
         }
@@ -738,6 +747,7 @@ export type Database = {
           token_portal: string | null
           updated_at: string
           user_id: string
+          valor_receita: number | null
         }
         Insert: {
           created_at?: string
@@ -753,6 +763,7 @@ export type Database = {
           token_portal?: string | null
           updated_at?: string
           user_id: string
+          valor_receita?: number | null
         }
         Update: {
           created_at?: string
@@ -768,6 +779,7 @@ export type Database = {
           token_portal?: string | null
           updated_at?: string
           user_id?: string
+          valor_receita?: number | null
         }
         Relationships: []
       }
