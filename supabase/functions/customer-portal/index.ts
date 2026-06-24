@@ -60,10 +60,10 @@ serve(async (req) => {
       logStep("Found Stripe customer", { customerId });
     }
 
-    const origin = req.headers.get("origin") || "https://obracertaapp.lovable.app";
+    const origin = req.headers.get("origin") || "https://obracerta.pro";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${origin}/?portal=success`,
+      return_url: `${origin}/dashboard`,
     });
     logStep("Customer portal session created", { sessionId: portalSession.id, url: portalSession.url });
 

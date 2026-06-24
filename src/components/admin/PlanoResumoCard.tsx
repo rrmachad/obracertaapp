@@ -29,7 +29,7 @@ const planColors: Record<SubscriptionPlan, string> = {
 export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: PlanoResumoCardProps) {
   const { t } = useTranslation();
   const { plan, planName, maxUsers } = useSubscription(ownerUserId);
-  const { limits, usage, getObrasPercentage } = usePlanLimits();
+  const { limits, usage, getObrasPercentage, isOnTrial } = usePlanLimits();
   const { session } = useAuth();
   const { toast } = useToast();
   const [managingSubscription, setManagingSubscription] = useState(false);
@@ -309,20 +309,20 @@ export function PlanoResumoCard({ onUpgradeClick, ownerUserId, isInvitedUser }: 
           </Button>
         )}
 
-        {/* Gerenciar assinatura - only for paid plans */}
+        {/* Gerenciar assinatura - only for paid plans (not during trial) */}
         {plan !== 'free' && !isInvitedUser && (
-          <Button 
-            onClick={handleManageSubscription} 
-            disabled={managingSubscription}
+          <Button
+            onClick={isOnTrial ? onUpgradeClick : handleManageSubscription}
+            disabled={!isOnTrial && managingSubscription}
             variant="outline"
             className="w-full"
           >
-            {managingSubscription ? (
+            {!isOnTrial && managingSubscription ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <CreditCard className="w-4 h-4 mr-2" />
             )}
-            {t('planoResumo.manageSubscription')}
+            {isOnTrial ? 'Ver Planos de Assinatura' : t('planoResumo.manageSubscription')}
           </Button>
         )}
       </CardContent>

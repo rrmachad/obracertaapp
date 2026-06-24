@@ -254,7 +254,7 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
                 <span className="ml-2 text-xs font-medium text-amber-600 dark:text-amber-400">(período de teste)</span>
               )}
             </span>
-            {currentPlan !== 'free' && (
+            {currentPlan !== 'free' && !isOnTrial && (
               <Button
                 variant="outline"
                 size="sm"
