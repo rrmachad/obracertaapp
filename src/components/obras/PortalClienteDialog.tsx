@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Share2, Copy, Check, ExternalLink, Building2, Phone, CheckCircle2, ChevronRight, ChevronLeft, Upload } from 'lucide-react';
+import { Share2, Copy, Check, ExternalLink, Building2, Phone, CheckCircle2, ChevronRight, ChevronLeft, Upload, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -35,7 +35,7 @@ export function PortalClienteDialog({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Wizard state
+  // Wizard state (first-time setup)
   const [wizardStep, setWizardStep] = useState<0 | 1 | 2 | 3>(0);
   const [empresaNome, setEmpresaNome] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
@@ -43,6 +43,15 @@ export function PortalClienteDialog({
   const [logoPreview, setLogoPreview] = useState('');
   const [savingWizard, setSavingWizard] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Inline brand editing (normal view)
+  const [editingBranding, setEditingBranding] = useState(false);
+  const [editNome, setEditNome] = useState('');
+  const [editWhatsapp, setEditWhatsapp] = useState('');
+  const [editLogoFile, setEditLogoFile] = useState<File | null>(null);
+  const [editLogoPreview, setEditLogoPreview] = useState('');
+  const [savingBranding, setSavingBranding] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   const portalUrl = tokenPortal
     ? `${window.location.origin}/portal/${tokenPortal}`
@@ -61,10 +70,50 @@ export function PortalClienteDialog({
     }
   }, [open, portalAtivo, settings]);
 
-  // Sync ativo with prop when dialog reopens
   useEffect(() => {
     if (open) setAtivo(portalAtivo);
   }, [open, portalAtivo]);
+
+  // Seed edit fields when entering edit mode
+  const handleOpenEdit = () => {
+    setEditNome(settings?.empresa_nome ?? '');
+    setEditWhatsapp(settings?.whatsapp ?? '');
+    setEditLogoFile(null);
+    setEditLogoPreview(settings?.empresa_logo_url ?? '');
+    setEditingBranding(true);
+  };
+
+  const handleEditLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setEditLogoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveBranding = async () => {
+    setSavingBranding(true);
+    try {
+      let logoUrl = settings?.empresa_logo_url;
+      if (editLogoFile) {
+        logoUrl = await uploadLogo(editLogoFile);
+      }
+      await updateSettings.mutateAsync({
+        empresa_nome: editNome.trim() || undefined,
+        whatsapp: editWhatsapp.trim() || undefined,
+        ...(logoUrl ? { empresa_logo_url: logoUrl } : {}),
+      });
+      toast({ title: 'Dados da empresa atualizados!' });
+      setEditingBranding(false);
+    } catch {
+      toast({ title: 'Erro ao salvar', description: 'Tente novamente.', variant: 'destructive' });
+    } finally {
+      setSavingBranding(false);
+    }
+  };
+
+  // ── Wizard helpers ───────────────────────────────────────────────────────────
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -139,7 +188,7 @@ export function PortalClienteDialog({
     toast({ title: 'Link copiado!' });
   };
 
-  // ── WIZARD ──────────────────────────────────────────────────────────────────
+  // ── WIZARD STEP 1 ────────────────────────────────────────────────────────────
 
   if (wizardStep === 1) {
     return (
@@ -156,7 +205,6 @@ export function PortalClienteDialog({
           </DialogHeader>
 
           <div className="space-y-5">
-            {/* Logo */}
             <div className="space-y-2">
               <Label>Logo da empresa <span className="text-muted-foreground">(opcional)</span></Label>
               <div className="flex items-center gap-3">
@@ -170,17 +218,10 @@ export function PortalClienteDialog({
                 <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                   <Upload className="w-4 h-4 mr-1" /> Escolher imagem
                 </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleLogoChange}
-                />
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
               </div>
             </div>
 
-            {/* Empresa nome */}
             <div className="space-y-2">
               <Label htmlFor="empresa-nome">Nome da empresa <span className="text-muted-foreground">(opcional)</span></Label>
               <Input
@@ -204,6 +245,8 @@ export function PortalClienteDialog({
       </Dialog>
     );
   }
+
+  // ── WIZARD STEP 2 ────────────────────────────────────────────────────────────
 
   if (wizardStep === 2) {
     return (
@@ -246,6 +289,8 @@ export function PortalClienteDialog({
     );
   }
 
+  // ── WIZARD STEP 3 (success) ──────────────────────────────────────────────────
+
   if (wizardStep === 3) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -278,9 +323,9 @@ export function PortalClienteDialog({
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              Você pode ajustar nome, logo e WhatsApp a qualquer momento nas Configurações da conta.
+              Você pode atualizar nome, logo e WhatsApp a qualquer momento — clique em "Editar dados da empresa" dentro deste modal.
             </p>
-            <Button className="w-full" onClick={() => onOpenChange(false)}>
+            <Button className="w-full" onClick={() => { setWizardStep(0); }}>
               Concluir
             </Button>
           </div>
@@ -289,10 +334,10 @@ export function PortalClienteDialog({
     );
   }
 
-  // ── NORMAL VIEW (portal já configurado ou não é primeira ativação) ──────────
+  // ── NORMAL VIEW ──────────────────────────────────────────────────────────────
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) setEditingBranding(false); onOpenChange(v); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -304,7 +349,7 @@ export function PortalClienteDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Toggle */}
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="space-y-0.5">
@@ -336,6 +381,89 @@ export function PortalClienteDialog({
               </p>
             </div>
           )}
+
+          {/* Dados da empresa */}
+          <div className="border rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 bg-muted/40">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Building2 className="w-4 h-4 text-muted-foreground" />
+                Dados da empresa
+              </div>
+              {!editingBranding ? (
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={handleOpenEdit}>
+                  <Pencil className="w-3.5 h-3.5 mr-1" /> Editar
+                </Button>
+              ) : (
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => setEditingBranding(false)}>
+                  <X className="w-3.5 h-3.5 mr-1" /> Cancelar
+                </Button>
+              )}
+            </div>
+
+            {!editingBranding ? (
+              /* Read-only summary */
+              <div className="px-4 py-3 space-y-1.5">
+                {settings?.empresa_logo_url && (
+                  <img src={settings.empresa_logo_url} alt="Logo" className="h-8 w-auto object-contain mb-2" />
+                )}
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Nome: </span>
+                  {settings?.empresa_nome || <span className="text-muted-foreground italic">não informado</span>}
+                </p>
+                <p className="text-sm">
+                  <span className="text-muted-foreground">WhatsApp: </span>
+                  {settings?.whatsapp || <span className="text-muted-foreground italic">não informado</span>}
+                </p>
+              </div>
+            ) : (
+              /* Inline edit form */
+              <div className="px-4 py-3 space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Logo</Label>
+                  <div className="flex items-center gap-3">
+                    {editLogoPreview ? (
+                      <img src={editLogoPreview} alt="Logo" className="h-10 w-auto object-contain border rounded" />
+                    ) : (
+                      <div className="h-10 w-20 border-2 border-dashed rounded flex items-center justify-center text-muted-foreground text-xs">
+                        sem logo
+                      </div>
+                    )}
+                    <Button variant="outline" size="sm" className="text-xs h-8" onClick={() => editFileInputRef.current?.click()}>
+                      <Upload className="w-3.5 h-3.5 mr-1" /> Alterar
+                    </Button>
+                    <input ref={editFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleEditLogoChange} />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="edit-nome-empresa" className="text-xs">Nome da empresa</Label>
+                  <Input
+                    id="edit-nome-empresa"
+                    placeholder="Ex: Construções Silva"
+                    value={editNome}
+                    onChange={(e) => setEditNome(e.target.value)}
+                    className="h-9 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="edit-whatsapp" className="text-xs">WhatsApp</Label>
+                  <Input
+                    id="edit-whatsapp"
+                    placeholder="Ex: 11999998888"
+                    value={editWhatsapp}
+                    onChange={(e) => setEditWhatsapp(e.target.value)}
+                    type="tel"
+                    className="h-9 text-sm"
+                  />
+                </div>
+
+                <Button size="sm" className="w-full" onClick={handleSaveBranding} disabled={savingBranding}>
+                  {savingBranding ? 'Salvando...' : 'Salvar alterações'}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
