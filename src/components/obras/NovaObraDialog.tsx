@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Building2, Camera, Loader2, Crown, AlertTriangle } from 'lucide-react';
+import { MapPin, Building2, Camera, Loader2, Crown, AlertTriangle, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,7 @@ export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraD
   const { t, i18n } = useTranslation();
   const [nome, setNome] = useState('');
   const [endereco, setEndereco] = useState('');
+  const [valorReceita, setValorReceita] = useState('');
   const [fotoCapa, setFotoCapa] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -74,10 +75,12 @@ export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraD
         fotoUrl = publicUrl;
       }
 
+      const parsedReceita = valorReceita ? parseFloat(valorReceita) : undefined;
       const novaObra = await createObra.mutateAsync({
         nome: nome.trim(),
         endereco: endereco.trim(),
         foto_capa: fotoUrl,
+        ...(parsedReceita && !isNaN(parsedReceita) ? { valor_receita: parsedReceita } : {}),
       });
 
       // Create default schedule items using the current language
@@ -103,6 +106,7 @@ export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraD
 
       setNome('');
       setEndereco('');
+      setValorReceita('');
       setFotoCapa(null);
       setPreviewUrl(null);
       onOpenChange(false);
@@ -176,6 +180,25 @@ export function NovaObraDialog({ open, onOpenChange, onUpgradeClick }: NovaObraD
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input id="endereco" type="text" placeholder={t('novaObra.addressPlaceholder')} value={endereco} onChange={(e) => setEndereco(e.target.value)} className="pl-10 h-12 text-base" />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="valor-receita" className="text-base font-medium">Valor do contrato / receita <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                id="valor-receita"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ex: 150000,00"
+                value={valorReceita}
+                onChange={(e) => setValorReceita(e.target.value)}
+                className="pl-10 h-12 text-base"
+                disabled={!canCreate}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Usado no Dashboard de Lucratividade para calcular lucro e ROI.</p>
           </div>
 
           <div className="flex gap-3 pt-2">

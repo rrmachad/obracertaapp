@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Building2, Camera, Loader2, Pencil, ShieldCheck, Ruler, Trash2 } from 'lucide-react';
+import { MapPin, Building2, Camera, Loader2, Pencil, ShieldCheck, Ruler, Trash2, DollarSign } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +39,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
   const [nome, setNome] = useState(obra.nome);
   const [endereco, setEndereco] = useState(obra.endereco);
   const [retencao, setRetencao] = useState(String(obra.retencao_tecnica_percentual ?? 5));
+  const [valorReceita, setValorReceita] = useState(obra.valor_receita != null ? String(obra.valor_receita) : '');
   const [sistemaMedidas, setSistemaMedidas] = useState<SistemaMedidas>(obra.sistema_medidas ?? 'metrico');
   const [fotoCapa, setFotoCapa] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(obra.foto_capa);
@@ -54,6 +55,7 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
     setNome(obra.nome);
     setEndereco(obra.endereco);
     setRetencao(String(obra.retencao_tecnica_percentual ?? 5));
+    setValorReceita(obra.valor_receita != null ? String(obra.valor_receita) : '');
     setSistemaMedidas(obra.sistema_medidas ?? 'metrico');
     setPreviewUrl(obra.foto_capa);
     setFotoCapa(null);
@@ -97,12 +99,14 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
     setLoading(true);
 
     try {
+      const parsedReceita = valorReceita !== '' ? parseFloat(valorReceita) : null;
       const updateData: Record<string, any> = {
         id: obra.id,
         nome: nome.trim(),
         endereco: endereco.trim(),
         retencao_tecnica_percentual: parseFloat(retencao) || 5,
         sistema_medidas: sistemaMedidas,
+        valor_receita: parsedReceita !== null && !isNaN(parsedReceita) ? parsedReceita : null,
       };
 
       // Foto removida pelo usuário
@@ -257,6 +261,24 @@ export function EditarObraDialog({ open, onOpenChange, obra, onSuccess }: Editar
               />
             </div>
             <p className="text-xs text-muted-foreground">Percentual retido em cada medição (padrão: 5%)</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="valor-receita-edit" className="text-base font-medium">Valor do contrato / receita <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                id="valor-receita-edit"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ex: 150000,00"
+                value={valorReceita}
+                onChange={(e) => setValorReceita(e.target.value)}
+                className="pl-10 h-12 text-base"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Usado no Dashboard de Lucratividade para calcular lucro e ROI.</p>
           </div>
 
           {/* Sistema de Medidas */}

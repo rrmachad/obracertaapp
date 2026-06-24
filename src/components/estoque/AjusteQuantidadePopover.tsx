@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Plus, Minus, Hash, MessageSquare } from 'lucide-react';
+import { Plus, Minus, Hash, MessageSquare, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface AjusteQuantidadePopoverProps {
-  onAjuste: (delta: number, observacao?: string) => Promise<void>;
+  onAjuste: (delta: number, observacao?: string, precoUnitario?: number) => Promise<void>;
   tipo: 'entrada' | 'saida';
   disabled?: boolean;
   unidade: string;
@@ -15,33 +15,37 @@ interface AjusteQuantidadePopoverProps {
 
 const QUICK_VALUES = [1, 5, 10, 25, 50, 100];
 
-export function AjusteQuantidadePopover({ 
-  onAjuste, 
-  tipo, 
-  disabled, 
+export function AjusteQuantidadePopover({
+  onAjuste,
+  tipo,
+  disabled,
   unidade,
-  qtdAtual 
+  qtdAtual,
 }: AjusteQuantidadePopoverProps) {
   const [open, setOpen] = useState(false);
   const [customValue, setCustomValue] = useState('');
   const [observacao, setObservacao] = useState('');
+  const [precoUnitario, setPrecoUnitario] = useState('');
   const [loading, setLoading] = useState(false);
 
   const isEntrada = tipo === 'entrada';
   const Icon = isEntrada ? Plus : Minus;
   const multiplier = isEntrada ? 1 : -1;
 
+  const parsedPreco = isEntrada && precoUnitario ? parseFloat(precoUnitario) : undefined;
+
   const handleClose = () => {
     setOpen(false);
     setCustomValue('');
     setObservacao('');
+    setPrecoUnitario('');
   };
 
   const handleQuickAjuste = async (value: number) => {
     if (tipo === 'saida' && value > qtdAtual) return;
     setLoading(true);
     try {
-      await onAjuste(value * multiplier, observacao.trim() || undefined);
+      await onAjuste(value * multiplier, observacao.trim() || undefined, parsedPreco && !isNaN(parsedPreco) ? parsedPreco : undefined);
       handleClose();
     } finally {
       setLoading(false);
@@ -54,7 +58,7 @@ export function AjusteQuantidadePopover({
     if (tipo === 'saida' && value > qtdAtual) return;
     setLoading(true);
     try {
-      await onAjuste(value * multiplier, observacao.trim() || undefined);
+      await onAjuste(value * multiplier, observacao.trim() || undefined, parsedPreco && !isNaN(parsedPreco) ? parsedPreco : undefined);
       handleClose();
     } finally {
       setLoading(false);
@@ -73,8 +77,8 @@ export function AjusteQuantidadePopover({
           <Icon className="w-5 h-5" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent 
-        className="w-72 p-3" 
+      <PopoverContent
+        className="w-72 p-3"
         align="center"
         side="top"
       >
@@ -83,7 +87,7 @@ export function AjusteQuantidadePopover({
             <Icon className={`w-4 h-4 ${isEntrada ? 'text-primary' : 'text-destructive'}`} />
             <span>{isEntrada ? 'Adicionar ao estoque' : 'Retirar do estoque'}</span>
           </div>
-          
+
           {/* Botões rápidos */}
           <div className="grid grid-cols-3 gap-2">
             {QUICK_VALUES.map((value) => {
@@ -146,6 +150,28 @@ export function AjusteQuantidadePopover({
               )}
             </Button>
           </div>
+
+          {/* Preço unitário — só para entrada */}
+          {isEntrada && (
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <DollarSign className="w-3.5 h-3.5" />
+                <span>Preço unitário (opcional) — usado no cálculo de custo</span>
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">R$</span>
+                <Input
+                  type="number"
+                  placeholder="0,00"
+                  value={precoUnitario}
+                  onChange={(e) => setPrecoUnitario(e.target.value)}
+                  className="pl-9 text-sm"
+                  min={0}
+                  step="0.01"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Campo de observação */}
           <div className="space-y-1">

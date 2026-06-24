@@ -70,12 +70,12 @@ export function useMateriais(obraId: string) {
   });
 
   const ajustarQuantidade = useMutation({
-    mutationFn: async ({ id, delta, observacao }: { id: string; delta: number; observacao?: string }) => {
+    mutationFn: async ({ id, delta, observacao, precoUnitario }: { id: string; delta: number; observacao?: string; precoUnitario?: number }) => {
       const material = materiaisQuery.data?.find(m => m.id === id);
       if (!material) throw new Error('Material não encontrado');
-      
+
       const novaQtd = Math.max(0, material.qtd_atual + delta);
-      
+
       // Atualizar quantidade
       const { data, error } = await supabase
         .from('materiais')
@@ -83,8 +83,32 @@ export function useMateriais(obraId: string) {
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
+
+      // Resolve price at this moment
+      let precoMomento: number | undefined;
+      if (delta > 0) {
+        // entrada: use the price the user informed
+        precoMomento = precoUnitario;
+      } else {
+        // saída: inherit from the most recent entrada that has a price
+        const { data: ultimaEntrada } = await supabase
+          .from('movimentacao_estoque')
+          .select('preco_unitario_momento')
+          .eq('material_id', id)
+          .eq('tipo', 'entrada')
+          .not('preco_unitario_momento', 'is', null)
+          .order('data', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (ultimaEntrada?.preco_unitario_momento != null) {
+          precoMomento = Number(ultimaEntrada.preco_unitario_momento);
+        } else if (material.preco_unitario != null) {
+          precoMomento = Number(material.preco_unitario);
+        }
+      }
 
       // Registrar movimentação
       const { error: movError } = await supabase
@@ -93,10 +117,11 @@ export function useMateriais(obraId: string) {
           material_id: id,
           tipo: delta > 0 ? 'entrada' : 'saida',
           quantidade: Math.abs(delta),
+          preco_unitario_momento: precoMomento ?? null,
           observacao,
           data: format(new Date(), 'yyyy-MM-dd'),
         });
-      
+
       if (movError) console.error('Erro ao registrar movimentação:', movError);
 
       return data as Material;

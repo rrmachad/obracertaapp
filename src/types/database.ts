@@ -24,6 +24,7 @@ export interface Obra {
   foto_capa?: string;
   retencao_tecnica_percentual: number;
   sistema_medidas: SistemaMedidas;
+  valor_receita?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -107,6 +108,7 @@ export interface MovimentacaoEstoque {
   material_id: string;
   tipo: 'entrada' | 'saida';
   quantidade: number;
+  preco_unitario_momento?: number | null;
   observacao?: string;
   data: string;
   created_at: string;
@@ -159,6 +161,8 @@ export interface Medicao {
   valor_liquido_a_pagar: number;
   observacoes?: string;
   status: string;
+  status_pagamento: 'pendente' | 'pago';
+  data_recebimento?: string | null;
   created_at: string;
   updated_at: string;
 }

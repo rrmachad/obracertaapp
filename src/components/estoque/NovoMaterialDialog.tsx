@@ -58,6 +58,7 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId, sistemaMedidas 
   const [unidade, setUnidade] = useState('un');
   const [qtdAtual, setQtdAtual] = useState('0');
   const [qtdMinima, setQtdMinima] = useState('0');
+  const [precoUnitario, setPrecoUnitario] = useState('');
   const [loading, setLoading] = useState(false);
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [selectedFase, setSelectedFase] = useState<string>('all');
@@ -88,9 +89,10 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId, sistemaMedidas 
     setLoading(true);
     const usarInteiro = isUnidadeInteira(unidade);
     try {
-      await createMaterial.mutateAsync({ obra_id: obraId, nome: nome.trim(), unidade, qtd_atual: usarInteiro ? Math.round(parseFloat(qtdAtual) || 0) : parseFloat(qtdAtual) || 0, qtd_minima: usarInteiro ? Math.round(parseFloat(qtdMinima) || 0) : parseFloat(qtdMinima) || 0 });
+      const parsedPreco = precoUnitario ? parseFloat(precoUnitario) : undefined;
+      await createMaterial.mutateAsync({ obra_id: obraId, nome: nome.trim(), unidade, qtd_atual: usarInteiro ? Math.round(parseFloat(qtdAtual) || 0) : parseFloat(qtdAtual) || 0, qtd_minima: usarInteiro ? Math.round(parseFloat(qtdMinima) || 0) : parseFloat(qtdMinima) || 0, ...(parsedPreco && !isNaN(parsedPreco) ? { preco_unitario: parsedPreco } : {}) });
       toast({ title: t('inventory.materialAdded'), description: nome });
-      setNome(''); setUnidade('un'); setQtdAtual('0'); setQtdMinima('0'); setSelectedFase('all'); onOpenChange(false);
+      setNome(''); setUnidade('un'); setQtdAtual('0'); setQtdMinima('0'); setPrecoUnitario(''); setSelectedFase('all'); onOpenChange(false);
     } catch { toast({ title: t('inventory.errorAdding'), description: t('common.tryAgain'), variant: 'destructive' }); }
     finally { setLoading(false); }
   };
@@ -197,6 +199,15 @@ export function NovoMaterialDialog({ open, onOpenChange, obraId, sistemaMedidas 
               <Label htmlFor="qtdMinima" className="text-base font-medium">{t('inventory.minQty')}</Label>
               <Input id="qtdMinima" type="number" step={isUnidadeInteira(unidade) ? "1" : "0.01"} min="0" value={qtdMinima} onChange={(e) => setQtdMinima(e.target.value)} className="h-12 text-base" />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="preco-unitario" className="text-base font-medium">Preço unitário <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+              <Input id="preco-unitario" type="number" step="0.01" min="0" placeholder="0,00" value={precoUnitario} onChange={(e) => setPrecoUnitario(e.target.value)} className="pl-9 h-12 text-base" />
+            </div>
+            <p className="text-xs text-muted-foreground">Usado como referência no cálculo de custo de materiais da lucratividade.</p>
           </div>
 
           <div className="flex gap-3 pt-2">

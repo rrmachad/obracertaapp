@@ -49,6 +49,7 @@ export function EditarMaterialDialog({ material, open, onOpenChange, obraId, sis
   const [nome, setNome] = useState('');
   const [unidade, setUnidade] = useState('un');
   const [qtdMinima, setQtdMinima] = useState('0');
+  const [precoUnitario, setPrecoUnitario] = useState('');
   const [loading, setLoading] = useState(false);
 
   const unidades = sistemaMedidas === 'imperial' ? unidadesImperiais : unidadesMetricas;
@@ -58,6 +59,7 @@ export function EditarMaterialDialog({ material, open, onOpenChange, obraId, sis
       setNome(material.nome);
       setUnidade(material.unidade);
       setQtdMinima(String(material.qtd_minima));
+      setPrecoUnitario(material.preco_unitario != null ? String(material.preco_unitario) : '');
     }
   }, [material]);
 
@@ -72,11 +74,13 @@ export function EditarMaterialDialog({ material, open, onOpenChange, obraId, sis
     setLoading(true);
     try {
       const usarInteiro = isUnidadeInteira(unidade);
+      const parsedPreco = precoUnitario !== '' ? parseFloat(precoUnitario) : null;
       await updateMaterial.mutateAsync({
         id: material.id,
         nome: nome.trim(),
         unidade,
         qtd_minima: usarInteiro ? Math.round(parseFloat(qtdMinima) || 0) : parseFloat(qtdMinima) || 0,
+        preco_unitario: parsedPreco !== null && !isNaN(parsedPreco) ? parsedPreco : undefined,
       });
       toast({ title: t('inventory.materialUpdated'), description: nome.trim() });
       onOpenChange(false);
@@ -133,6 +137,24 @@ export function EditarMaterialDialog({ material, open, onOpenChange, obraId, sis
               onChange={(e) => setQtdMinima(e.target.value)}
               className="h-12 text-base"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-preco-unitario" className="text-base font-medium">Preço unitário <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+              <Input
+                id="edit-preco-unitario"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0,00"
+                value={precoUnitario}
+                onChange={(e) => setPrecoUnitario(e.target.value)}
+                className="pl-9 h-12 text-base"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Preencha retroativamente para que este material apareça no cálculo de custo da lucratividade.</p>
           </div>
 
           <div className="flex gap-3 pt-2">

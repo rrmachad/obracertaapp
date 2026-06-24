@@ -189,9 +189,9 @@ export function EstoqueTab({ obraId, obraNome = '', sistemaMedidas = 'metrico', 
   }, [materiais]);
 
 
-  const handleAjuste = async (material: Material, delta: number, observacao?: string) => {
+  const handleAjuste = async (material: Material, delta: number, observacao?: string, precoUnitario?: number) => {
     try {
-      await ajustarQuantidade.mutateAsync({ id: material.id, delta, observacao });
+      await ajustarQuantidade.mutateAsync({ id: material.id, delta, observacao, precoUnitario });
       toast({
         title: delta > 0 ? t('inventory.entryRegistered') : t('inventory.exitRegistered'),
         description: `${Math.abs(delta)} ${material.unidade} de ${material.nome}`,
@@ -488,7 +488,7 @@ export function EstoqueTab({ obraId, obraNome = '', sistemaMedidas = 'metrico', 
                     <div className="flex items-center justify-between gap-2">
                       <AjusteQuantidadePopover
                         tipo="saida"
-                        onAjuste={(delta, obs) => handleAjuste(material, delta, obs)}
+                        onAjuste={(delta, obs, preco) => handleAjuste(material, delta, obs, preco)}
                         disabled={material.qtd_atual <= 0}
                         unidade={material.unidade}
                         qtdAtual={material.qtd_atual}
@@ -505,7 +505,7 @@ export function EstoqueTab({ obraId, obraNome = '', sistemaMedidas = 'metrico', 
 
                       <AjusteQuantidadePopover
                         tipo="entrada"
-                        onAjuste={(delta, obs) => handleAjuste(material, delta, obs)}
+                        onAjuste={(delta, obs, preco) => handleAjuste(material, delta, obs, preco)}
                         unidade={material.unidade}
                         qtdAtual={material.qtd_atual}
                       />

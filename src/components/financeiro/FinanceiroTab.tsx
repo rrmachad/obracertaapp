@@ -12,7 +12,7 @@ import { NovaMedicaoDialog } from './NovaMedicaoDialog';
 import { NovoAdiantamentoDialog } from './NovoAdiantamentoDialog';
 import { EditarMedicaoDialog } from './EditarMedicaoDialog';
 import { GraficosFinanceiros } from './GraficosFinanceiros';
-import { Calculator, Plus, Wallet, ShieldCheck, ArrowDownCircle, Trash2, FileDown, Pencil, CheckCircle2, TrendingUp, AlertTriangle, DollarSign } from 'lucide-react';
+import { Calculator, Plus, Wallet, ShieldCheck, ArrowDownCircle, Trash2, FileDown, Pencil, CheckCircle2, TrendingUp, AlertTriangle, DollarSign, Clock, BadgeCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Medicao } from '@/types/database';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -28,7 +28,7 @@ interface FinanceiroTabProps {
 }
 
 export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }: FinanceiroTabProps) {
-  const { medicoes, isLoading: loadingMedicoes, deleteMedicao } = useMedicoes(obraId);
+  const { medicoes, isLoading: loadingMedicoes, deleteMedicao, marcarComoPago } = useMedicoes(obraId);
   const { adiantamentos, pendentes, isLoading: loadingAdiantamentos, deleteAdiantamento } = useAdiantamentos(obraId);
   const { itens, isLoading: loadingItens, updateItem } = useCronogramaItens(obraId);
   const { data: fases } = useFases(obraId);
@@ -44,6 +44,8 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
 
   const totalMedido = medicoes.reduce((s, m) => s + Number(m.valor_bruto_medido), 0);
   const totalPago = medicoes.reduce((s, m) => s + Number(m.valor_liquido_a_pagar), 0);
+  const totalRecebido = medicoes.filter(m => m.status_pagamento === 'pago').reduce((s, m) => s + Number(m.valor_liquido_a_pagar), 0);
+  const totalPendentePagamento = medicoes.filter(m => m.status_pagamento === 'pendente').reduce((s, m) => s + Number(m.valor_liquido_a_pagar), 0);
   const saldoRetencao = medicoes.reduce((s, m) => s + Number(m.valor_retencao_tecnica), 0);
   const totalAdiantamentosPendentes = pendentes.reduce((s, a) => s + Number(a.valor), 0);
 
@@ -83,6 +85,16 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
       toast({ title: t('schedule.valueUpdated') });
     } catch {
       toast({ title: t('schedule.errorUpdating'), variant: 'destructive' });
+    }
+  };
+
+  const handleMarcarPago = async (id: string) => {
+    const dataRecebimento = new Date().toISOString().split('T')[0];
+    try {
+      await marcarComoPago.mutateAsync({ id, dataRecebimento });
+      toast({ title: 'Pagamento confirmado!', description: `Recebido em ${new Date().toLocaleDateString()}` });
+    } catch {
+      toast({ title: 'Erro ao confirmar pagamento', variant: 'destructive' });
     }
   };
 
@@ -463,6 +475,30 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
         </Card>
       </div>
 
+      {/* Payment status cards */}
+      {medicoes.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="border-success/30 bg-success/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <BadgeCheck className="w-4 h-4 text-success" />
+                <span className="text-xs text-muted-foreground">Recebido</span>
+              </div>
+              <p className="text-lg font-bold text-success">{formatCurrency(totalRecebido)}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-warning/30 bg-warning/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="w-4 h-4 text-warning" />
+                <span className="text-xs text-muted-foreground">Aguardando</span>
+              </div>
+              <p className="text-lg font-bold text-warning">{formatCurrency(totalPendentePagamento)}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Medicoes table */}
       <Card>
         <CardHeader className="pb-3">
@@ -481,6 +517,7 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
                     <TableHead className="text-right">{t('financial.retained')}</TableHead>
                     <TableHead className="text-right">{t('financial.advances')}</TableHead>
                     <TableHead className="text-right">{t('financial.paid')}</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -509,6 +546,23 @@ export function FinanceiroTab({ obraId, retencaoPercentual, obraNome, isAdmin }:
                         <Badge className="bg-success text-success-foreground text-xs">
                           {formatCurrency(Number(m.valor_liquido_a_pagar))}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {m.status_pagamento === 'pago' ? (
+                          <Badge className="bg-success/15 text-success border-success/30 text-xs gap-1">
+                            <BadgeCheck className="w-3 h-3" /> Pago
+                          </Badge>
+                        ) : (
+                          <button
+                            onClick={() => handleMarcarPago(m.id)}
+                            title="Marcar como recebido"
+                            className="inline-flex items-center gap-1"
+                          >
+                            <Badge variant="outline" className="text-warning border-warning text-xs gap-1 cursor-pointer hover:bg-warning/10">
+                              <Clock className="w-3 h-3" /> Pendente
+                            </Badge>
+                          </button>
+                        )}
                       </TableCell>
                       <TableCell className="flex gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditMedicao(m)}>

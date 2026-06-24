@@ -66,7 +66,7 @@ export function useObras() {
   const ownerUserId = sharedData?.ownerIds?.[0] ?? null;
 
   const createObra = useMutation({
-    mutationFn: async (obra: { nome: string; endereco: string; foto_capa?: string }) => {
+    mutationFn: async (obra: { nome: string; endereco: string; foto_capa?: string; valor_receita?: number }) => {
       const { data, error } = await supabase
         .from('obras')
         .insert({

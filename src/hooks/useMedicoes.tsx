@@ -88,12 +88,29 @@ export function useMedicoes(obraId: string) {
     },
   });
 
+  const marcarComoPago = useMutation({
+    mutationFn: async ({ id, dataRecebimento }: { id: string; dataRecebimento: string }) => {
+      const { data, error } = await supabase
+        .from('medicoes')
+        .update({ status_pagamento: 'pago', data_recebimento: dataRecebimento })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Medicao;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['medicoes', obraId] });
+    },
+  });
+
   return {
     medicoes: medicoesQuery.data ?? [],
     isLoading: medicoesQuery.isLoading,
     createMedicao,
     updateMedicao,
     deleteMedicao,
+    marcarComoPago,
   };
 }
 
