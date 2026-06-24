@@ -143,7 +143,7 @@ function FeatureIcon({ icon, highlight }: { icon: PlanFeature['icon']; highlight
 }
 
 export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogProps) {
-  const { plan: currentPlan } = useSubscription();
+  const { plan: currentPlan, isOnTrial } = useSubscription();
   const { i18n } = useTranslation();
   const currency = i18n.language === 'pt-BR' ? 'BRL' : 'USD';
   const { session } = useAuth();
@@ -177,7 +177,8 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
   };
 
   const handleSelectPlan = async (selectedPlan: SubscriptionPlan) => {
-    if (selectedPlan === currentPlan) return;
+    // During trial there's no paid subscription — allow subscribing to the current trial plan
+    if (!isOnTrial && selectedPlan === currentPlan) return;
     
     if (selectedPlan === 'free') {
       toast({
@@ -247,7 +248,12 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
             Escolha o Plano Ideal para Você
           </DialogTitle>
           <DialogDescription className="flex items-center justify-between">
-            <span>Plano atual: <strong>{currentPlanName}</strong></span>
+            <span>
+              Plano atual: <strong>{currentPlanName}</strong>
+              {isOnTrial && (
+                <span className="ml-2 text-xs font-medium text-amber-600 dark:text-amber-400">(período de teste)</span>
+              )}
+            </span>
             {currentPlan !== 'free' && (
               <Button
                 variant="outline"
@@ -277,8 +283,9 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
           <TabsContent value="cards" className="animate-fade-in">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2 max-w-2xl mx-auto">
               {plans.filter(p => visiblePlanIds.includes(p.id)).map((planOption, index) => {
-                const isCurrentPlan = planOption.id === currentPlan;
-                const isDowngrade = plans.findIndex(p => p.id === planOption.id) < plans.findIndex(p => p.id === currentPlan);
+                // During trial: no paid subscription exists — no card is "current" and no downgrade applies
+                const isCurrentPlan = !isOnTrial && planOption.id === currentPlan;
+                const isDowngrade = !isOnTrial && plans.findIndex(p => p.id === planOption.id) < plans.findIndex(p => p.id === currentPlan);
                 
                 return (
                   <Card 
@@ -341,6 +348,12 @@ export function UpgradePlanoDialog({ open, onOpenChange }: UpgradePlanoDialogPro
                           planOption.buttonTextCurrent
                         ) : isDowngrade ? (
                           'Downgrade'
+                        ) : isOnTrial && planOption.id === currentPlan ? (
+                          // Trial user subscribing to their current trial plan → convert to paid
+                          <>
+                            <ShieldCheck className="w-4 h-4 mr-1" />
+                            Assinar Construtora
+                          </>
                         ) : (
                           <>
                             {planOption.id === 'start' && <Rocket className="w-4 h-4 mr-1" />}
