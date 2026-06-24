@@ -80,7 +80,7 @@ export const planUpgradeTarget: Record<string, { planName: string; feature: stri
 
 export function usePlanLimits() {
   const { user } = useAuth();
-  const { plan } = useSubscription();
+  const { plan, isOnTrial, trialEndsAt, trialDaysLeft } = useSubscription();
 
   const obrasQuery = useQuery({
     queryKey: ['obras-count', user?.id],
@@ -227,5 +227,8 @@ export function usePlanLimits() {
     getObrasPercentage,
     getDiariosPercentage,
     getMateriaisPercentage,
+    isOnTrial,
+    trialEndsAt,
+    trialDaysLeft,
   };
 }

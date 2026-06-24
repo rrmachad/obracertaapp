@@ -68,19 +68,47 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Always fetch DB subscription first — needed for trial checks
+    const { data: dbSub } = await supabaseClient
+      .from("subscriptions")
+      .select("plan, max_users, status, trial_ends_at, stripe_subscription_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const now = new Date();
+    const trialEndsAt = dbSub?.trial_ends_at ? new Date(dbSub.trial_ends_at) : null;
+    const isTrialActive = trialEndsAt !== null && trialEndsAt > now;
+    const isTrialExpired = trialEndsAt !== null && trialEndsAt <= now;
+
+    // Expire trial in DB and downgrade to free
+    const expireTrial = async () => {
+      logStep("Trial expired, downgrading to free", { userId: user.id });
+      await supabaseClient
+        .from("subscriptions")
+        .update({ plan: "free", max_users: 1, trial_ends_at: null })
+        .eq("user_id", user.id);
+    };
+
+    // ── Check Stripe ────────────────────────────────────────────────────────────
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
-      logStep("No customer found, returning free plan");
-      return new Response(JSON.stringify({ 
-        subscribed: false, 
-        plan: "free",
-        max_users: 1 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+      // No Stripe customer at all — rely on trial or free
+      if (isTrialActive) {
+        logStep("No Stripe customer, trial active", { trial_ends_at: dbSub!.trial_ends_at });
+        return new Response(JSON.stringify({
+          subscribed: false,
+          plan: "gold",
+          on_trial: true,
+          trial_ends_at: dbSub!.trial_ends_at,
+          max_users: 3,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+      }
+      if (isTrialExpired) await expireTrial();
+      logStep("No customer, no active trial, returning free");
+      return new Response(JSON.stringify({ subscribed: false, plan: "free", max_users: 1 }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
     }
 
     const customerId = customers.data[0].id;
@@ -93,52 +121,48 @@ serve(async (req) => {
     });
 
     if (subscriptions.data.length === 0) {
-      logStep("No active subscription found in Stripe, checking database");
+      logStep("No active Stripe subscription found");
 
-      // Check what plan is stored in the database (e.g. manually activated plans)
-      const { data: dbSub } = await supabaseClient
-        .from("subscriptions")
-        .select("plan, max_users, status")
-        .eq("user_id", user.id)
-        .single();
-
-      if (dbSub && dbSub.plan !== "free" && dbSub.status === "active") {
-        logStep("User has manually activated plan in DB, respecting it", { plan: dbSub.plan });
-        return new Response(JSON.stringify({ 
-          subscribed: true, 
+      // Manually activated plan (non-trial, non-free, set directly in DB)
+      if (dbSub && dbSub.plan !== "free" && dbSub.status === "active" && !dbSub.trial_ends_at) {
+        logStep("Manually activated plan in DB, respecting it", { plan: dbSub.plan });
+        return new Response(JSON.stringify({
+          subscribed: true,
           plan: dbSub.plan,
-          max_users: dbSub.max_users
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
+          max_users: dbSub.max_users,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
       }
 
-      logStep("No active subscription found, returning free plan");
-      return new Response(JSON.stringify({ 
-        subscribed: false, 
-        plan: "free",
-        max_users: 1 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+      // Trial takes priority over free if active
+      if (isTrialActive) {
+        logStep("No active Stripe subscription, trial active", { trial_ends_at: dbSub!.trial_ends_at });
+        return new Response(JSON.stringify({
+          subscribed: false,
+          plan: "gold",
+          on_trial: true,
+          trial_ends_at: dbSub!.trial_ends_at,
+          max_users: 3,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+      }
+
+      if (isTrialExpired) await expireTrial();
+      logStep("No active subscription, no active trial, returning free");
+      return new Response(JSON.stringify({ subscribed: false, plan: "free", max_users: 1 }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
     }
 
+    // ── Active Stripe subscription — always takes priority over trial ────────────
     const subscription = subscriptions.data[0];
     const productId = subscription.items.data[0].price.product as string;
     const plan = productToPlans[productId] || "free";
     const maxUsers = planMaxUsers[plan];
     const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
 
-    logStep("Active subscription found", { 
-      subscriptionId: subscription.id, 
-      productId, 
-      plan, 
-      maxUsers 
+    logStep("Active Stripe subscription found, overrides trial", {
+      subscriptionId: subscription.id, productId, plan, maxUsers,
     });
 
-    // Update subscription in database
+    // Update DB — clear trial_ends_at since user is now a paying subscriber
     const { error: updateError } = await supabaseClient
       .from("subscriptions")
       .update({
@@ -147,13 +171,14 @@ serve(async (req) => {
         stripe_customer_id: customerId,
         stripe_subscription_id: subscription.id,
         status: "active",
+        trial_ends_at: null, // user converted to paid — trial no longer relevant
       })
       .eq("user_id", user.id);
 
     if (updateError) {
       logStep("Warning: Failed to update subscription in DB", { error: updateError.message });
     } else {
-      logStep("Subscription updated in database");
+      logStep("Subscription updated in database (trial cleared if present)");
     }
 
     return new Response(JSON.stringify({
@@ -162,10 +187,8 @@ serve(async (req) => {
       max_users: maxUsers,
       subscription_end: subscriptionEnd,
       stripe_customer_id: customerId,
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });

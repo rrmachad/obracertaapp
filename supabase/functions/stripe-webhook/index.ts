@@ -95,11 +95,12 @@ serve(async (req) => {
                   stripe_customer_id: customerId,
                   stripe_subscription_id: subscriptionId,
                   status: "active",
+                  trial_ends_at: null, // user converted to paid — clear trial
                 })
                 .eq("user_id", user.id);
 
-              logStep(error ? "DB update failed" : "Subscription activated", { 
-                userId: user.id, plan, error: error?.message 
+              logStep(error ? "DB update failed" : "Subscription activated (trial cleared)", {
+                userId: user.id, plan, error: error?.message
               });
             }
           }
@@ -132,10 +133,11 @@ serve(async (req) => {
               stripe_customer_id: customerId,
               stripe_subscription_id: subscription.id,
               status: "active",
+              trial_ends_at: null, // paid subscription overrides trial
             })
             .eq("user_id", user.id);
 
-          logStep(error ? "DB update failed" : "Plan updated", { userId: user.id, plan, error: error?.message });
+          logStep(error ? "DB update failed" : "Plan updated (trial cleared)", { userId: user.id, plan, error: error?.message });
         } else if (subscription.status === "canceled" || subscription.status === "unpaid" || subscription.status === "past_due") {
           const { error } = await supabaseClient
             .from("subscriptions")

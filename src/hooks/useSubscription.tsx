@@ -13,6 +13,7 @@ export interface Subscription {
   stripe_subscription_id: string | null;
   status: string;
   max_users: number;
+  trial_ends_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -131,9 +132,34 @@ export function useSubscription(overrideUserId?: string | null) {
   });
 
   const subscription = subscriptionQuery.data;
-  const plan = (subscription?.plan || 'free') as SubscriptionPlan;
+
+  // Compute effective plan client-side:
+  // If trial_ends_at is in the past and there is no active Stripe subscription,
+  // treat the user as free regardless of what plan is stored in the DB.
+  // check-subscription will also expire the trial server-side on the next sync.
+  const effectivePlan = (): SubscriptionPlan => {
+    if (!subscription) return 'free';
+    const trialExpired =
+      subscription.trial_ends_at != null &&
+      new Date(subscription.trial_ends_at) <= new Date() &&
+      !subscription.stripe_subscription_id;
+    if (trialExpired) return 'free';
+    return (subscription.plan || 'free') as SubscriptionPlan;
+  };
+
+  const plan = effectivePlan();
   const maxUsers = planLimits[plan];
   const planName = planNames[plan];
+
+  // Trial helpers
+  const trialEndsAt = subscription?.trial_ends_at ?? null;
+  const isOnTrial =
+    trialEndsAt != null &&
+    new Date(trialEndsAt) > new Date() &&
+    !subscription?.stripe_subscription_id;
+  const trialDaysLeft = isOnTrial
+    ? Math.ceil((new Date(trialEndsAt!).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
 
   return {
     subscription,
@@ -145,5 +171,8 @@ export function useSubscription(overrideUserId?: string | null) {
     syncSubscription,
     planLimits,
     planNames,
+    isOnTrial,
+    trialEndsAt,
+    trialDaysLeft,
   };
 }
