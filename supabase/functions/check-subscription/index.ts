@@ -7,33 +7,29 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Mapping de product IDs para planos (v4 BRL + v3 BRL + v2 USD + legacy)
 const productToPlans: Record<string, string> = {
   // v4 BRL products (current - R$19,90 / R$37,90)
-  "prod_UkpPpyTTfKQ8vd": "start",      // Autônomo R$19,90/mês
-  "prod_UkpR48UA8gv0jf": "gold",       // Construtora R$37,90/mês
-  // v3 BRL products (legacy - prices in BRL)
-  "prod_U11STgWm4m9tUW": "start",      // Autônomo R$29,90/mês
-  "prod_U11T4TqaTmwfdI": "gold",       // Construtora R$59,90/mês
-  "prod_U11TuB6H4fpSp4": "premium",    // Business R$99,90/mês
-  // v2 USD products (legacy - prices in USD)
-  "prod_TzYalnkoVY2mqM": "start",      // Autônomo v2
-  "prod_TzYak5DysG3KB5": "gold",       // Construtora v2
-  "prod_TzYa2l84ZRs1VM": "premium",    // Business v2
-  // Legacy products (backward compatibility)
-  "prod_Ty5KXzCdaVfhhq": "start",      // Autônomo v1
-  "prod_Ty5KBT7EeOhDIf": "gold",       // Construtora v1
-  "prod_Ty5Kt7Tbf3bw0b": "premium",    // Business v1
-  "prod_TtQh5GnS7aHcXR": "start",      // Start original
-  "prod_TtQhVPtDIUeOT1": "gold",       // Gold original
-  "prod_TtQhJHHgbtRVdm": "premium",    // Premium original
+  "prod_UkpPpyTTfKQ8vd": "start",
+  "prod_UkpR48UA8gv0jf": "gold",
+  // v3 BRL products (legacy)
+  "prod_U11STgWm4m9tUW": "start",
+  "prod_U11T4TqaTmwfdI": "gold",
+  "prod_U11TuB6H4fpSp4": "premium",
+  // v2 USD products (legacy)
+  "prod_TzYalnkoVY2mqM": "start",
+  "prod_TzYak5DysG3KB5": "gold",
+  "prod_TzYa2l84ZRs1VM": "premium",
+  // Legacy products
+  "prod_Ty5KXzCdaVfhhq": "start",
+  "prod_Ty5KBT7EeOhDIf": "gold",
+  "prod_Ty5Kt7Tbf3bw0b": "premium",
+  "prod_TtQh5GnS7aHcXR": "start",
+  "prod_TtQhVPtDIUeOT1": "gold",
+  "prod_TtQhJHHgbtRVdm": "premium",
 };
 
 const planMaxUsers: Record<string, number> = {
-  free: 1,
-  start: 2,
-  gold: 3,
-  premium: 5,
+  free: 1, start: 2, gold: 3, premium: 5,
 };
 
 const logStep = (step: string, details?: Record<string, unknown>) => {
@@ -80,7 +76,6 @@ serve(async (req) => {
     const isTrialActive = trialEndsAt !== null && trialEndsAt > now;
     const isTrialExpired = trialEndsAt !== null && trialEndsAt <= now;
 
-    // Expire trial in DB and downgrade to free
     const expireTrial = async () => {
       logStep("Trial expired, downgrading to free", { userId: user.id });
       await supabaseClient
@@ -94,15 +89,11 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
-      // No Stripe customer at all — rely on trial or free
       if (isTrialActive) {
         logStep("No Stripe customer, trial active", { trial_ends_at: dbSub!.trial_ends_at });
         return new Response(JSON.stringify({
-          subscribed: false,
-          plan: "gold",
-          on_trial: true,
-          trial_ends_at: dbSub!.trial_ends_at,
-          max_users: 3,
+          subscribed: false, plan: "gold", on_trial: true,
+          trial_ends_at: dbSub!.trial_ends_at, max_users: 3,
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
       }
       if (isTrialExpired) await expireTrial();
@@ -115,33 +106,24 @@ serve(async (req) => {
     logStep("Found Stripe customer", { customerId });
 
     const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
+      customer: customerId, status: "active", limit: 1,
     });
 
     if (subscriptions.data.length === 0) {
       logStep("No active Stripe subscription found");
 
-      // Manually activated plan (non-trial, non-free, set directly in DB)
       if (dbSub && dbSub.plan !== "free" && dbSub.status === "active" && !dbSub.trial_ends_at) {
         logStep("Manually activated plan in DB, respecting it", { plan: dbSub.plan });
         return new Response(JSON.stringify({
-          subscribed: true,
-          plan: dbSub.plan,
-          max_users: dbSub.max_users,
+          subscribed: true, plan: dbSub.plan, max_users: dbSub.max_users,
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
       }
 
-      // Trial takes priority over free if active
       if (isTrialActive) {
         logStep("No active Stripe subscription, trial active", { trial_ends_at: dbSub!.trial_ends_at });
         return new Response(JSON.stringify({
-          subscribed: false,
-          plan: "gold",
-          on_trial: true,
-          trial_ends_at: dbSub!.trial_ends_at,
-          max_users: 3,
+          subscribed: false, plan: "gold", on_trial: true,
+          trial_ends_at: dbSub!.trial_ends_at, max_users: 3,
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
       }
 
@@ -162,16 +144,14 @@ serve(async (req) => {
       subscriptionId: subscription.id, productId, plan, maxUsers,
     });
 
-    // Update DB — clear trial_ends_at since user is now a paying subscriber
     const { error: updateError } = await supabaseClient
       .from("subscriptions")
       .update({
-        plan,
-        max_users: maxUsers,
+        plan, max_users: maxUsers,
         stripe_customer_id: customerId,
         stripe_subscription_id: subscription.id,
         status: "active",
-        trial_ends_at: null, // user converted to paid — trial no longer relevant
+        trial_ends_at: null,
       })
       .eq("user_id", user.id);
 
@@ -182,11 +162,8 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({
-      subscribed: true,
-      plan,
-      max_users: maxUsers,
-      subscription_end: subscriptionEnd,
-      stripe_customer_id: customerId,
+      subscribed: true, plan, max_users: maxUsers,
+      subscription_end: subscriptionEnd, stripe_customer_id: customerId,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
 
   } catch (error) {
