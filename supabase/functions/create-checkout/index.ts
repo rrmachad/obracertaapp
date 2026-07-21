@@ -83,8 +83,8 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/?upgrade=success&plan=${plan}`,
-      cancel_url: `${req.headers.get("origin")}/?upgrade=cancelled`,
+      success_url: `${req.headers.get("origin")}/dashboard?upgrade=success&plan=${plan}`,
+      cancel_url: `${req.headers.get("origin")}/dashboard?upgrade=cancelled`,
       metadata: {
         user_id: user.id,
         plan: plan,

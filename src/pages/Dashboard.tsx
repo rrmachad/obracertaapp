@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HardHat, Plus, LogOut, Search, Crown, Key, LayoutDashboard, ShoppingCart, TrendingUp, AlertTriangle, Users, Eye, X, HelpCircle } from 'lucide-react';
@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useEstoqueAlertas } from '@/hooks/useEstoqueAlertas';
+import { useToast } from '@/hooks/use-toast';
 
 export function Dashboard() {
   const { t } = useTranslation();
@@ -30,6 +31,20 @@ export function Dashboard() {
   const { limits } = usePlanLimits();
   const { data: estoqueAlertas = {} } = useEstoqueAlertas(obras.map(o => o.id));
   const totalAlertas = Object.values(estoqueAlertas).reduce((acc, n) => acc + n, 0);
+  const { toast } = useToast();
+
+  // Retorno de um checkout do Stripe cancelado (cancel_url → /dashboard?upgrade=cancelled)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('upgrade') === 'cancelled') {
+      // Limpa o param para o toast não reaparecer em refresh/navegação
+      window.history.replaceState({}, '', window.location.pathname);
+      toast({
+        title: 'Assinatura não concluída',
+        description: 'Você pode assinar quando quiser pelo Meu Plano.',
+      });
+    }
+  }, [toast]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
