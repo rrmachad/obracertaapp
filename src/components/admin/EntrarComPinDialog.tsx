@@ -53,52 +53,34 @@ export function EntrarComPinDialog({
     setLoading(true);
 
     try {
-      // Buscar convite pelo PIN (sem filtrar por obra_id)
-      const { data: invite, error: findError } = await supabase
-        .from('user_invites')
-        .select('*')
-        .eq('pin_code', pin)
-        .is('used_by', null)
-        .maybeSingle();
+      // Resgate server-side (RPC SECURITY DEFINER): valida o PIN, marca o
+      // convite como usado e cria o obra_access, tudo no servidor.
+      const { data, error } = await supabase.rpc('redeem_invite' as any, { p_pin: pin });
+      const result = data as { success: boolean; error?: string; obra_id?: string } | null;
 
-      if (findError || !invite) {
-        throw new Error('PIN inválido ou já utilizado');
+      if (error || !result || !result.success) {
+        const code = result?.error;
+        const description =
+          code === 'already_has_access'
+            ? 'Você já tem acesso a esta obra.'
+            : code === 'expired'
+            ? 'Este convite expirou. Solicite um novo ao administrador.'
+            : 'O PIN não é válido ou já foi utilizado.';
+        toast({ title: 'PIN inválido', description, variant: 'destructive' });
+        return;
       }
-
-      // Marcar convite como usado
-      const { error: updateError } = await supabase
-        .from('user_invites')
-        .update({
-          used_by: user.id,
-          used_at: new Date().toISOString(),
-        })
-        .eq('id', invite.id);
-
-      if (updateError) throw updateError;
-
-      // Criar acesso à obra
-      const { error: accessError } = await supabase
-        .from('obra_access')
-        .insert({
-          obra_id: invite.obra_id,
-          user_id: user.id,
-          role: invite.role,
-          granted_by: invite.invited_by,
-        });
-
-      if (accessError) throw accessError;
 
       toast({
         title: 'Acesso concedido!',
         description: 'Você agora tem acesso à obra compartilhada.',
       });
-      
+
       setPin('');
       onOpenChange(false);
-      
+
       // Invalidar queries para atualizar lista de obras
       queryClient.invalidateQueries({ queryKey: ['obras'] });
-      
+
       onSuccess?.();
     } catch (error) {
       console.error('Error using invite:', error);

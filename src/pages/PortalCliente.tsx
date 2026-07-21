@@ -49,68 +49,22 @@ export function PortalCliente() {
   const { token } = useParams<{ token: string }>();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const obraQuery = useQuery({
-    queryKey: ['portal-obra', token],
+  // Uma única RPC gateada por token traz obra + branding + cronograma + fotos.
+  // O anon não tem mais acesso direto às tabelas base — todo o portal
+  // público passa por get_portal_data, validando o token no servidor.
+  const portalQuery = useQuery({
+    queryKey: ['portal-data', token],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('obras_portal' as any)
-        .select('*')
-        .eq('token_portal', token)
-        .eq('portal_ativo', true)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('get_portal_data' as any, { p_token: token });
       if (error) throw error;
-      return data as any;
+      return data as any; // objeto { obra, branding, cronograma, fotos } ou null
     },
     enabled: !!token,
-  });
-
-  // Fetch branding (logo, empresa, whatsapp)
-  const brandingQuery = useQuery({
-    queryKey: ['portal-branding', token],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('portal_branding' as any)
-        .select('*')
-        .eq('token_portal', token)
-        .maybeSingle();
-      if (error) throw error;
-      return data as any;
-    },
-    enabled: !!token,
-  });
-
-  const cronogramaQuery = useQuery({
-    queryKey: ['portal-cronograma', obraQuery.data?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('cronograma_portal' as any)
-        .select('*')
-        .eq('obra_id', obraQuery.data.id)
-        .order('fase_ordem' as any, { ascending: true })
-        .order('ordem' as any, { ascending: true });
-      if (error) throw error;
-      return data as any[];
-    },
-    enabled: !!obraQuery.data?.id,
-  });
-
-  const fotosQuery = useQuery({
-    queryKey: ['portal-fotos', obraQuery.data?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('fotos_portal' as any)
-        .select('*')
-        .eq('obra_id', obraQuery.data.id)
-        .order('data', { ascending: false })
-        .limit(30);
-      if (error) throw error;
-      return data as any[];
-    },
-    enabled: !!obraQuery.data?.id,
+    retry: 1,
   });
 
   // --- Loading ---
-  if (obraQuery.isLoading) {
+  if (portalQuery.isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
         <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
@@ -119,8 +73,29 @@ export function PortalCliente() {
     );
   }
 
+  // --- Erro de rede (distinto de "não encontrado") ---
+  if (portalQuery.isError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-center">
+        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
+          <Building2 className="w-10 h-10 text-muted-foreground" />
+        </div>
+        <h1 className="text-2xl font-bold mb-2">Não foi possível carregar o portal</h1>
+        <p className="text-muted-foreground max-w-md mb-6">
+          Verifique sua conexão e tente novamente.
+        </p>
+        <button
+          onClick={() => portalQuery.refetch()}
+          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
   // --- Not Found ---
-  if (!obraQuery.data) {
+  if (!portalQuery.data) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-center">
         <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
@@ -134,10 +109,11 @@ export function PortalCliente() {
     );
   }
 
-  const obra = obraQuery.data;
+  const portalData = portalQuery.data;
+  const obra = portalData.obra;
 
   // Group cronograma by fase
-  const fases = (cronogramaQuery.data || [])
+  const fases = ((portalData.cronograma as any[]) || [])
     .reduce((acc: any[], item: any) => {
       let fase = acc.find((f: any) => f.fase_id === item.fase_id);
       if (!fase) {
@@ -151,7 +127,7 @@ export function PortalCliente() {
 
   // Extract photos — handle both string URLs and {url, legenda} objects
   const allPhotos: PhotoItem[] = [];
-  (fotosQuery.data || []).forEach((entry: any) => {
+  ((portalData.fotos as any[]) || []).forEach((entry: any) => {
     const fotos = entry.fotos as any[];
     if (fotos && Array.isArray(fotos)) {
       fotos.forEach((foto: any) => {
@@ -185,7 +161,7 @@ export function PortalCliente() {
   const fasesConcluidas = fases.filter((f: any) => f.itens.every((i: any) => i.status === 'concluido')).length;
 
   // Branding
-  const branding = brandingQuery.data;
+  const branding = portalData.branding;
   const whatsappNumber = branding?.whatsapp?.replace(/\D/g, '') || '';
   const whatsappLink = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(DEFAULT_WHATSAPP_MESSAGE)}`

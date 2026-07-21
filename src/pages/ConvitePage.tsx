@@ -52,23 +52,18 @@ export function ConvitePage() {
 
   const validatePin = async (pinCode: string) => {
     try {
-      const { data: invite, error } = await supabase
-        .from('user_invites')
-        .select('id, expires_at')
-        .eq('pin_code', pinCode)
-        .is('used_by', null)
-        .maybeSingle();
+      // Validação server-side (RPC SECURITY DEFINER): não expõe a tabela
+      // de convites — retorna apenas { valid, expired }.
+      const { data, error } = await supabase.rpc('validate_invite' as any, { p_pin: pinCode });
+      const result = data as { valid: boolean; expired: boolean } | null;
 
-      if (error || !invite) {
+      if (error || !result || !result.valid) {
         setStep('error');
-        setErrorMessage(t('auth.invalidOrUsedPin', 'Este convite é inválido ou já foi utilizado.'));
-        return;
-      }
-
-      // Check expiration
-      if (new Date(invite.expires_at) < new Date()) {
-        setStep('error');
-        setErrorMessage(t('auth.inviteExpired', 'Este convite expirou. Solicite um novo convite ao administrador.'));
+        setErrorMessage(
+          result?.expired
+            ? t('auth.inviteExpired', 'Este convite expirou. Solicite um novo convite ao administrador.')
+            : t('auth.invalidOrUsedPin', 'Este convite é inválido ou já foi utilizado.')
+        );
         return;
       }
 

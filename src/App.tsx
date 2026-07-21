@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { PageTransition } from "@/components/PageTransition";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import { LandingPage } from "./pages/LandingPage";
 import { AuthPage } from "./pages/AuthPage";
 import { ConvitePage } from "./pages/ConvitePage";
@@ -64,7 +65,9 @@ const App = () => (
                 } />
                 <Route path="/admin" element={
                   <ProtectedRoute>
-                    <AdminPanel />
+                    <AdminRoute>
+                      <AdminPanel />
+                    </AdminRoute>
                   </ProtectedRoute>
                 } />
                 <Route path="/compras" element={

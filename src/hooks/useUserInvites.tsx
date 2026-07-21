@@ -112,53 +112,28 @@ export function useUserInvites(obraId: string) {
     },
   });
 
-  // Usar convite (usuário entra com PIN)
+  // Usar convite (usuário entra com PIN) — resgate server-side via RPC
   const useInvite = useMutation({
     mutationFn: async (pinCode: string) => {
       if (!user?.id) throw new Error('User not authenticated');
-      
-      // Buscar convite pelo PIN
-      const { data: invite, error: findError } = await supabase
-        .from('user_invites')
-        .select('*')
-        .eq('obra_id', obraId)
-        .eq('pin_code', pinCode)
-        .is('used_by', null)
-        .single();
-      
-      if (findError || !invite) {
-        throw new Error('PIN inválido ou já utilizado');
+
+      const { data, error } = await supabase.rpc('redeem_invite' as any, { p_pin: pinCode });
+      const result = data as { success: boolean; error?: string; obra_id?: string } | null;
+
+      if (error) throw error;
+      if (!result || !result.success) {
+        throw new Error(
+          result?.error === 'already_has_access'
+            ? 'Você já tem acesso a esta obra.'
+            : 'PIN inválido ou já utilizado'
+        );
       }
-      
-      // Marcar convite como usado
-      const { error: updateError } = await supabase
-        .from('user_invites')
-        .update({
-          used_by: user.id,
-          used_at: new Date().toISOString(),
-        })
-        .eq('id', invite.id);
-      
-      if (updateError) throw updateError;
-      
-      // Criar acesso à obra
-      const { data: access, error: accessError } = await supabase
-        .from('obra_access')
-        .insert({
-          obra_id: obraId,
-          user_id: user.id,
-          role: invite.role,
-          granted_by: invite.invited_by,
-        })
-        .select()
-        .single();
-      
-      if (accessError) throw accessError;
-      return access as ObraAccess;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-invites', obraId] });
       queryClient.invalidateQueries({ queryKey: ['obra-access', obraId] });
+      queryClient.invalidateQueries({ queryKey: ['obras'] });
     },
   });
 
