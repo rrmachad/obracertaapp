@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ import { useMedicoes, useAdiantamentos } from '@/hooks/useMedicoes';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useTranslation } from 'react-i18next';
-import { Calculator, ArrowRight, Check } from 'lucide-react';
+import { Calculator, ArrowRight, Check, ClipboardList } from 'lucide-react';
 
 interface NovaMedicaoDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ type Step = 'selecao' | 'calculo' | 'deducoes' | 'resultado';
 
 export function NovaMedicaoDialog({ open, onOpenChange, obraId, retencaoPercentual }: NovaMedicaoDialogProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { formatCurrency } = useCurrency();
   const { data: fases } = useFases(obraId);
   const { itens } = useCronogramaItens(obraId);
@@ -153,9 +155,22 @@ export function NovaMedicaoDialog({ open, onOpenChange, obraId, retencaoPercentu
             </div>
 
             {itensComValor.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground">
-                <p className="font-medium">{t('financial.noContractItems')}</p>
-                <p className="text-sm mt-1">{t('financial.defineContractFirst')}</p>
+              <div className="text-center py-6 space-y-4">
+                <div className="text-muted-foreground">
+                  <p className="font-medium">{t('financial.noContractItems')}</p>
+                  <p className="text-sm mt-1">{t('financial.defineContractFirst')}</p>
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    handleReset();
+                    onOpenChange(false);
+                    navigate(`/obra/${obraId}?tab=cronograma&destacar=sem-valor`);
+                  }}
+                >
+                  <ClipboardList className="w-4 h-4 mr-2" />
+                  {t('financial.goToScheduleValues')}
+                </Button>
               </div>
             ) : (
               <>
@@ -205,13 +220,15 @@ export function NovaMedicaoDialog({ open, onOpenChange, obraId, retencaoPercentu
               </>
             )}
 
-            <Button
-              className="w-full"
-              disabled={!selectedItem || !percAtual || percAtual <= percentualAnterior}
-              onClick={() => setStep('calculo')}
-            >
-              {t('financial.calculate')} <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            {itensComValor.length > 0 && (
+              <Button
+                className="w-full"
+                disabled={!selectedItem || !percAtual || percAtual <= percentualAnterior}
+                onClick={() => setStep('calculo')}
+              >
+                {t('financial.calculate')} <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            )}
           </div>
         )}
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Calendar, Package, ClipboardList, MoreVertical, Trash2, Pencil, Users, Home, ChevronRight, DollarSign, Share2, Eye, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,10 +30,25 @@ import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { ObraStatus } from '@/types/database';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
+const VALID_TABS = ['cronograma', 'financeiro', 'estoque', 'diario'];
+
 export function ObraDetails() {
   const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const destacarSemValor = searchParams.get('destacar') === 'sem-valor';
+  const [activeTab, setActiveTab] = useState(
+    tabParam && VALID_TABS.includes(tabParam) ? tabParam : 'cronograma'
+  );
+
+  // Deep-link: reage a mudanças do param mesmo com a página já montada
+  useEffect(() => {
+    if (tabParam && VALID_TABS.includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
   const { toast } = useToast();
   const { data: obra, isLoading, refetch } = useObra(id!);
   const { deleteObra, updateObra } = useObras();
@@ -229,7 +244,7 @@ export function ObraDetails() {
 
       {/* Tabs */}
       <main className="container pb-4">
-        <Tabs defaultValue="cronograma" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 h-14">
             <TabsTrigger value="cronograma" className="flex flex-col gap-0.5 h-full">
               <ClipboardList className="w-5 h-5" />
@@ -250,7 +265,7 @@ export function ObraDetails() {
           </TabsList>
 
           <TabsContent value="cronograma" className="mt-4">
-            <CronogramaTab obraId={obra.id} />
+            <CronogramaTab obraId={obra.id} destacarSemValor={destacarSemValor} />
           </TabsContent>
           <TabsContent value="financeiro" className="mt-4">
             {limits.canAccessFinanceiro ? (

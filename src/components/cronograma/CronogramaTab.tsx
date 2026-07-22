@@ -18,7 +18,12 @@ import { GerenciarFasesDialog } from './GerenciarFasesDialog';
 
 interface CronogramaTabProps {
   obraId: string;
+  /** Vindo do fluxo de medição: destaca itens sem valor de mão de obra definido */
+  destacarSemValor?: boolean;
 }
+
+const temValor = (item: CronogramaItem) =>
+  !!item.valor_contrato_mao_de_obra && Number(item.valor_contrato_mao_de_obra) > 0;
 
 const iconMap: Record<string, LucideIcon> = {
   Shovel,
@@ -29,7 +34,7 @@ const iconMap: Record<string, LucideIcon> = {
   Paintbrush,
 };
 
-export function CronogramaTab({ obraId }: CronogramaTabProps) {
+export function CronogramaTab({ obraId, destacarSemValor = false }: CronogramaTabProps) {
   const { data: fases, isLoading: fasesLoading } = useFases(obraId);
   const { itens, isLoading: itensLoading, updateItem, createItem } = useCronogramaItens(obraId);
   const { toast } = useToast();
@@ -158,8 +163,18 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
     );
   }
 
+  const fasesComItemSemValor = (fases ?? [])
+    .filter(f => getItensByFase(f.id).some(i => !temValor(i)))
+    .map(f => f.id);
+
   return (
     <div className="space-y-2">
+      {destacarSemValor && fasesComItemSemValor.length > 0 && (
+        <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 flex items-start gap-2">
+          <DollarSign className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+          <p className="text-sm">{t('schedule.highlightMissingValues')}</p>
+        </div>
+      )}
       <div className="flex justify-end mb-2">
         <Button variant="outline" size="sm" onClick={() => setGerenciarFasesOpen(true)}>
           <Settings2 className="w-4 h-4 mr-2" />
@@ -172,7 +187,7 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
         obraId={obraId}
         itens={itens}
       />
-      <Accordion type="multiple" className="space-y-2">
+      <Accordion type="multiple" className="space-y-2" defaultValue={destacarSemValor ? fasesComItemSemValor : undefined}>
         {fases?.map((fase) => {
           const progresso = calcularProgressoFase(fase.id);
           const itensFase = getItensByFase(fase.id);
@@ -232,8 +247,10 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                     <div 
                       key={item.id}
                       className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-                        item.status === 'concluido' 
-                          ? 'bg-success/10 border-success/30' 
+                        item.status === 'concluido'
+                          ? 'bg-success/10 border-success/30'
+                          : destacarSemValor && !temValor(item)
+                          ? 'bg-warning/5 border-warning ring-1 ring-warning/40 hover:bg-warning/10'
                           : 'bg-background hover:bg-muted/50'
                       }`}
                     >
@@ -245,9 +262,13 @@ export function CronogramaTab({ obraId }: CronogramaTabProps) {
                       <span className={`flex-1 ${item.status === 'concluido' ? 'line-through text-muted-foreground' : ''}`}>
                         {item.descricao}
                       </span>
-                      {item.valor_contrato_mao_de_obra && item.valor_contrato_mao_de_obra > 0 && (
+                      {temValor(item) ? (
                         <Badge variant="outline" className="text-xs text-primary border-primary/30">
                           {fmtCurrency(Number(item.valor_contrato_mao_de_obra))}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs text-warning border-warning/40">
+                          {t('schedule.noValueSet')}
                         </Badge>
                       )}
                       <Popover>

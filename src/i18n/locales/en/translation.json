@@ -39,6 +39,17 @@
     "guestWelcomeDesc": "You're connected as a guest. You can view projects, log daily reports and update inventory. Editing or deleting projects is reserved for the owner.",
     "guestWelcomeDismiss": "Got it"
   },
+  "activation": {
+    "title": "First steps",
+    "subtitle": "Follow the order below to reach your first Protected Billing.",
+    "progress": "{{done}} of 4 completed",
+    "step_obra": "Create your first project",
+    "step_valores": "Set the labor values in the schedule",
+    "step_diario": "Log your first Site Diary",
+    "step_medicao": "Make your first Protected Billing",
+    "completedTitle": "All set. Your job site is under control.",
+    "completedDesc": "You've completed the first steps. Keep logging the diary and billing to keep payments protected."
+  },
   "obra": {
     "notFound": "Project not found",
     "backToHome": "Back to home",
@@ -345,7 +356,9 @@
     "manageSubscription": "Manage Subscription"
   },
   "obraCard": {
-    "createdAt": "Created on"
+    "createdAt": "Created on",
+    "launchDiaryToday": "Log today's diary",
+    "diaryTodayDone": "Today's diary logged"
   },
   "purchases": {
     "title": "Purchasing Module",
@@ -728,6 +741,8 @@
     "completed": "completed",
     "phaseValue": "Phase Value:",
     "notDefined": "Not defined",
+    "noValueSet": "no value set",
+    "highlightMissingValues": "The highlighted stages don't have a labor value yet. Tap the dollar sign ($) next to each stage to set the value and unlock billing.",
     "setTotal": "Set Total",
     "totalPhaseValue": "Total Phase Value",
     "distributionMode": "Distribution mode",
@@ -937,7 +952,8 @@
     "stepResult": "Result",
     "billingDate": "Billing Date",
     "noContractItems": "No items with defined contract value.",
-    "defineContractFirst": "Define the labor value in the schedule items first.",
+    "defineContractFirst": "To calculate how much to pay, the app needs to know what each stage is worth. Set the labor value of the stages in the Schedule and come back here.",
+    "goToScheduleValues": "Set values in the Schedule",
     "scheduleItem": "Task / Schedule Item",
     "selectItem": "Select item",
     "contractValueLabel": "Contract Value:",

@@ -51,6 +51,37 @@ function parseEquipamentos(json: Json | null | undefined): Equipamento[] {
   );
 }
 
+/**
+ * Busca em batch quais obras já têm diário lançado hoje,
+ * retornando um mapa obra_id -> true. Usado nas ações rápidas do dashboard.
+ */
+export function useDiariosHoje(obraIds: string[]) {
+  const hoje = format(new Date(), 'yyyy-MM-dd');
+
+  return useQuery({
+    queryKey: ['diarios-hoje', hoje, obraIds],
+    queryFn: async () => {
+      if (!obraIds.length) return {} as Record<string, boolean>;
+
+      const { data, error } = await supabase
+        .from('diario_log')
+        .select('obra_id')
+        .eq('data', hoje)
+        .in('obra_id', obraIds);
+
+      if (error) throw error;
+
+      const lancados: Record<string, boolean> = {};
+      (data ?? []).forEach((d) => {
+        lancados[d.obra_id] = true;
+      });
+      return lancados;
+    },
+    enabled: obraIds.length > 0,
+    staleTime: 60_000,
+  });
+}
+
 export function useDiario(obraId: string) {
   const queryClient = useQueryClient();
 

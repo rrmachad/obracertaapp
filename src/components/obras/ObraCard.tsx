@@ -1,17 +1,19 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Calendar, ChevronRight, AlertTriangle } from 'lucide-react';
+import { MapPin, Calendar, ChevronRight, AlertTriangle, NotebookPen, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Obra, ObraStatus } from '@/types/database';
 
 interface ObraCardProps {
   obra: Obra;
   lowStockCount?: number;
+  diarioHojeLancado?: boolean;
 }
 
-export function ObraCard({ obra, lowStockCount = 0 }: ObraCardProps) {
+export function ObraCard({ obra, lowStockCount = 0, diarioHojeLancado = false }: ObraCardProps) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
@@ -84,6 +86,29 @@ export function ObraCard({ obra, lowStockCount = 0 }: ObraCardProps) {
               </Badge>
             )}
           </div>
+
+          {/* Ação rápida: diário de hoje */}
+          <Button
+            variant={diarioHojeLancado ? 'ghost' : 'outline'}
+            size="sm"
+            className={`w-full ${diarioHojeLancado ? 'text-success hover:text-success' : 'border-primary/40 text-primary hover:bg-primary/5 hover:text-primary'}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/obra/${obra.id}?tab=diario`);
+            }}
+          >
+            {diarioHojeLancado ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                {t('obraCard.diaryTodayDone')}
+              </>
+            ) : (
+              <>
+                <NotebookPen className="w-4 h-4 mr-2" />
+                {t('obraCard.launchDiaryToday')}
+              </>
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>

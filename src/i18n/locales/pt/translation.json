@@ -39,6 +39,17 @@
     "guestWelcomeDesc": "Você está conectado como convidado. Pode visualizar as obras, registrar diários e atualizar o estoque. Edições na obra e exclusões são reservadas ao proprietário.",
     "guestWelcomeDismiss": "Entendi"
   },
+  "activation": {
+    "title": "Primeiros passos",
+    "subtitle": "Siga a ordem abaixo para chegar à sua primeira Medição Blindada.",
+    "progress": "{{done}} de 4 concluídos",
+    "step_obra": "Criar sua primeira obra",
+    "step_valores": "Definir os valores de mão de obra no cronograma",
+    "step_diario": "Lançar seu primeiro Diário de Obra",
+    "step_medicao": "Fazer sua primeira Medição Blindada",
+    "completedTitle": "Tudo pronto. Seu canteiro está sob controle.",
+    "completedDesc": "Você concluiu os primeiros passos. Continue lançando o diário e medindo para manter os pagamentos protegidos."
+  },
   "obra": {
     "notFound": "Obra não encontrada",
     "backToHome": "Voltar ao início",
@@ -345,7 +356,9 @@
     "manageSubscription": "Gerenciar Assinatura"
   },
   "obraCard": {
-    "createdAt": "Criada em"
+    "createdAt": "Criada em",
+    "launchDiaryToday": "Lançar diário de hoje",
+    "diaryTodayDone": "Diário de hoje lançado"
   },
   "purchases": {
     "title": "Módulo de Compras",
@@ -728,6 +741,8 @@
     "completed": "concluído",
     "phaseValue": "Valor da Fase:",
     "notDefined": "Não definido",
+    "noValueSet": "sem valor definido",
+    "highlightMissingValues": "As etapas destacadas ainda não têm valor de mão de obra. Toque no cifrão ($) ao lado de cada etapa para definir o valor e liberar a medição.",
     "setTotal": "Definir Total",
     "totalPhaseValue": "Valor Total da Fase",
     "distributionMode": "Modo de distribuição",
@@ -937,7 +952,8 @@
     "stepResult": "Resultado",
     "billingDate": "Data da Medição",
     "noContractItems": "Nenhum item com valor de contrato definido.",
-    "defineContractFirst": "Defina o valor de mão de obra nos itens do cronograma primeiro.",
+    "defineContractFirst": "Para calcular quanto pagar, o app precisa saber quanto vale cada etapa. Defina o valor de mão de obra das etapas no Cronograma e volte aqui.",
+    "goToScheduleValues": "Definir valores no Cronograma",
     "scheduleItem": "Tarefa / Item do Cronograma",
     "selectItem": "Selecione o item",
     "contractValueLabel": "Valor do Contrato:",

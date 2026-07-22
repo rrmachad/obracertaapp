@@ -9,6 +9,7 @@ import { ObraCard } from '@/components/obras/ObraCard';
 import { NovaObraDialog } from '@/components/obras/NovaObraDialog';
 import { UpgradePlanoDialog } from '@/components/admin/UpgradePlanoDialog';
 import { TrialBanner } from '@/components/TrialBanner';
+import { ActivationChecklist } from '@/components/ActivationChecklist';
 import { EntrarComPinDialog } from '@/components/admin/EntrarComPinDialog';
 import { PlanoResumoCard } from '@/components/admin/PlanoResumoCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -20,6 +21,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useEstoqueAlertas } from '@/hooks/useEstoqueAlertas';
+import { useDiariosHoje } from '@/hooks/useDiario';
 import { useToast } from '@/hooks/use-toast';
 
 export function Dashboard() {
@@ -30,6 +32,7 @@ export function Dashboard() {
   const { planName, plan } = useSubscription(isInvitedUser ? ownerUserId : undefined);
   const { limits } = usePlanLimits();
   const { data: estoqueAlertas = {} } = useEstoqueAlertas(obras.map(o => o.id));
+  const { data: diariosHoje = {} } = useDiariosHoje(obras.map(o => o.id));
   const totalAlertas = Object.values(estoqueAlertas).reduce((acc, n) => acc + n, 0);
   const { toast } = useToast();
 
@@ -185,6 +188,9 @@ export function Dashboard() {
       <TrialBanner skip={isInvitedUser} />
 
       <main className="container py-4 pb-24">
+        {/* Checklist de ativação (apenas donos de conta) */}
+        <ActivationChecklist skip={isInvitedUser} onNovaObra={() => setDialogOpen(true)} />
+
         {/* Card de resumo do plano */}
         <PlanoResumoCard onUpgradeClick={() => setUpgradeDialogOpen(true)} ownerUserId={isInvitedUser ? ownerUserId : undefined} isInvitedUser={isInvitedUser} />
 
@@ -248,7 +254,7 @@ export function Dashboard() {
         ) : (
           <div className="grid gap-4">
             {filteredObras.map((obra) => (
-              <ObraCard key={obra.id} obra={obra} lowStockCount={estoqueAlertas[obra.id] ?? 0} />
+              <ObraCard key={obra.id} obra={obra} lowStockCount={estoqueAlertas[obra.id] ?? 0} diarioHojeLancado={diariosHoje[obra.id] ?? false} />
             ))}
           </div>
         )}
